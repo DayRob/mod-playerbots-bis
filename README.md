@@ -71,6 +71,13 @@ Les deux valeurs délèguent d'abord à celles d'origine, puis ne restreignent l
 que pour les armes et armures. Tout le reste — quêtes, munitions, consommables, décisions
 de vente, d'hôtel des ventes et de désenchantement — passe inchangé.
 
+Un bot revendique son BiS **quel que soit son niveau**. Le cœur refuse d'équiper une
+pièce niveau 60 à un personnage niveau 57 (`EQUIP_ERR_CANT_EQUIP_LEVEL_I`), mais c'est un
+obstacle *temporaire* : le module le distingue de la classe, la race, la faction et la
+maîtrise d'arme, qui eux disqualifient définitivement. Un bot trop jeune annonce donc la
+pièce en précisant le niveau qui lui manque, la garde en sac, et l'équipera en
+grandissant. `PlayerbotsBis.ClaimBelowRequiredLevel = 0` rétablit l'exigence de niveau.
+
 Ce verdict est consulté par mod-playerbots à **neuf endroits** : le roll de butin, le
 ramassage, le choix d'une récompense de quête, l'échange, l'achat, la vente, la
 comparaison interne sac / équipé, et l'interrogation directe. Le module n'a donc pas

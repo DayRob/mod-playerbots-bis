@@ -61,12 +61,26 @@ namespace
         }
 
         // ── Branch 1 ──────────────────────────────────────────────────────────
-        // Wanting an item the bot cannot physically wear would make it roll on
-        // something it can never equip, so the class/race/skill/level gate is
+        // Wanting an item the bot can NEVER wear would make it roll on something
+        // it can never equip, so the class / race / faction / proficiency gate is
         // re-checked here: the forced verdict below bypasses the one playerbots
         // applies upstream.
-        if (bot->BotCanUseItem(proto) != EQUIP_ERR_OK)
-            return base;
+        //
+        // A missing LEVEL is deliberately not treated the same way. It is a
+        // temporary obstacle that disappears as the bot grows, and lumping it in
+        // with the permanent ones made a level 57 bot stay silent in front of its
+        // own level 60 best in slot and let the piece go.
+        bool tooLowLevel = false;
+        {
+            InventoryResult const canUse = bot->BotCanUseItem(proto);
+            if (canUse != EQUIP_ERR_OK)
+            {
+                if (canUse != EQUIP_ERR_CANT_EQUIP_LEVEL_I || !sBisPriorityMgr->ClaimBelowRequiredLevel())
+                    return base;
+
+                tooLowLevel = true;
+            }
+        }
 
         uint8 targetSlot = slot;
         uint32 const wornPriority = sBisPriorityMgr->GetWornPriorityPaired(bot, slot, &targetSlot);
@@ -82,6 +96,8 @@ namespace
             out << "|cff1eff00" << proto->Name1 << "|r - c'est mon BiS";
             if (!tierName.empty())
                 out << " (" << tierName << ")";
+            if (tooLowLevel)
+                out << " - je le garde, il me faut le niveau " << uint32(proto->RequiredLevel);
             botAI->TellMaster(out.str());
         }
 

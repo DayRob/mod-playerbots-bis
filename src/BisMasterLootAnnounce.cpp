@@ -93,7 +93,8 @@ public:
             for (uint32 const itemId : itemIds)
             {
                 uint16 tierId = 0;
-                if (!sBisPriorityMgr->WantsAsUpgrade(bot, itemId, &tierId))
+                bool tooLowLevel = false;
+                if (!sBisPriorityMgr->WantsAsUpgrade(bot, itemId, &tierId, &tooLowLevel))
                     continue;
 
                 ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemId);
@@ -108,6 +109,11 @@ public:
                 std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
                 if (!tierName.empty())
                     wanted << " (" << tierName << ")";
+
+                // Say so plainly rather than let the master hand over a piece the
+                // bot cannot wear yet without knowing it.
+                if (tooLowLevel)
+                    wanted << " [niveau " << uint32(proto->RequiredLevel) << " requis]";
 
                 ++count;
             }

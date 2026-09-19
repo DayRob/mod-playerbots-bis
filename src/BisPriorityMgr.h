@@ -90,12 +90,20 @@ public:
     uint32 GetWornPriorityPaired(Player* bot, uint8 slot, uint8* outTargetSlot = nullptr);
 
     // The full "this is my best in slot and I want it" test: on the bot's list,
-    // within its tier cap, physically wearable, and better than what it wears.
-    // Shared by the item-usage layer and the master-loot announcer so the two
-    // can never disagree about what a bot considers its BiS.
-    bool WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId = nullptr);
+    // within its tier cap, wearable by its class and race, and better than what
+    // it wears. Shared by the item-usage layer and the master-loot announcer so
+    // the two can never disagree about what a bot considers its BiS.
+    //
+    // outTooLowLevel is set when the only thing standing in the way is the item's
+    // required level. That is a TEMPORARY obstacle - a level 57 bot still wants
+    // its level 60 best in slot and will grow into it - so it does not
+    // disqualify the claim, unlike class, race, faction or proficiency, which
+    // never change.
+    bool WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId = nullptr,
+                        bool* outTooLowLevel = nullptr);
 
     bool AnnounceMasterLoot() const { return _announceMasterLoot; }
+    bool ClaimBelowRequiredLevel() const { return _claimBelowRequiredLevel; }
 
     // Highest tier this bot may pursue: the configured cap, optionally narrowed
     // by the bot's mod-individual-progression state.
@@ -149,6 +157,7 @@ private:
     bool _leaveOtherSpecsBis = true;
     bool _announceOwnBis = true;
     bool _announceMasterLoot = true;
+    bool _claimBelowRequiredLevel = true;
     uint16 _maxTier = 0;
     bool _useIndividualProgression = false;
     uint32 _progressionCacheSeconds = 300;

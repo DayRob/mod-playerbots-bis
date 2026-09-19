@@ -56,6 +56,7 @@ void BisPriorityMgr::LoadConfig()
     _leaveOtherSpecsBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.LeaveOtherSpecsBis", true);
     _announceOwnBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.AnnounceOwnBis", true);
     _announceMasterLoot = sConfigMgr->GetOption<bool>("PlayerbotsBis.AnnounceMasterLoot", true);
+    _claimBelowRequiredLevel = sConfigMgr->GetOption<bool>("PlayerbotsBis.ClaimBelowRequiredLevel", true);
     _maxTier = static_cast<uint16>(sConfigMgr->GetOption<uint32>("PlayerbotsBis.MaxTier", 0));
     _useIndividualProgression = sConfigMgr->GetOption<bool>("PlayerbotsBis.UseIndividualProgression", false);
     _progressionCacheSeconds = sConfigMgr->GetOption<uint32>("PlayerbotsBis.ProgressionCacheSeconds", 300);
@@ -354,8 +355,11 @@ uint32 BisPriorityMgr::GetWornPriorityPaired(Player* bot, uint8 slot, uint8* out
     return worn;
 }
 
-bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId)
+bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId, bool* outTooLowLevel)
 {
+    if (outTooLowLevel)
+        *outTooLowLevel = false;
+
     if (!AppliesTo(bot))
         return false;
 
@@ -372,10 +376,22 @@ bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierI
     if (!priority)
         return false;
 
-    // Claiming something the bot cannot physically wear would have it ask for an
-    // item it can never equip, so the class/race/skill gate is checked here too.
-    if (bot->BotCanUseItem(proto) != EQUIP_ERR_OK)
-        return false;
+    // Claiming something the bot can NEVER wear would have it ask for an item it
+    // can never equip, so the class / race / faction / proficiency gate applies.
+    //
+    // A missing level is a different matter: Player::CanUseItem returns
+    // EQUIP_ERR_CANT_EQUIP_LEVEL_I for it, and that obstacle disappears on its
+    // own as the bot levels. Treating it like the others made a level 57 bot
+    // stay silent in front of its own level 60 best in slot and let it go.
+    InventoryResult const canUse = bot->BotCanUseItem(proto);
+    if (canUse != EQUIP_ERR_OK)
+    {
+        if (canUse != EQUIP_ERR_CANT_EQUIP_LEVEL_I || !_claimBelowRequiredLevel)
+            return false;
+
+        if (outTooLowLevel)
+            *outTooLowLevel = true;
+    }
 
     if (priority <= GetWornPriorityPaired(bot, slot))
         return false;  // already wearing this piece, or something better

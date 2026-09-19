@@ -51,6 +51,22 @@ PlayerbotsBis.AnnounceOwnBis = 1
 # Defaut : 1 (active)
 PlayerbotsBis.AnnounceMasterLoot = 1
 
+# Un bot revendique son BiS meme s'il n'a pas encore le niveau requis.
+#
+# Le coeur refuse d'equiper un objet niveau 60 a un personnage niveau 57
+# (EQUIP_ERR_CANT_EQUIP_LEVEL_I). Sans cette option, un bot niveau 57 restait
+# donc muet devant son propre BiS et le laissait filer, alors qu'il l'aurait
+# porte quelques heures plus tard.
+#
+# Le manque de niveau est un obstacle TEMPORAIRE, contrairement a la classe, la
+# race, la faction ou la maitrise d'arme, qui eux disqualifient toujours.
+# Le bot annonce alors la piece en precisant le niveau qui lui manque, la garde
+# en sac, et l'equipera en grandissant.
+#
+# A 0, il faut avoir le niveau pour revendiquer.
+# Defaut : 1 (active)
+PlayerbotsBis.ClaimBelowRequiredLevel = 1
+
 # Note : il n'y a PAS de niveau minimum. La couche BiS s'ajoute a la logique
 # d'origine de mod-playerbots au lieu de la remplacer, donc un bot de niveau 20
 # continue de s'equiper normalement ; il reconnait simplement son BiS quand il en
