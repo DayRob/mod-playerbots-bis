@@ -15,7 +15,7 @@
 -- Source : guides Best-in-Slot Pre-Raid de Wowhead Classic.
 -- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1), Paladin Sacre (2/0),
 -- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
--- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2)
+-- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10)
 -- contre item_template sur un serveur AzerothCore reel.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed`;
@@ -971,6 +971,119 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (7, 2, 16, 0, 3, 'Milli''s Lexicon'),
 (7, 2, 17, 0, 1, 'Totem of Sustaining'),
 (7, 2, 17, 0, 3, 'Totem of Rebirth');
+
+-- =====================================================================
+-- Druide Ours (classe 11, spe 10) - tank.
+--
+-- La spe 10 est la SENTINELLE du module, pas un vrai onglet de talents :
+-- Farouche couvre le chat et l'ours sous le meme arbre (tab 1), et
+-- ResolveSpec() bascule sur 10 quand PlayerbotAI::IsTank(bot) est vrai.
+--
+-- --- Objets a suffixe aleatoire ---
+-- Le guide nomme des variantes ("Atal'ai Spaulders of the Bear", "Slaghide
+-- Gauntlets of the Bear", "Abyssal Leather Leggings of Striking"...). Dans
+-- item_template ces objets n'ont QU'UNE entree, portant le nom de base ; le
+-- suffixe est tire au sort a la chute. On importe donc le nom de base, et les
+-- trois variantes de Slaghide Gauntlets ou d'Atal'ai Spaulders se confondent
+-- en une seule ligne. Le bot ne sait pas distinguer "of the Bear" de "of the
+-- Monkey" : c'est une limite assumee, pas un oubli.
+--
+-- --- Manual Crowd Pummeler ---
+-- Le guide en fait le BiS absolu, et il a raison pour un joueur. Mais c'est une
+-- arme a CHARGES LIMITEES qui se detruit une fois epuisee. Un bot ne sait ni
+-- la remplacer ni en farmer d'autres : il la porterait jusqu'a la perdre, puis
+-- se retrouverait les mains vides. Elle est donc en rang 3, et Unyielding Maul
+-- - que le guide donne comme meilleure arme permanente - prend le rang 1.
+--
+-- Emplacement 16 volontairement vide : l'ours tank a deux mains.
+-- Les recompenses de rang PvP sont exclues, conformement au guide lui-meme.
+--
+-- Rangs : BiS -> 1, "Best ... swap" -> 2, Alternative -> 3.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(11, 10,  0, 0, 1, 'Mask of the Unforgiven'),
+(11, 10,  0, 0, 3, 'Wolfshead Helm'),
+(11, 10,  0, 0, 3, 'Shadowcraft Cap'),
+(11, 10,  0, 0, 3, 'Tattered Leather Hood'),
+(11, 10,  0, 0, 3, 'Eye of Rend'),
+(11, 10,  1, 0, 1, 'Beads of Ogre Might'),
+(11, 10,  1, 0, 3, 'Pendant of Celerity'),
+(11, 10,  1, 0, 3, 'Will of the Martyr'),
+(11, 10,  1, 0, 3, 'Mark of Fordring'),
+(11, 10,  2, 0, 1, 'Truestrike Shoulders'),
+(11, 10,  2, 0, 1, 'Atal''ai Spaulders'),
+(11, 10,  2, 0, 3, 'Flamescarred Shoulders'),
+(11, 10,  4, 0, 1, 'Breastplate of Bloodthirst'),
+(11, 10,  4, 0, 3, 'Tombstone Breastplate'),
+(11, 10,  4, 0, 3, 'Feralheart Vest'),
+(11, 10,  4, 0, 3, 'Mixologist''s Tunic'),
+(11, 10,  4, 0, 3, 'Cadaverous Armor'),
+(11, 10,  4, 0, 3, 'Warbear Harness'),
+(11, 10,  5, 0, 1, 'Cloudrunner Girdle'),
+(11, 10,  5, 0, 3, 'Serpentine Sash'),
+(11, 10,  5, 0, 3, 'Frostbite Girdle'),
+(11, 10,  5, 0, 3, 'Girdle of Beastial Fury'),
+(11, 10,  5, 0, 3, 'Mugger''s Belt'),
+(11, 10,  5, 0, 3, 'Cadaverous Belt'),
+(11, 10,  6, 0, 1, 'Abyssal Leather Leggings'),
+(11, 10,  6, 0, 1, 'Devilsaur Leggings'),
+(11, 10,  6, 0, 3, 'Plaguehound Leggings'),
+(11, 10,  6, 0, 3, 'Cadaverous Leggings'),
+(11, 10,  6, 0, 3, 'Shadowcraft Pants'),
+(11, 10,  7, 0, 1, 'Boots of Ferocity'),
+(11, 10,  7, 0, 3, 'Pads of the Dread Wolf'),
+(11, 10,  7, 0, 3, 'Cadaverous Walkers'),
+(11, 10,  7, 0, 3, 'Feralheart Boots'),
+(11, 10,  7, 0, 3, 'Shadefiend Boots'),
+(11, 10,  8, 0, 1, 'Blackmist Armguards'),
+(11, 10,  8, 0, 3, 'Bracers of the Eclipse'),
+(11, 10,  8, 0, 3, 'Wristguards of Renown'),
+(11, 10,  8, 0, 3, 'Malefic Bracers'),
+(11, 10,  8, 0, 3, 'Cinderhide Armsplints'),
+(11, 10,  9, 0, 1, 'Devilsaur Gauntlets'),
+(11, 10,  9, 0, 2, 'Slaghide Gauntlets'),
+(11, 10,  9, 0, 3, 'Gargoyle Slashers'),
+(11, 10, 10, 0, 1, 'Myrmidon''s Signet'),
+(11, 10, 11, 0, 1, 'Myrmidon''s Signet'),
+(11, 10, 10, 0, 1, 'Blackstone Ring'),
+(11, 10, 11, 0, 1, 'Blackstone Ring'),
+(11, 10, 10, 2, 2, 'Thrall''s Resolve'),
+(11, 10, 11, 2, 2, 'Thrall''s Resolve'),
+(11, 10, 10, 0, 2, 'Ring of Protection'),
+(11, 10, 11, 0, 2, 'Ring of Protection'),
+(11, 10, 10, 0, 3, 'Band of the Ogre King'),
+(11, 10, 11, 0, 3, 'Band of the Ogre King'),
+(11, 10, 10, 0, 3, 'Tarnished Elven Ring'),
+(11, 10, 11, 0, 3, 'Tarnished Elven Ring'),
+(11, 10, 10, 0, 3, 'Archaedic Stone'),
+(11, 10, 11, 0, 3, 'Archaedic Stone'),
+(11, 10, 10, 0, 3, 'Painweaver Band'),
+(11, 10, 11, 0, 3, 'Painweaver Band'),
+(11, 10, 12, 0, 1, 'Gnomish Battle Chicken'),
+(11, 10, 13, 0, 1, 'Gnomish Battle Chicken'),
+(11, 10, 12, 0, 1, 'Blackhand''s Breadth'),
+(11, 10, 13, 0, 1, 'Blackhand''s Breadth'),
+(11, 10, 12, 0, 1, 'Mark of Tyranny'),
+(11, 10, 13, 0, 1, 'Mark of Tyranny'),
+(11, 10, 12, 0, 2, 'Mark of the Chosen'),
+(11, 10, 13, 0, 2, 'Mark of the Chosen'),
+(11, 10, 12, 0, 2, 'Smoking Heart of the Mountain'),
+(11, 10, 13, 0, 2, 'Smoking Heart of the Mountain'),
+(11, 10, 12, 2, 2, 'Rune of the Guard Captain'),
+(11, 10, 13, 2, 2, 'Rune of the Guard Captain'),
+(11, 10, 12, 0, 3, 'Glimmering Mithril Insignia'),
+(11, 10, 13, 0, 3, 'Glimmering Mithril Insignia'),
+(11, 10, 14, 0, 1, 'Phantasmal Cloak'),
+(11, 10, 14, 0, 3, 'Stoneskin Gargoyle Cape'),
+(11, 10, 14, 0, 3, 'Stoneshield Cloak'),
+(11, 10, 14, 0, 3, 'Shroud of Domination'),
+(11, 10, 14, 0, 3, 'Cloak of Warding'),
+(11, 10, 15, 0, 1, 'Unyielding Maul'),
+(11, 10, 15, 0, 3, 'Manual Crowd Pummeler'),
+(11, 10, 15, 0, 3, 'Impervious Giant'),
+(11, 10, 15, 0, 3, 'Fist of Omokk'),
+(11, 10, 15, 0, 3, 'Bonecrusher'),
+(11, 10, 17, 0, 1, 'Idol of Brutality');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.
