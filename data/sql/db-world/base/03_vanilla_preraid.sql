@@ -15,7 +15,7 @@
 -- Source : guides Best-in-Slot Pre-Raid de Wowhead Classic.
 -- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1), Paladin Sacre (2/0),
 -- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
--- Chaman Elementaire (7/0)
+-- Chaman Elementaire (7/0), Chaman Amelioration (7/1)
 -- contre item_template sur un serveur AzerothCore reel.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed`;
@@ -808,6 +808,82 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (7, 0, 16, 0, 3, 'Gizlock''s Hypertech Buckler'),
 (7, 0, 17, 0, 1, 'Totem of the Storm'),
 (7, 0, 17, 0, 3, 'Totem of Rebirth');
+
+-- =====================================================================
+-- Chaman Amelioration (classe 7, spe 1) - degats en melee.
+--
+-- Le guide monte le set Black Dragonscale (epaules, jambes, bottes) pour ses
+-- bonus de panoplie, d'ou leur rang 1 malgre des statistiques individuelles
+-- inferieures a Devilsaur ou Bloodmail. Les pieces concurrentes sont donc
+-- listees en rang 1 elles aussi : le bot prendra ce qu'il trouve en premier,
+-- faute de savoir raisonner en panoplies.
+--
+-- Emplacement 15 : le guide melange une arme a une main (Annihilator) et des
+-- deux-mains (Nightfall et les alternatives). Les deux vivent au meme
+-- emplacement ; le coeur empeche de toute facon de porter une main gauche avec
+-- une deux-mains, donc le bouclier en 16 ne sert qu'avec Annihilator.
+--
+-- Rangs : Best -> 1, Optional -> 3.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(7, 1,  0, 0, 1, 'Crown of Tyranny'),
+(7, 1,  0, 0, 3, 'Eye of Rend'),
+(7, 1,  0, 0, 3, 'Backwood Helm'),
+(7, 1,  1, 0, 1, 'Mark of Fordring'),
+(7, 1,  1, 0, 3, 'Imperial Jewel'),
+(7, 1,  1, 0, 3, 'Will of the Martyr'),
+(7, 1,  2, 0, 1, 'Black Dragonscale Shoulders'),
+(7, 1,  2, 0, 3, 'Truestrike Shoulders'),
+(7, 1,  2, 0, 3, 'Wyrmhide Spaulders'),
+(7, 1,  4, 0, 1, 'Savage Gladiator Chain'),
+(7, 1,  4, 0, 3, 'Black Dragonscale Breastplate'),
+(7, 1,  4, 0, 3, 'Cadaverous Armor'),
+(7, 1,  5, 0, 1, 'Cloudrunner Girdle'),
+(7, 1,  5, 0, 3, 'Bloodmail Belt'),
+(7, 1,  5, 0, 3, 'Warpwood Binding'),
+(7, 1,  6, 0, 1, 'Black Dragonscale Leggings'),
+(7, 1,  6, 0, 1, 'Devilsaur Leggings'),
+(7, 1,  6, 0, 3, 'Warbear Woolies'),
+(7, 1,  7, 0, 1, 'Black Dragonscale Boots'),
+(7, 1,  7, 0, 1, 'Bloodmail Boots'),
+(7, 1,  7, 0, 3, 'Windreaver Greaves'),
+(7, 1,  8, 0, 1, 'Bracers of the Eclipse'),
+(7, 1,  8, 0, 3, 'Blackmist Armguards'),
+(7, 1,  8, 0, 3, 'Lordly Armguards'),
+(7, 1,  8, 0, 3, 'Slashclaw Bracers'),
+(7, 1,  9, 0, 1, 'Chromatic Gauntlets'),
+(7, 1,  9, 0, 1, 'Devilsaur Gauntlets'),
+(7, 1,  9, 0, 3, 'Voone''s Vice Grips'),
+(7, 1, 10, 0, 1, 'Tarnished Elven Ring'),
+(7, 1, 11, 0, 1, 'Tarnished Elven Ring'),
+(7, 1, 10, 0, 1, 'Blackstone Ring'),
+(7, 1, 11, 0, 1, 'Blackstone Ring'),
+(7, 1, 10, 0, 1, 'Painweaver Band'),
+(7, 1, 11, 0, 1, 'Painweaver Band'),
+(7, 1, 10, 0, 3, 'Band of the Ogre King'),
+(7, 1, 11, 0, 3, 'Band of the Ogre King'),
+(7, 1, 10, 0, 3, 'Myrmidon''s Signet'),
+(7, 1, 11, 0, 3, 'Myrmidon''s Signet'),
+(7, 1, 12, 0, 1, 'Blackhand''s Breadth'),
+(7, 1, 13, 0, 1, 'Blackhand''s Breadth'),
+(7, 1, 12, 0, 1, 'Hand of Justice'),
+(7, 1, 13, 0, 1, 'Hand of Justice'),
+(7, 1, 12, 2, 3, 'Rune of the Guard Captain'),
+(7, 1, 13, 2, 3, 'Rune of the Guard Captain'),
+(7, 1, 14, 0, 1, 'Cape of the Black Baron'),
+(7, 1, 14, 0, 3, 'Shroud of Domination'),
+(7, 1, 14, 0, 3, 'Blackveil Cape'),
+(7, 1, 15, 0, 1, 'Annihilator'),
+(7, 1, 15, 0, 1, 'Nightfall'),
+(7, 1, 15, 0, 3, 'The Unstoppable Force'),
+(7, 1, 15, 0, 3, 'Treant''s Bane'),
+(7, 1, 15, 0, 3, 'Crystal Spiked Maul'),
+(7, 1, 15, 0, 3, 'Arcanite Reaper'),
+(7, 1, 15, 0, 3, 'Slavedriver''s Cane'),
+(7, 1, 16, 0, 1, 'Draconian Aegis of the Legion'),
+(7, 1, 16, 0, 3, 'Gizlock''s Hypertech Buckler'),
+(7, 1, 17, 0, 1, 'Totem of Rage'),
+(7, 1, 17, 0, 3, 'Totem of Rebirth');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.
