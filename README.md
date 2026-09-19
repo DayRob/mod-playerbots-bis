@@ -166,8 +166,7 @@ connues :
 - Paliers vides : Zul'Gurub (40), AQ20 (50), WotLK Pre-Raid (130), Ruby Sanctum (180).
 - Paliers partiels : les trois derniers paliers TBC (100, 110, 120) ne couvrent que 15 à
   16 combinaisons classe/spé, contre 23 à 24 pour les paliers TBC précédents.
-- Palier 10 (Vanilla Pre-Raid) : 21 combinaisons sur 28. Manquent Paladin Protection et
-  Vindicte, les trois chamans, Druide Restauration et Druide Ours.
+- Palier 10 (Vanilla Pre-Raid) : **complet**, 28 combinaisons sur 28, 1238 lignes.
 - Listes minces au palier 10 : Guerrier Protection et Druide Farouche n'ont que 8 lignes,
   soit moins de la moitié des emplacements. Les listes issues de wowsims en comptent 17,
   soit un objet par emplacement sans aucune alternative. Une liste complète en fait 48 à 57.

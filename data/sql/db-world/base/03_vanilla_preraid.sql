@@ -14,7 +14,7 @@
 --
 -- Source : guides Best-in-Slot Pre-Raid de Wowhead Classic.
 -- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1),
--- Paladin Sacre (2/0), Paladin Protection (2/1),
+-- Paladin Sacre (2/0), Paladin Protection (2/1), Paladin Vindicte (2/2),
 -- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
 -- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10), Druide Restauration (11/2)
 -- contre item_template sur un serveur AzerothCore reel.
@@ -1291,6 +1291,107 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (2, 1, 16, 0, 2, 'Barrier Shield'),
 (2, 1, 16, 0, 3, 'Argent Defender'),
 (2, 1, 16, 0, 3, 'Troll Protector');
+
+-- =====================================================================
+-- Paladin Vindicte (classe 2, spe 2) - degats en melee.
+--
+-- CAS PARTICULIER : huit emplacements ont pour BiS de l'equipement de
+-- reputation de champ de bataille (League of Arathor, Silverwing Sentinels,
+-- Stormpike Guard - tous exaltes). Un bot n'atteindra pas ces reputations.
+-- Tous ces objets sont donc descendus en RANG 3, et la meilleure alternative
+-- non-PvP est REMONTEE en rang 1 :
+--   dos      : Cloak of the Honor Guard    -> Cape of the Black Baron
+--   poignets : Berserker Bracers           -> Battleborn Armbraces
+--   jambes   : Sentinel's Plate Legguards  -> Devilsaur Leggings
+--   arme     : The Unstoppable Force       -> Arcanite Reaper
+--   anneau   : Don Julio's Band            -> Blackstone Ring (deja BiS)
+-- Le guide se contredit d'ailleurs lui-meme : son intro annonce exclure le
+-- PvP, puis son set d'exemple en est rempli.
+--
+-- Blackblade of Shahram reste en rang 3 malgre sa puissance : le guide le
+-- decrit comme une chute "extremement rare" impossible a farmer de facon
+-- fiable. Arcanite Reaper, fabriquee, est bien plus sure pour un bot.
+--
+-- Les vendeurs cites sont tous Alliance, d'ou faction 1 sur ces lignes. Les
+-- equivalents Horde existent mais le guide ne les nomme pas ; je prefere ne
+-- rien mettre plutot qu'inventer un nom d'objet.
+--
+-- Supreme Sash, Mighty Girdle et Nightshade Girdle sont des objets a suffixe
+-- aleatoire ("of the Tiger") : nom de base uniquement.
+--
+-- Libram of Hope tombe d'Isalien, un boss du Tier 0.5. Avec
+-- AllowEarlyDungeonSet2 = 0 il reste hors de portee jusqu'a BWL.
+--
+-- Rangs : BiS -> 1, alternative fiable -> 2, reste et PvP -> 3.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(2, 2,  0, 0, 1, 'Lionheart Helm'),
+(2, 2,  0, 0, 2, 'Helm of the Executioner'),
+(2, 2,  0, 0, 3, 'Eye of Rend'),
+(2, 2,  0, 0, 3, 'Mask of the Unforgiven'),
+(2, 2,  1, 0, 1, 'Beads of Ogre Might'),
+(2, 2,  1, 0, 2, 'Pendant of Celerity'),
+(2, 2,  1, 0, 3, 'Mark of Fordring'),
+(2, 2,  1, 0, 3, 'Imperial Jewel'),
+(2, 2,  2, 0, 1, 'Truestrike Shoulders'),
+(2, 2,  2, 0, 2, 'Black Dragonscale Shoulders'),
+(2, 2,  2, 0, 3, 'Wyrmhide Spaulders'),
+(2, 2,  2, 1, 3, 'Highlander''s Plate Spaulders'),
+(2, 2,  4, 0, 1, 'Savage Gladiator Chain'),
+(2, 2,  4, 0, 1, 'Cadaverous Armor'),
+(2, 2,  4, 0, 3, 'Breastplate of Bloodthirst'),
+(2, 2,  4, 0, 3, 'Bonebrace Hauberk'),
+(2, 2,  5, 0, 1, 'Brigam Girdle'),
+(2, 2,  5, 0, 3, 'Supreme Sash'),
+(2, 2,  5, 0, 3, 'Mighty Girdle'),
+(2, 2,  5, 0, 3, 'Nightshade Girdle'),
+(2, 2,  5, 1, 3, 'Highlander''s Plate Girdle'),
+(2, 2,  6, 0, 1, 'Devilsaur Leggings'),
+(2, 2,  6, 0, 2, 'Cloudkeeper Legplates'),
+(2, 2,  6, 0, 3, 'Handcrafted Mastersmith Leggings'),
+(2, 2,  6, 0, 3, 'Black Dragonscale Leggings'),
+(2, 2,  6, 1, 3, 'Sentinel''s Plate Legguards'),
+(2, 2,  7, 0, 1, 'Bloodmail Boots'),
+(2, 2,  7, 0, 2, 'Battlechaser''s Greaves'),
+(2, 2,  7, 1, 3, 'Highlander''s Plate Greaves'),
+(2, 2,  8, 0, 1, 'Battleborn Armbraces'),
+(2, 2,  8, 0, 2, 'Bracers of the Eclipse'),
+(2, 2,  8, 0, 3, 'Blackmist Armguards'),
+(2, 2,  8, 1, 3, 'Berserker Bracers'),
+(2, 2,  9, 0, 1, 'Chromatic Gauntlets'),
+(2, 2,  9, 0, 2, 'Devilsaur Gauntlets'),
+(2, 2,  9, 0, 3, 'Voone''s Vice Grips'),
+(2, 2,  9, 0, 3, 'Gloves of the Dawn'),
+(2, 2, 10, 0, 1, 'Blackstone Ring'),
+(2, 2, 11, 0, 1, 'Blackstone Ring'),
+(2, 2, 10, 0, 2, 'Tarnished Elven Ring'),
+(2, 2, 11, 0, 2, 'Tarnished Elven Ring'),
+(2, 2, 10, 1, 3, 'Don Julio''s Band'),
+(2, 2, 11, 1, 3, 'Don Julio''s Band'),
+(2, 2, 10, 1, 3, 'Protector''s Band'),
+(2, 2, 11, 1, 3, 'Protector''s Band'),
+(2, 2, 12, 0, 1, 'Blackhand''s Breadth'),
+(2, 2, 13, 0, 1, 'Blackhand''s Breadth'),
+(2, 2, 12, 0, 1, 'Hand of Justice'),
+(2, 2, 13, 0, 1, 'Hand of Justice'),
+(2, 2, 12, 0, 3, 'Gnomish Battle Chicken'),
+(2, 2, 13, 0, 3, 'Gnomish Battle Chicken'),
+(2, 2, 12, 0, 3, 'Counterattack Lodestone'),
+(2, 2, 13, 0, 3, 'Counterattack Lodestone'),
+(2, 2, 12, 0, 3, 'Heart of Wyrmthalak'),
+(2, 2, 13, 0, 3, 'Heart of Wyrmthalak'),
+(2, 2, 14, 0, 1, 'Cape of the Black Baron'),
+(2, 2, 14, 0, 2, 'Shroud of Domination'),
+(2, 2, 14, 0, 3, 'Shadewood Cloak'),
+(2, 2, 14, 1, 3, 'Cloak of the Honor Guard'),
+(2, 2, 15, 0, 1, 'Arcanite Reaper'),
+(2, 2, 15, 0, 2, 'Dreadforge Retaliator'),
+(2, 2, 15, 0, 3, 'Blackblade of Shahram'),
+(2, 2, 15, 0, 3, 'Barbarous Blade'),
+(2, 2, 15, 0, 3, 'Blade of Hanna'),
+(2, 2, 15, 0, 3, 'Nightfall'),
+(2, 2, 15, 1, 3, 'The Unstoppable Force'),
+(2, 2, 17, 0, 1, 'Libram of Hope');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.
