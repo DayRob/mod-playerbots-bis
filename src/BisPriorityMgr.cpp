@@ -31,6 +31,20 @@ namespace
     // tier and slot, 1 being the best. 1000 leaves room for 255 ranks and keeps
     // the arithmetic obvious in logs.
     constexpr uint32 TIER_WEIGHT = 1000;
+
+    // Rings and trinkets have two interchangeable slots. The list names one of
+    // them; an item is an upgrade as soon as it beats the weaker of the pair.
+    uint8 PairedSlot(uint8 slot)
+    {
+        switch (slot)
+        {
+            case EQUIPMENT_SLOT_FINGER1:  return EQUIPMENT_SLOT_FINGER2;
+            case EQUIPMENT_SLOT_FINGER2:  return EQUIPMENT_SLOT_FINGER1;
+            case EQUIPMENT_SLOT_TRINKET1: return EQUIPMENT_SLOT_TRINKET2;
+            case EQUIPMENT_SLOT_TRINKET2: return EQUIPMENT_SLOT_TRINKET1;
+            default:                      return 0xFF;
+        }
+    }
 }
 
 void BisPriorityMgr::LoadConfig()
@@ -41,6 +55,7 @@ void BisPriorityMgr::LoadConfig()
     _applyToAltBots = sConfigMgr->GetOption<bool>("PlayerbotsBis.ApplyToAltBots", false);
     _leaveOtherSpecsBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.LeaveOtherSpecsBis", true);
     _announceOwnBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.AnnounceOwnBis", true);
+    _announceMasterLoot = sConfigMgr->GetOption<bool>("PlayerbotsBis.AnnounceMasterLoot", true);
     _maxTier = static_cast<uint16>(sConfigMgr->GetOption<uint32>("PlayerbotsBis.MaxTier", 0));
     _useIndividualProgression = sConfigMgr->GetOption<bool>("PlayerbotsBis.UseIndividualProgression", false);
     _progressionCacheSeconds = sConfigMgr->GetOption<uint32>("PlayerbotsBis.ProgressionCacheSeconds", 300);
@@ -316,6 +331,59 @@ bool BisPriorityMgr::HasReachableList(Player* bot)
     }
 
     return false;
+}
+
+uint32 BisPriorityMgr::GetWornPriorityPaired(Player* bot, uint8 slot, uint8* outTargetSlot)
+{
+    uint32 worn = GetWornPriority(bot, slot);
+    uint8 target = slot;
+
+    if (uint8 const paired = PairedSlot(slot); paired != 0xFF)
+    {
+        uint32 const pairedPriority = GetWornPriority(bot, paired);
+        if (pairedPriority < worn)
+        {
+            worn = pairedPriority;
+            target = paired;
+        }
+    }
+
+    if (outTargetSlot)
+        *outTargetSlot = target;
+
+    return worn;
+}
+
+bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId)
+{
+    if (!AppliesTo(bot))
+        return false;
+
+    ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemId);
+    if (!proto)
+        return false;
+
+    if (proto->Class != ITEM_CLASS_WEAPON && proto->Class != ITEM_CLASS_ARMOR)
+        return false;
+
+    uint8 slot = 0;
+    uint16 tierId = 0;
+    uint32 const priority = GetItemPriority(bot, itemId, &slot, &tierId);
+    if (!priority)
+        return false;
+
+    // Claiming something the bot cannot physically wear would have it ask for an
+    // item it can never equip, so the class/race/skill gate is checked here too.
+    if (bot->BotCanUseItem(proto) != EQUIP_ERR_OK)
+        return false;
+
+    if (priority <= GetWornPriorityPaired(bot, slot))
+        return false;  // already wearing this piece, or something better
+
+    if (outTierId)
+        *outTierId = tierId;
+
+    return true;
 }
 
 bool BisPriorityMgr::IsBisForAnotherSpec(Player* bot, uint32 itemId)

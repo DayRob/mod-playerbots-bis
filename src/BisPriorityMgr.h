@@ -84,6 +84,19 @@ public:
     // is empty or holds something absent from the list.
     uint32 GetWornPriority(Player* bot, uint8 slot);
 
+    // Same, but aware that rings and trinkets come in interchangeable pairs: the
+    // list names one slot, and an item is an upgrade as soon as it beats the
+    // WEAKER of the two. outTargetSlot receives the slot it would replace.
+    uint32 GetWornPriorityPaired(Player* bot, uint8 slot, uint8* outTargetSlot = nullptr);
+
+    // The full "this is my best in slot and I want it" test: on the bot's list,
+    // within its tier cap, physically wearable, and better than what it wears.
+    // Shared by the item-usage layer and the master-loot announcer so the two
+    // can never disagree about what a bot considers its BiS.
+    bool WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId = nullptr);
+
+    bool AnnounceMasterLoot() const { return _announceMasterLoot; }
+
     // Highest tier this bot may pursue: the configured cap, optionally narrowed
     // by the bot's mod-individual-progression state.
     uint16 GetEffectiveTierCap(Player* bot);
@@ -135,6 +148,7 @@ private:
     bool _applyToAltBots = false;
     bool _leaveOtherSpecsBis = true;
     bool _announceOwnBis = true;
+    bool _announceMasterLoot = true;
     uint16 _maxTier = 0;
     bool _useIndividualProgression = false;
     uint32 _progressionCacheSeconds = 300;

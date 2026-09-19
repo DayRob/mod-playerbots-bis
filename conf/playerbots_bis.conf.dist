@@ -38,6 +38,19 @@ PlayerbotsBis.LeaveOtherSpecsBis = 1
 # Defaut : 1 (active)
 PlayerbotsBis.AnnounceOwnBis = 1
 
+# En butin de maitre (master loot), quand TU ouvres le cadavre d'un boss, chaque
+# bot du groupe regarde le butin et te chuchote ce qu'il y reconnait comme son
+# BiS : "Je need cet objet : <objet> (<phase>)".
+#
+# Pourquoi c'est necessaire : en butin de maitre, mod-playerbots calcule le vote
+# de chaque bot puis le jette et passe. Sans cette option, aucun bot ne dit
+# jamais rien quand c'est toi qui distribues le butin.
+#
+# Un seul chuchotement par bot, listant tout ce qu'il veut sur ce cadavre - un
+# raid de 40 ne produit donc pas quarante lignes par boss.
+# Defaut : 1 (active)
+PlayerbotsBis.AnnounceMasterLoot = 1
+
 # Note : il n'y a PAS de niveau minimum. La couche BiS s'ajoute a la logique
 # d'origine de mod-playerbots au lieu de la remplacer, donc un bot de niveau 20
 # continue de s'equiper normalement ; il reconnait simplement son BiS quand il en

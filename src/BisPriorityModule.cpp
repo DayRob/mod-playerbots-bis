@@ -130,8 +130,12 @@ public:
     }
 };
 
+// Defined in BisMasterLootAnnounce.cpp.
+void AddSC_playerbots_bis_masterloot();
+
 void AddSC_playerbots_bis()
 {
     new BisPriorityWorldScript();
     new BisPriorityCommandScript();
+    AddSC_playerbots_bis_masterloot();
 }

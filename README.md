@@ -71,6 +71,36 @@ Les deux valeurs délèguent d'abord à celles d'origine, puis ne restreignent l
 que pour les armes et armures. Tout le reste — quêtes, munitions, consommables, décisions
 de vente, d'hôtel des ventes et de désenchantement — passe inchangé.
 
+Ce verdict est consulté par mod-playerbots à **neuf endroits** : le roll de butin, le
+ramassage, le choix d'une récompense de quête, l'échange, l'achat, la vente, la
+comparaison interne sac / équipé, et l'interrogation directe. Le module n'a donc pas
+besoin de toucher à l'équipement lui-même — il suffit de répondre juste à la question
+« cet objet me sert-il ? ».
+
+### Le butin de maître
+
+Une exception, et c'est un vrai trou dans mod-playerbots. En butin de maître, chaque bot
+calcule son vote **puis le jette** :
+
+```cpp
+case MASTER_LOOT:
+case FREE_FOR_ALL:
+    group->CountRollVote(bot->GetGUID(), guid, PASS);
+```
+
+et `MasterLootRollAction::isUseful()` renvoie faux dès que le maître du butin est un vrai
+joueur. Résultat : quand c'est vous qui distribuez, aucun bot n'exprime jamais rien.
+
+`BisMasterLootAnnounce.cpp` comble ce trou. Il s'accroche au hook
+`OnPlayerBeforeSendLoot` — qui se déclenche à l'ouverture du cadavre et fournit le butin
+complet — et interroge chaque bot du groupe avec le **même** test
+`BisPriorityMgr::WantsAsUpgrade()` que la couche d'item usage. Les intéressés chuchotent
+au maître : « Je need cet objet : *nom* (*phase*) ».
+
+Un seul chuchotement par bot, listant tout ce qu'il convoite sur ce cadavre : un raid de
+quarante ne produit pas quarante lignes par boss. Le script ne s'enregistre que sur ce
+hook précis, et non sur l'ensemble des événements joueur.
+
 ## Installation
 
 > **Le nom du dossier est significatif.** AzerothCore dérive le point d'entrée du module de

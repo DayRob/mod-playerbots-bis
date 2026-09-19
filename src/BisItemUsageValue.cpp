@@ -15,20 +15,6 @@
 
 namespace
 {
-    // Rings and trinkets have two interchangeable slots. The list names one of
-    // them; an item is an upgrade as soon as it beats the weaker of the pair.
-    uint8 PairedSlot(uint8 slot)
-    {
-        switch (slot)
-        {
-            case EQUIPMENT_SLOT_FINGER1:  return EQUIPMENT_SLOT_FINGER2;
-            case EQUIPMENT_SLOT_FINGER2:  return EQUIPMENT_SLOT_FINGER1;
-            case EQUIPMENT_SLOT_TRINKET1: return EQUIPMENT_SLOT_TRINKET2;
-            case EQUIPMENT_SLOT_TRINKET2: return EQUIPMENT_SLOT_TRINKET1;
-            default:                      return 0xFF;
-        }
-    }
-
     // The BiS layer, applied on top of whatever playerbots already decided.
     //
     // Three branches, in order:
@@ -82,18 +68,8 @@ namespace
         if (bot->BotCanUseItem(proto) != EQUIP_ERR_OK)
             return base;
 
-        uint32 wornPriority = sBisPriorityMgr->GetWornPriority(bot, slot);
         uint8 targetSlot = slot;
-
-        if (uint8 const paired = PairedSlot(slot); paired != 0xFF)
-        {
-            uint32 const pairedPriority = sBisPriorityMgr->GetWornPriority(bot, paired);
-            if (pairedPriority < wornPriority)
-            {
-                wornPriority = pairedPriority;
-                targetSlot = paired;
-            }
-        }
+        uint32 const wornPriority = sBisPriorityMgr->GetWornPriorityPaired(bot, slot, &targetSlot);
 
         // Already wearing this piece, or something higher up the ladder.
         if (priority <= wornPriority)
