@@ -15,7 +15,7 @@
 -- Source : guides Best-in-Slot Pre-Raid de Wowhead Classic.
 -- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1), Paladin Sacre (2/0),
 -- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
--- Chaman Elementaire (7/0), Chaman Amelioration (7/1)
+-- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2)
 -- contre item_template sur un serveur AzerothCore reel.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed`;
@@ -884,6 +884,93 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (7, 1, 16, 0, 3, 'Gizlock''s Hypertech Buckler'),
 (7, 1, 17, 0, 1, 'Totem of Rage'),
 (7, 1, 17, 0, 3, 'Totem of Rebirth');
+
+-- =====================================================================
+-- Chaman Restauration (classe 7, spe 2) - soigneur.
+--
+-- Le guide propose DEUX montages : empilage de Mp5, ou empilage de +Soins. On
+-- fusionne les deux, le module ne sachant pas choisir une orientation. Les
+-- pieces exclusives a l'un des deux sets gardent donc le rang 1 toutes les
+-- deux, et le bot portera la premiere obtenue.
+--
+-- Rangs : Best -> 1, Optional -> 3. Exception habituelle : une piece que le
+-- guide note "Optional" mais qu'il utilise dans un de ses sets d'exemple passe
+-- en rang 2 (Flarecore Wraps, Tooth of Gnarr, Royal Seal of Eldre'Thalas).
+--
+-- Earthfury Belt est en rang 2 et non 1 : son interet tient au bonus des 8
+-- pieces du set Tier 1, que le module ne sait pas prendre en compte. Seule,
+-- elle ne vaut pas la Corehound Belt.
+--
+-- Draconic Infused Emblem et Enamored Water Spirit sont des bijoux d'echange
+-- sur cooldown, mis en rang 3 pour la meme raison que chez l'Elementaire : un
+-- bot les porterait en permanence.
+--
+-- Flarecore Wraps, Earthfury Bracers et Earthfury Belt viennent de Molten Core
+-- mais sont liees-quand-equipees, donc achetables a l'hotel des ventes sans
+-- mettre un pied dans le raid. Leur place au palier 10 est justifiee.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(7, 2,  0, 0, 1, 'Insightful Hood'),
+(7, 2,  0, 0, 3, 'Tribal War Feathers'),
+(7, 2,  0, 0, 3, 'Cassandra''s Grace'),
+(7, 2,  1, 0, 1, 'Animated Chain Necklace'),
+(7, 2,  1, 0, 2, 'Tooth of Gnarr'),
+(7, 2,  1, 0, 3, 'Amulet of the Redeemed'),
+(7, 2,  2, 0, 1, 'Mantle of Lost Hope'),
+(7, 2,  2, 0, 3, 'Royal Cap Spaulders'),
+(7, 2,  2, 0, 3, 'Burial Shawl'),
+(7, 2,  2, 0, 3, 'Mantle of the Scarlet Crusade'),
+(7, 2,  2, 0, 3, 'Living Shoulders'),
+(7, 2,  4, 0, 1, 'Robes of the Exalted'),
+(7, 2,  4, 0, 1, 'Mindsurge Robe'),
+(7, 2,  4, 0, 1, 'Red Dragonscale Breastplate'),
+(7, 2,  5, 0, 1, 'Corehound Belt'),
+(7, 2,  5, 0, 2, 'Earthfury Belt'),
+(7, 2,  5, 0, 3, 'Whipvine Cord'),
+(7, 2,  5, 0, 3, 'Eyestalk Cord'),
+(7, 2,  5, 0, 3, 'Sash of Mercy'),
+(7, 2,  6, 0, 1, 'Padre''s Trousers'),
+(7, 2,  6, 0, 3, 'Ghoul Skin Leggings'),
+(7, 2,  6, 0, 3, 'Senior Designer''s Pantaloons'),
+(7, 2,  7, 0, 1, 'Faith Healer''s Boots'),
+(7, 2,  7, 0, 1, 'Boots of the Full Moon'),
+(7, 2,  7, 0, 1, 'Verdant Footpads'),
+(7, 2,  8, 0, 1, 'Loomguard Armbraces'),
+(7, 2,  8, 0, 2, 'Flarecore Wraps'),
+(7, 2,  8, 0, 3, 'Bracers of Prosperity'),
+(7, 2,  8, 0, 3, 'Earthfury Bracers'),
+(7, 2,  9, 0, 1, 'Harmonious Gauntlets'),
+(7, 2,  9, 0, 3, 'Gloves of Restoration'),
+(7, 2,  9, 0, 3, 'Hands of the Exalted Herald'),
+(7, 2, 10, 0, 1, 'Rosewine Circle'),
+(7, 2, 11, 0, 1, 'Rosewine Circle'),
+(7, 2, 10, 0, 1, 'Fordring''s Seal'),
+(7, 2, 11, 0, 1, 'Fordring''s Seal'),
+(7, 2, 10, 0, 1, 'Band of Mending'),
+(7, 2, 11, 0, 1, 'Band of Mending'),
+(7, 2, 12, 0, 1, 'Mindtap Talisman'),
+(7, 2, 13, 0, 1, 'Mindtap Talisman'),
+(7, 2, 12, 0, 1, 'Briarwood Reed'),
+(7, 2, 13, 0, 1, 'Briarwood Reed'),
+(7, 2, 12, 0, 2, 'Royal Seal of Eldre''Thalas'),
+(7, 2, 13, 0, 2, 'Royal Seal of Eldre''Thalas'),
+(7, 2, 12, 0, 3, 'Second Wind'),
+(7, 2, 13, 0, 3, 'Second Wind'),
+(7, 2, 12, 0, 3, 'Draconic Infused Emblem'),
+(7, 2, 13, 0, 3, 'Draconic Infused Emblem'),
+(7, 2, 12, 0, 3, 'Enamored Water Spirit'),
+(7, 2, 13, 0, 3, 'Enamored Water Spirit'),
+(7, 2, 14, 0, 1, 'Hide of the Wild'),
+(7, 2, 14, 0, 3, 'Cloak of the Cosmos'),
+(7, 2, 14, 0, 3, 'Deep Woodlands Cloak'),
+(7, 2, 15, 0, 1, 'The Hammer of Grace'),
+(7, 2, 15, 0, 1, 'Redemption'),
+(7, 2, 15, 0, 3, 'Lorespinner'),
+(7, 2, 16, 0, 1, 'Tome of Divine Right'),
+(7, 2, 16, 0, 1, 'Brightly Glowing Stone'),
+(7, 2, 16, 0, 3, 'Milli''s Lexicon'),
+(7, 2, 17, 0, 1, 'Totem of Sustaining'),
+(7, 2, 17, 0, 3, 'Totem of Rebirth');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.
