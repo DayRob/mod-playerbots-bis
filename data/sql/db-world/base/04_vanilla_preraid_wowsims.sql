@@ -22,9 +22,8 @@
 -- absent de la base n'est pas insere, et la requete de verification en fin de
 -- fichier les liste.
 --
--- NON COUVERT, faute de donnees en amont : paladins (3 spes), chamans (3 spes),
--- soigneurs prêtre et druide, voleur Assassinat et Subtilite, druide Ours,
--- guerrier Armes.
+-- Ce fichier ne couvre que 11 combinaisons classe/spe. Toutes les autres sont
+-- fournies par 03_vanilla_preraid.sql, qui complete le palier 10 a 28/28.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed_ids`;
 CREATE TEMPORARY TABLE `bis_seed_ids` (
