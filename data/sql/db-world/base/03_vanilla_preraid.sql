@@ -14,7 +14,8 @@
 --
 -- Source : guides Best-in-Slot Pre-Raid de Wowhead Classic.
 -- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1), Paladin Sacre (2/0),
--- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1)
+-- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
+-- Chaman Elementaire (7/0)
 -- contre item_template sur un serveur AzerothCore reel.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed`;
@@ -729,6 +730,84 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (1, 0, 15, 0, 2, 'Skullforge Reaver'),
 (1, 0, 15, 0, 3, 'Ice Barbed Spear'),
 (1, 0, 15, 0, 3, 'Sceptre of Smiting');
+
+-- =====================================================================
+-- Chaman Elementaire (classe 7, spe 0) - degats lanceur de sorts.
+--
+-- Le totem va sur l'emplacement 17 (l'emplacement "distance" d'AzerothCore,
+-- partage par les reliques de chaman, paladin, druide et chevalier de la mort).
+--
+-- Rangs : Best -> 1, Optional -> 3.
+--
+-- Les deux objets classes "Cooldown Swap" par le guide (Draconic Infused Emblem,
+-- Enamored Water Spirit) sont mis en rang 3, pas 1. Ce sont des bijoux qu'un
+-- joueur echange le temps d'un cooldown puis retire ; un bot ne sait pas faire
+-- ca et le porterait en permanence, ce qui serait moins bon que le Royal Seal.
+-- En rang 3 ils servent de depannage sans jamais evincer un vrai BiS.
+--
+-- Eye of Orgrimmar et Eye of the Beast viennent de quetes Horde, d'ou faction 2.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(7, 0,  0, 0, 1, 'Spellweaver''s Turban'),
+(7, 0,  0, 0, 3, 'Crimson Felt Hat'),
+(7, 0,  0, 0, 3, 'Helm of Latent Power'),
+(7, 0,  1, 0, 1, 'Barbed Thorn Necklace'),
+(7, 0,  1, 0, 3, 'Nacreous Shell Necklace'),
+(7, 0,  1, 0, 3, 'Star of Mystaria'),
+(7, 0,  2, 0, 1, 'Burial Shawl'),
+(7, 0,  2, 0, 3, 'Elder Wizard''s Mantle'),
+(7, 0,  2, 0, 3, 'Denwatcher''s Shoulders'),
+(7, 0,  4, 0, 1, 'Wildthorn Mail'),
+(7, 0,  4, 0, 1, 'Robe of Everlasting Night'),
+(7, 0,  4, 0, 1, 'Chestplate of Tranquility'),
+(7, 0,  5, 0, 1, 'Sash of the Windreaver'),
+(7, 0,  5, 0, 1, 'Ban''thok Sash'),
+(7, 0,  5, 0, 3, 'Barrage Girdle'),
+(7, 0,  6, 0, 1, 'Skyshroud Leggings'),
+(7, 0,  6, 0, 3, 'Silvermoon Leggings'),
+(7, 0,  6, 0, 3, 'Spiritshroud Leggings'),
+(7, 0,  7, 0, 1, 'Omnicast Boots'),
+(7, 0,  7, 0, 1, 'Waterspout Boots'),
+(7, 0,  7, 0, 3, 'Kayser''s Boots of Precision'),
+(7, 0,  7, 0, 3, 'Verdant Footpads'),
+(7, 0,  8, 0, 1, 'Sublime Wristguards'),
+(7, 0,  8, 0, 3, 'Modest Armguards'),
+(7, 0,  8, 0, 3, 'Bindings of The Five Thunders'),
+(7, 0,  8, 0, 3, 'Earthfury Bracers'),
+(7, 0,  9, 0, 1, 'Hands of Power'),
+(7, 0,  9, 0, 3, 'Elven Spirit Claws'),
+(7, 0,  9, 0, 3, 'Dracorian Gauntlets'),
+(7, 0, 10, 0, 1, 'Rune Band of Wizardry'),
+(7, 0, 11, 0, 1, 'Rune Band of Wizardry'),
+(7, 0, 10, 0, 1, 'Maiden''s Circle'),
+(7, 0, 11, 0, 1, 'Maiden''s Circle'),
+(7, 0, 10, 0, 1, 'Band of Rumination'),
+(7, 0, 11, 0, 1, 'Band of Rumination'),
+(7, 0, 10, 2, 1, 'Eye of Orgrimmar'),
+(7, 0, 11, 2, 1, 'Eye of Orgrimmar'),
+(7, 0, 12, 0, 1, 'Briarwood Reed'),
+(7, 0, 13, 0, 1, 'Briarwood Reed'),
+(7, 0, 12, 0, 1, 'Royal Seal of Eldre''Thalas'),
+(7, 0, 13, 0, 1, 'Royal Seal of Eldre''Thalas'),
+(7, 0, 12, 2, 3, 'Eye of the Beast'),
+(7, 0, 13, 2, 3, 'Eye of the Beast'),
+(7, 0, 12, 0, 3, 'Draconic Infused Emblem'),
+(7, 0, 13, 0, 3, 'Draconic Infused Emblem'),
+(7, 0, 12, 0, 3, 'Enamored Water Spirit'),
+(7, 0, 13, 0, 3, 'Enamored Water Spirit'),
+(7, 0, 14, 0, 1, 'Crystalline Threaded Cape'),
+(7, 0, 14, 0, 3, 'Amplifying Cloak'),
+(7, 0, 14, 0, 3, 'Heliotrope Cloak'),
+(7, 0, 14, 0, 3, 'Deep Woodlands Cloak'),
+(7, 0, 15, 0, 1, 'Witchblade'),
+(7, 0, 15, 0, 3, 'Energetic Rod'),
+(7, 0, 15, 0, 3, 'Rod of the Ogre Magi'),
+(7, 0, 16, 0, 1, 'Scepter of Interminable Focus'),
+(7, 0, 16, 0, 3, 'Draconian Aegis of the Legion'),
+(7, 0, 16, 0, 3, 'Spirit of Aquementas'),
+(7, 0, 16, 0, 3, 'Gizlock''s Hypertech Buckler'),
+(7, 0, 17, 0, 1, 'Totem of the Storm'),
+(7, 0, 17, 0, 3, 'Totem of Rebirth');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.
