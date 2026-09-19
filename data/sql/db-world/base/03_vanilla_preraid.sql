@@ -15,7 +15,7 @@
 -- Source : guides Best-in-Slot Pre-Raid de Wowhead Classic.
 -- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1), Paladin Sacre (2/0),
 -- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
--- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10)
+-- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10), Druide Restauration (11/2)
 -- contre item_template sur un serveur AzerothCore reel.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed`;
@@ -1084,6 +1084,117 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (11, 10, 15, 0, 3, 'Fist of Omokk'),
 (11, 10, 15, 0, 3, 'Bonecrusher'),
 (11, 10, 17, 0, 1, 'Idol of Brutality');
+
+-- =====================================================================
+-- Druide Restauration (classe 11, spe 2) - soigneur.
+--
+-- Premiere liste ou le guide propose des objets PvP. Ils sont importes mais
+-- TOUS en rang 3 : ils demandent des reputations de champ de bataille
+-- (Warsong, Alterac) qu'un bot n'atteindra quasiment jamais. En rang 3 ils ne
+-- bloquent rien et servent si le hasard les amene. Les paires Horde/Alliance
+-- sont separees par faction ; les objets communs aux deux restent en faction 0.
+--
+-- "Green Lens of Healing" et "Atal'ai Gloves of Healing" sont des objets a
+-- suffixe aleatoire : item_template n'a qu'une entree, au nom de base. Le bot
+-- ne saura pas distinguer le suffixe "of Healing" d'un autre.
+--
+-- Le guide ecrit qu'une une-main plus une main gauche rapportent plus qu'une
+-- deux-mains. The Hammer of Grace garde donc le rang 1 et Redemption, meilleure
+-- deux-mains, descend en rang 2.
+--
+-- Rangs : Best -> 1, piece du set d'exemple notee "Optional" -> 2, reste -> 3.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(11, 2,  0, 0, 1, 'Green Lens'),
+(11, 2,  0, 0, 1, 'Cassandra''s Grace'),
+(11, 2,  0, 0, 2, 'Insightful Hood'),
+(11, 2,  0, 0, 3, 'Spellweaver''s Turban'),
+(11, 2,  0, 0, 3, 'Tribal War Feathers'),
+(11, 2,  0, 0, 3, 'Crimson Felt Hat'),
+(11, 2,  0, 0, 3, 'Holy Shroud'),
+(11, 2,  1, 0, 1, 'Animated Chain Necklace'),
+(11, 2,  1, 0, 3, 'Tempest Talisman'),
+(11, 2,  1, 0, 3, 'Tooth of Gnarr'),
+(11, 2,  1, 2, 3, 'Frostwolf Advisor''s Pendant'),
+(11, 2,  1, 1, 3, 'Stormpike Sage''s Pendant'),
+(11, 2,  2, 0, 1, 'Living Shoulders'),
+(11, 2,  2, 0, 3, 'Mantle of the Scarlet Crusade'),
+(11, 2,  2, 0, 3, 'Burial Shawl'),
+(11, 2,  4, 0, 1, 'Robes of the Exalted'),
+(11, 2,  4, 0, 3, 'Forest''s Embrace'),
+(11, 2,  4, 0, 3, 'Living Breastplate'),
+(11, 2,  4, 0, 3, 'Alanna''s Embrace'),
+(11, 2,  4, 0, 3, 'Robe of Everlasting Night'),
+(11, 2,  4, 0, 3, 'Chestplate of Tranquility'),
+(11, 2,  5, 0, 1, 'Sash of Mercy'),
+(11, 2,  5, 0, 2, 'Whipvine Cord'),
+(11, 2,  5, 0, 3, 'Eyestalk Cord'),
+(11, 2,  6, 0, 1, 'Padre''s Trousers'),
+(11, 2,  6, 0, 3, 'Senior Designer''s Pantaloons'),
+(11, 2,  6, 0, 3, 'Ghoul Skin Leggings'),
+(11, 2,  7, 0, 1, 'Faith Healer''s Boots'),
+(11, 2,  7, 0, 3, 'Boots of the Full Moon'),
+(11, 2,  7, 0, 3, 'Verdant Footpads'),
+(11, 2,  7, 0, 3, 'Waterspout Boots'),
+(11, 2,  7, 0, 3, 'Omnicast Boots'),
+(11, 2,  8, 0, 1, 'Bracers of Prosperity'),
+(11, 2,  8, 0, 3, 'Dryad''s Wrist Bindings'),
+(11, 2,  8, 0, 3, 'Bleak Howler Armguards'),
+(11, 2,  8, 0, 3, 'Flarecore Wraps'),
+(11, 2,  9, 0, 1, 'Hands of the Exalted Herald'),
+(11, 2,  9, 0, 1, 'Atal''ai Gloves'),
+(11, 2,  9, 0, 3, 'Gloves of Restoration'),
+(11, 2,  9, 0, 3, 'Hands of Power'),
+(11, 2,  9, 0, 3, 'Fallbrush Handgrips'),
+(11, 2,  9, 0, 3, 'Mar Alom''s Grip'),
+(11, 2, 10, 0, 1, 'Rosewine Circle'),
+(11, 2, 11, 0, 1, 'Rosewine Circle'),
+(11, 2, 10, 0, 1, 'Fordring''s Seal'),
+(11, 2, 11, 0, 1, 'Fordring''s Seal'),
+(11, 2, 10, 0, 3, 'Band of Mending'),
+(11, 2, 11, 0, 3, 'Band of Mending'),
+(11, 2, 10, 0, 3, 'Maiden''s Circle'),
+(11, 2, 11, 0, 3, 'Maiden''s Circle'),
+(11, 2, 10, 0, 3, 'Emerald Flame Ring'),
+(11, 2, 11, 0, 3, 'Emerald Flame Ring'),
+(11, 2, 10, 2, 3, 'Advisor''s Ring'),
+(11, 2, 11, 2, 3, 'Advisor''s Ring'),
+(11, 2, 10, 1, 3, 'Lorekeeper''s Ring'),
+(11, 2, 11, 1, 3, 'Lorekeeper''s Ring'),
+(11, 2, 12, 0, 1, 'Royal Seal of Eldre''Thalas'),
+(11, 2, 13, 0, 1, 'Royal Seal of Eldre''Thalas'),
+(11, 2, 12, 0, 2, 'Mindtap Talisman'),
+(11, 2, 13, 0, 2, 'Mindtap Talisman'),
+(11, 2, 12, 0, 3, 'Briarwood Reed'),
+(11, 2, 13, 0, 3, 'Briarwood Reed'),
+(11, 2, 12, 0, 3, 'Second Wind'),
+(11, 2, 13, 0, 3, 'Second Wind'),
+(11, 2, 12, 0, 3, 'Eye of the Beast'),
+(11, 2, 13, 0, 3, 'Eye of the Beast'),
+(11, 2, 12, 0, 3, 'Burst of Knowledge'),
+(11, 2, 13, 0, 3, 'Burst of Knowledge'),
+(11, 2, 14, 0, 1, 'Hide of the Wild'),
+(11, 2, 14, 0, 3, 'Cloak of the Cosmos'),
+(11, 2, 14, 2, 3, 'Battle Healer''s Cloak'),
+(11, 2, 14, 1, 3, 'Caretaker''s Cape'),
+(11, 2, 15, 0, 1, 'The Hammer of Grace'),
+(11, 2, 15, 0, 2, 'Redemption'),
+(11, 2, 15, 0, 3, 'Hammer of Revitalization'),
+(11, 2, 15, 0, 3, 'Hand of Righteousness'),
+(11, 2, 15, 0, 3, 'Energetic Rod'),
+(11, 2, 15, 0, 3, 'Guiding Stave of Wisdom'),
+(11, 2, 15, 0, 3, 'Ironbark Staff'),
+(11, 2, 15, 0, 3, 'Moonshadow Stave'),
+(11, 2, 15, 0, 3, 'Rod of the Ogre Magi'),
+(11, 2, 15, 0, 3, 'Staff of Jordan'),
+(11, 2, 15, 0, 3, 'Hammer of the Grand Crusader'),
+(11, 2, 16, 0, 1, 'Brightly Glowing Stone'),
+(11, 2, 16, 0, 3, 'Lei of the Lifegiver'),
+(11, 2, 16, 0, 3, 'Therazane''s Touch'),
+(11, 2, 16, 0, 3, 'Tome of Divine Right'),
+(11, 2, 16, 0, 3, 'Thaurissan''s Royal Scepter'),
+(11, 2, 16, 0, 3, 'Beacon of Hope'),
+(11, 2, 17, 0, 1, 'Idol of Rejuvenation');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.
