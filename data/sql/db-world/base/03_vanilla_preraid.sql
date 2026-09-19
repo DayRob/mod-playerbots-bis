@@ -13,7 +13,8 @@
 -- meilleure ligne qu'il possede. Un palier superieur bat toujours ce palier-ci.
 --
 -- Source : guides Best-in-Slot Pre-Raid de Wowhead Classic.
--- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1), Paladin Sacre (2/0),
+-- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1),
+-- Paladin Sacre (2/0), Paladin Protection (2/1),
 -- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
 -- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10), Druide Restauration (11/2)
 -- contre item_template sur un serveur AzerothCore reel.
@@ -1195,6 +1196,101 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (11, 2, 16, 0, 3, 'Thaurissan''s Royal Scepter'),
 (11, 2, 16, 0, 3, 'Beacon of Hope'),
 (11, 2, 17, 0, 1, 'Idol of Rejuvenation');
+
+-- =====================================================================
+-- Paladin Protection (classe 2, spe 1) - tank.
+--
+-- ATTENTION, SOURCE DIFFERENTE : cette liste vient d'un guide Classic Phase 3
+-- et non d'un guide Season of Mastery comme les autres. Il n'affiche AUCUN
+-- rang : il se contente d'enumerer les objets par emplacement, du meilleur au
+-- moins bon. La convention appliquee ici est donc positionnelle :
+--   1er de la liste -> rang 1, 2e -> rang 2, 3e et suivants -> rang 3.
+-- C'est une interpretation, pas une donnee du guide. A reviser si un guide
+-- SoM du paladin tank apparait.
+--
+-- Les recompenses PvP (Sergeant's Cape, Stormpike Insignia) sont descendues en
+-- rang 3 quelle que soit leur position : elles demandent un grade de classement
+-- PvP qu'un bot n'obtiendra pas.
+--
+-- Stormpike Insignia est cote Alliance. L'equivalent Horde n'est pas importe :
+-- le guide ne le nomme pas et je ne veux pas inventer un nom d'objet.
+--
+-- Aucun libram (emplacement 17) : ce guide n'en propose pas pour le tank.
+--
+-- Note de securite : si l'une de ces pieces s'averait reservee a une autre
+-- classe, elle ne ferait rien de mal. La branche 1 du module revalide
+-- bot->BotCanUseItem() avant de forcer le verdict, donc un objet inequipable
+-- est simplement ignore.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(2, 1,  0, 0, 1, 'Enchanted Thorium Helm'),
+(2, 1,  0, 0, 2, 'Gyth''s Skull'),
+(2, 1,  0, 0, 3, 'Golem Skull Helm'),
+(2, 1,  0, 0, 3, 'Helm of Awareness'),
+(2, 1,  1, 0, 1, 'Medallion of Grand Marshal Morris'),
+(2, 1,  1, 0, 2, 'Talisman of Evasion'),
+(2, 1,  1, 0, 3, 'Verek''s Collar'),
+(2, 1,  1, 0, 3, 'Evil Eye Pendant'),
+(2, 1,  2, 0, 1, 'Stockade Pauldrons'),
+(2, 1,  2, 0, 2, 'Wailing Nightbane Pauldrons'),
+(2, 1,  2, 0, 3, 'Stoneform Shoulders'),
+(2, 1,  2, 0, 3, 'Spaulders of Valor'),
+(2, 1,  4, 0, 1, 'Deathbone Chestplate'),
+(2, 1,  4, 0, 2, 'Ornate Adamantium Breastplate'),
+(2, 1,  4, 0, 3, 'Enchanted Thorium Breastplate'),
+(2, 1,  4, 0, 3, 'Kromcrush''s Chestplate'),
+(2, 1,  5, 0, 1, 'Deathbone Girdle'),
+(2, 1,  5, 0, 2, 'Stalwart Clutch'),
+(2, 1,  5, 0, 3, 'Lightforge Belt'),
+(2, 1,  6, 0, 1, 'Deathbone Legguards'),
+(2, 1,  6, 0, 2, 'Enchanted Thorium Leggings'),
+(2, 1,  6, 0, 3, 'Legplates of the Eternal Guardian'),
+(2, 1,  6, 0, 3, 'Bejeweled Legguards'),
+(2, 1,  7, 0, 1, 'Deathbone Sabatons'),
+(2, 1,  7, 0, 2, 'Shalehusk Boots'),
+(2, 1,  7, 0, 3, 'Boots of Avoidance'),
+(2, 1,  7, 0, 3, 'Master Cannoneer Boots'),
+(2, 1,  8, 0, 1, 'Vigorsteel Vambraces'),
+(2, 1,  8, 0, 2, 'Bracers of Valor'),
+(2, 1,  8, 0, 3, 'Lightforge Bracers'),
+(2, 1,  8, 0, 3, 'Fel Hardened Bracers'),
+(2, 1,  9, 0, 1, 'Deathbone Gauntlets'),
+(2, 1,  9, 0, 2, 'Boneclenched Gauntlets'),
+(2, 1,  9, 0, 3, 'Stonegrip Gauntlets'),
+(2, 1,  9, 0, 3, 'Voone''s Vice Grips'),
+(2, 1,  9, 0, 3, 'Force Imbued Gauntlets'),
+(2, 1, 10, 0, 1, 'Naglering'),
+(2, 1, 11, 0, 1, 'Naglering'),
+(2, 1, 10, 0, 1, 'Ring of Protection'),
+(2, 1, 11, 0, 1, 'Ring of Protection'),
+(2, 1, 10, 0, 3, 'Hardened Stone Band'),
+(2, 1, 11, 0, 3, 'Hardened Stone Band'),
+(2, 1, 10, 0, 3, 'Myrmidon''s Signet'),
+(2, 1, 11, 0, 3, 'Myrmidon''s Signet'),
+(2, 1, 12, 0, 1, 'Force of Will'),
+(2, 1, 13, 0, 1, 'Force of Will'),
+(2, 1, 12, 0, 1, 'Smotts'' Compass'),
+(2, 1, 13, 0, 1, 'Smotts'' Compass'),
+(2, 1, 12, 0, 2, 'Mark of the Chosen'),
+(2, 1, 13, 0, 2, 'Mark of the Chosen'),
+(2, 1, 12, 0, 3, 'Vigilance Charm'),
+(2, 1, 13, 0, 3, 'Vigilance Charm'),
+(2, 1, 12, 0, 3, 'Mindtap Talisman'),
+(2, 1, 13, 0, 3, 'Mindtap Talisman'),
+(2, 1, 12, 1, 3, 'Stormpike Insignia Rank 6'),
+(2, 1, 13, 1, 3, 'Stormpike Insignia Rank 6'),
+(2, 1, 14, 0, 1, 'The Emperor''s New Cape'),
+(2, 1, 14, 0, 2, 'Redoubt Cloak'),
+(2, 1, 14, 1, 3, 'Sergeant''s Cape'),
+(2, 1, 15, 0, 1, 'Flurry Axe'),
+(2, 1, 15, 0, 2, 'Mastersmith''s Hammer'),
+(2, 1, 15, 0, 3, 'Arbiter''s Blade'),
+(2, 1, 15, 0, 3, 'Hedgecutter'),
+(2, 1, 15, 0, 3, 'Mirah''s Song'),
+(2, 1, 16, 0, 1, 'Draconian Deflector'),
+(2, 1, 16, 0, 2, 'Barrier Shield'),
+(2, 1, 16, 0, 3, 'Argent Defender'),
+(2, 1, 16, 0, 3, 'Troll Protector');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.
