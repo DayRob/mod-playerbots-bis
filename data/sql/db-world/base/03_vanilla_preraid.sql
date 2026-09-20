@@ -16,7 +16,7 @@
 -- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1), Guerrier Protection (1/2),
 -- Paladin Sacre (2/0), Paladin Protection (2/1), Paladin Vindicte (2/2),
 -- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
--- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10), Druide Restauration (11/2), Druide Farouche (11/1)
+-- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10), Druide Restauration (11/2), Druide Farouche (11/1), Druide Equilibre (11/0)
 -- contre item_template sur un serveur AzerothCore reel.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed`;
@@ -1662,6 +1662,117 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (11, 1, 15, 0, 3, 'Fierce Mauler'),
 (11, 1, 15, 0, 3, 'Painbringer'),
 (11, 1, 17, 0, 1, 'Idol of Brutality');
+
+-- =====================================================================
+-- Druide Equilibre (classe 11, spe 0) - degats lanceur de sorts.
+--
+-- Complete les 15 lignes wowsims du fichier 04, a qui il manquait la main
+-- gauche et l'idole.
+--
+-- ATTENTION : le BiS de cou de cette spe est Nacreous Shell Necklace, le seul
+-- nom de tout le fichier qui n'a pas resolu contre item_template lors de
+-- l'import. Si la verification le signale a nouveau, le druide Equilibre se
+-- rabattra sur Star of Mystaria en rang 2.
+--
+-- Le guide met en "Best" plusieurs objets a suffixe aleatoire ("of Arcane
+-- Wrath") : Archivist Cape, Flameweave Cuffs, Drakestone. Seul le nom de base
+-- existe en table, et le bot ne distinguera pas le bon suffixe du mauvais - ce
+-- qui, pour un lanceur de sorts, rend la piece inutile. Ils sont donc en
+-- rang 3, et l'objet du set d'exemple remonte en rang 1 a leur place.
+--
+-- Les recompenses de reputation PvP (Warsong, Alterac) sont en rang 3 : un bot
+-- n'atteindra pas ces reputations. Les paires Horde/Alliance sont separees.
+--
+-- Une-main et deux-mains partagent l'emplacement 15. Le set d'exemple part sur
+-- une deux-mains, donc les entrees de main gauche ne servent qu'a un bot qui
+-- aurait mis la main sur une une-main.
+--
+-- Rangs : Best -> 1, alternative solide -> 2, suffixe aleatoire et PvP -> 3.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(11, 0,  0, 0, 1, 'Spellweaver''s Turban'),
+(11, 0,  0, 0, 2, 'Crimson Felt Hat'),
+(11, 0,  0, 0, 3, 'Green Lens'),
+(11, 0,  0, 0, 3, 'Dreamweave Circlet'),
+(11, 0,  1, 0, 1, 'Nacreous Shell Necklace'),
+(11, 0,  1, 0, 2, 'Star of Mystaria'),
+(11, 0,  1, 0, 3, 'Tempest Talisman'),
+(11, 0,  1, 0, 3, 'Lady Maye''s Pendant'),
+(11, 0,  1, 0, 3, 'Jeweled Amulet of Cainwyn'),
+(11, 0,  1, 0, 3, 'Tooth of Gnarr'),
+(11, 0,  2, 0, 1, 'Burial Shawl'),
+(11, 0,  2, 0, 2, 'Kentic Amice'),
+(11, 0,  2, 0, 3, 'Cyclone Spaulders'),
+(11, 0,  4, 0, 1, 'Robe of Everlasting Night'),
+(11, 0,  4, 0, 2, 'Chestplate of Tranquility'),
+(11, 0,  4, 0, 3, 'Robe of the Magi'),
+(11, 0,  4, 0, 3, 'Alanna''s Embrace'),
+(11, 0,  5, 0, 1, 'Ban''thok Sash'),
+(11, 0,  5, 0, 2, 'Oddly Magical Belt'),
+(11, 0,  5, 0, 3, 'Star Belt'),
+(11, 0,  5, 0, 3, 'Thuzadin Sash'),
+(11, 0,  5, 2, 3, 'Frostwolf Cloth Belt'),
+(11, 0,  5, 1, 3, 'Stormpike Cloth Girdle'),
+(11, 0,  6, 0, 1, 'Skyshroud Leggings'),
+(11, 0,  6, 0, 3, 'Spellshock Leggings'),
+(11, 0,  6, 0, 3, 'Luminary Kilt'),
+(11, 0,  7, 0, 1, 'Waterspout Boots'),
+(11, 0,  7, 0, 2, 'Omnicast Boots'),
+(11, 0,  7, 0, 3, 'Dragonrider Boots'),
+(11, 0,  8, 0, 1, 'Sublime Wristguards'),
+(11, 0,  8, 0, 3, 'Flameweave Cuffs'),
+(11, 0,  8, 0, 3, 'Arena Wristguards'),
+(11, 0,  8, 0, 3, 'Dryad''s Wrist Bindings'),
+(11, 0,  9, 0, 1, 'Hands of Power'),
+(11, 0,  9, 0, 3, 'Earth Warder''s Gloves'),
+(11, 0,  9, 0, 3, 'Bloodfire Talons'),
+(11, 0,  9, 0, 3, 'Dreamweave Gloves'),
+(11, 0, 10, 0, 1, 'Rune Band of Wizardry'),
+(11, 0, 11, 0, 1, 'Rune Band of Wizardry'),
+(11, 0, 10, 0, 2, 'Maiden''s Circle'),
+(11, 0, 11, 0, 2, 'Maiden''s Circle'),
+(11, 0, 10, 1, 2, 'Songstone of Ironforge'),
+(11, 0, 11, 1, 2, 'Songstone of Ironforge'),
+(11, 0, 10, 2, 2, 'Eye of Orgrimmar'),
+(11, 0, 11, 2, 2, 'Eye of Orgrimmar'),
+(11, 0, 10, 0, 3, 'Band of the Unicorn'),
+(11, 0, 11, 0, 3, 'Band of the Unicorn'),
+(11, 0, 10, 2, 3, 'Advisor''s Ring'),
+(11, 0, 11, 2, 3, 'Advisor''s Ring'),
+(11, 0, 10, 1, 3, 'Lorekeeper''s Ring'),
+(11, 0, 11, 1, 3, 'Lorekeeper''s Ring'),
+(11, 0, 12, 0, 1, 'Briarwood Reed'),
+(11, 0, 13, 0, 1, 'Briarwood Reed'),
+(11, 0, 12, 0, 1, 'Eye of the Beast'),
+(11, 0, 13, 0, 1, 'Eye of the Beast'),
+(11, 0, 12, 0, 3, 'Burst of Knowledge'),
+(11, 0, 13, 0, 3, 'Burst of Knowledge'),
+(11, 0, 14, 0, 1, 'Spritecaster Cape'),
+(11, 0, 14, 0, 2, 'Amplifying Cloak'),
+(11, 0, 14, 0, 3, 'Archivist Cape'),
+(11, 0, 14, 0, 3, 'Deep Woodlands Cloak'),
+(11, 0, 14, 2, 3, 'Frostwolf Advisor''s Cloak'),
+(11, 0, 14, 1, 3, 'Stormpike Sage''s Cloak'),
+(11, 0, 15, 0, 1, 'Lord Valthalak''s Staff of Command'),
+(11, 0, 15, 0, 2, 'Rod of the Ogre Magi'),
+(11, 0, 15, 0, 2, 'Staff of Jordan'),
+(11, 0, 15, 0, 2, 'Witchblade'),
+(11, 0, 15, 0, 3, 'Moonshadow Stave'),
+(11, 0, 15, 0, 3, 'Zum''rah''s Vexing Cane'),
+(11, 0, 15, 0, 3, 'Spire of Hakkar'),
+(11, 0, 15, 0, 3, 'Mastersmith''s Hammer'),
+(11, 0, 15, 0, 3, 'Energetic Rod'),
+(11, 0, 15, 0, 3, 'Ironbark Staff'),
+(11, 0, 15, 1, 3, 'Mindfang'),
+(11, 0, 15, 2, 3, 'Sageclaw'),
+(11, 0, 16, 0, 1, 'Scepter of Interminable Focus'),
+(11, 0, 16, 0, 2, 'Spirit of Aquementas'),
+(11, 0, 16, 0, 2, 'Tome of the Lost'),
+(11, 0, 16, 0, 3, 'Drakestone'),
+(11, 0, 16, 0, 3, 'Orb of the Forgotten Seer'),
+(11, 0, 16, 0, 3, 'Tome of Arcane Domination'),
+(11, 0, 16, 0, 3, 'Therazane''s Touch'),
+(11, 0, 17, 0, 1, 'Idol of the Moon');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.

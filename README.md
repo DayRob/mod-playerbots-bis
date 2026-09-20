@@ -204,10 +204,12 @@ connues :
 - Paliers partiels : les trois derniers paliers TBC (100, 110, 120) ne couvrent que 15 à
   16 combinaisons classe/spé, contre 23 à 24 pour les paliers TBC précédents.
 - Palier 10 (Vanilla Pre-Raid) : **complet**, 28 combinaisons sur 28, 1238 lignes.
-- Listes sans alternative au palier 10 : les listes issues de wowsims comptent 17 lignes,
-  soit un objet par emplacement et aucun repli si le bot ne l'obtient pas. Elles couvrent
-  en revanche bien les 15 emplacements. Seul Druide Équilibre a deux emplacements à nu
-  (main gauche, idole).
+- Palier 10 : **1536 lignes**, les 28 spés couvrant tous leurs emplacements, à une
+  exception près — le Paladin Protection n'a pas de libram, son guide n'en proposant
+  aucun pour le tank.
+- Listes sans alternative au palier 10 : les listes issues de wowsims (Mage ×3,
+  Démoniste ×3, Prêtre Ombre) comptent 17 lignes, soit un objet par emplacement et aucun
+  repli si le bot ne l'obtient pas.
 
 Une spé sans aucune ligne atteignable ne se retrouve pas pénalisée : `HasReachableList`
 la fait sortir de la branche 2, donc elle ne cède le BiS de personne et garde intégralement
