@@ -5,6 +5,7 @@
  */
 
 #include "BisPriorityMgr.h"
+#include "ChatHelper.h"
 #include "Group.h"
 #include "Item.h"
 #include "LootMgr.h"
@@ -104,7 +105,7 @@ public:
                 if (count)
                     wanted << ", ";
 
-                wanted << "|cff1eff00" << proto->Name1 << "|r";
+                wanted << ChatHelper::FormatItem(proto);
 
                 std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
                 if (!tierName.empty())

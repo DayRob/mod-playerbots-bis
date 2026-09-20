@@ -6,6 +6,7 @@
 
 #include "BisItemUsageValue.h"
 #include "BisPriorityMgr.h"
+#include "ChatHelper.h"
 #include "Item.h"
 #include "ObjectMgr.h"
 #include "Player.h"
@@ -93,7 +94,7 @@ namespace
         {
             std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
             std::ostringstream out;
-            out << "|cff1eff00" << proto->Name1 << "|r - c'est mon BiS";
+            out << ChatHelper::FormatItem(proto) << " - c'est mon BiS";
             if (!tierName.empty())
                 out << " (" << tierName << ")";
             if (tooLowLevel)
