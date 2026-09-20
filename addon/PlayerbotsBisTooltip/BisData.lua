@@ -1,0 +1,5 @@
+-- Fichier genere : ce contenu est un simple substitut.
+--
+-- Lance tools/export_bis_tooltip.ps1 pour le remplacer par tes propres tables.
+-- Tant qu'il n'est pas genere, l'addon se charge et te le signale au lieu de
+-- remplir les infobulles avec des listes qui ne seraient pas les tiennes.
