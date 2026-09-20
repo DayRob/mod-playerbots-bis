@@ -58,7 +58,27 @@ namespace
                 sBisPriorityMgr->IsBisForAnotherSpec(bot, itemId))
                 return ITEM_USAGE_NONE;
 
-            return base;  // ── Branch 3: nobody's list, original logic wins
+            // ── Branch 3: nobody's list, original logic wins ──────────────
+            //
+            // With one guard. Playerbots' rule is "1.1 times better by stat
+            // score", and it knows nothing about the ladder, so it happily
+            // swaps a best in slot out for a dungeon blue. Branch 1 then swaps
+            // it straight back on the next tick, and the bot flip-flops for
+            // ever, announcing "c'est mon BiS" on every cycle.
+            //
+            // So an item on nobody's list may never displace one that IS on
+            // this bot's list. GetWornPriorityPaired returns the weakest of a
+            // paired slot, so a second ring or trinket still goes to the free
+            // or unlisted side - only a slot already holding a listed piece is
+            // protected.
+            if (botAI && (base == ITEM_USAGE_EQUIP || base == ITEM_USAGE_REPLACE || base == ITEM_USAGE_BAD_EQUIP))
+            {
+                uint8 const dstSlot = botAI->FindEquipSlot(proto, NULL_SLOT, true);
+                if (dstSlot != NULL_SLOT && sBisPriorityMgr->GetWornPriorityPaired(bot, dstSlot))
+                    return ITEM_USAGE_NONE;
+            }
+
+            return base;
         }
 
         // ── Branch 1 ──────────────────────────────────────────────────────────

@@ -78,6 +78,22 @@ maîtrise d'arme, qui eux disqualifient définitivement. Un bot trop jeune annon
 pièce en précisant le niveau qui lui manque, la garde en sac, et l'équipera en
 grandissant. `PlayerbotsBis.ClaimBelowRequiredLevel = 0` rétablit l'exigence de niveau.
 
+### Une pièce hors liste ne déloge jamais une pièce de la liste
+
+La branche 3 délègue à mod-playerbots, dont la règle est « 1,1 fois mieux selon le score
+de stats » — et qui ignore tout de l'échelle. Sans garde-fou, un bleu de donjon délogeait
+donc un BiS, que la branche 1 remettait au tick suivant : va-et-vient sans fin, et un
+« c'est mon BiS » annoncé à chaque cycle.
+
+La branche 3 vérifie donc l'emplacement de destination avant de valider un équipement.
+Si la pièce portée y est sur la liste du bot, un objet qui n'y est pas se voit refusé.
+`GetWornPriorityPaired` renvoyant le plus faible d'une paire, un deuxième anneau ou bijou
+part toujours du côté libre ou hors liste : seul un emplacement déjà occupé par une pièce
+listée est protégé.
+
+Conséquence assumée : un objet meilleur en stats mais absent de la liste ne sera pas
+équipé par-dessus une pièce listée, même de rang 3. La liste fait autorité.
+
 ### Réserver le NEED au BiS
 
 Par défaut, mod-playerbots vote NEED sur toute pièce que son calcul juge meilleure d'un
