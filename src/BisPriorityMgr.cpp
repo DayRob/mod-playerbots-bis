@@ -145,13 +145,16 @@ void BisPriorityMgr::LoadTables()
         if (std::find(owners.begin(), owners.end(), ownerKey) == owners.end())
             owners.push_back(ownerKey);
 
-        // Keep the strongest row when the same item appears twice for a combo.
-        auto existing = bucket.find(itemId);
-        if (existing == bucket.end() || existing->second.tierId < entry.tierId ||
-            (existing->second.tierId == entry.tierId && existing->second.rank > entry.rank))
-        {
-            bucket[itemId] = entry;
-        }
+        // Every tier is kept. Only a duplicate of the SAME tier collapses, and
+        // then the better rank wins - two rows for one tier and one slot would
+        // otherwise make the priority depend on row order.
+        auto& rows = bucket[itemId];
+        auto sameTier = std::find_if(rows.begin(), rows.end(),
+                                     [tierId](BisItem const& r) { return r.tierId == tierId; });
+        if (sameTier == rows.end())
+            rows.push_back(entry);
+        else if (sameTier->rank > entry.rank)
+            *sameTier = entry;
 
         ++_itemCount;
     } while (itemResult->NextRow());
@@ -280,6 +283,26 @@ uint32 BisPriorityMgr::GetItemPriority(Player* bot, uint32 itemId, uint8* outSlo
     uint8 const spec = ResolveSpec(bot);
     uint8 const faction = bot->GetTeamId() == TEAM_ALLIANCE ? 1 : 2;
 
+    uint16 const cap = GetEffectiveTierCap(bot);
+
+    // Of the tiers that list this piece, take the highest one the bot can
+    // actually reach - the most recent phase's opinion is the current one - and
+    // break a tie on the better rank. Rows above the cap are content the bot has
+    // not unlocked; ignoring them here is what lets a piece that is rank 1
+    // pre-raid and rank 3 at MC still be claimed by a pre-raid bot.
+    auto best = [cap](std::vector<BisItem> const& rows) -> BisItem const*
+    {
+        BisItem const* pick = nullptr;
+        for (BisItem const& row : rows)
+        {
+            if (row.tierId > cap)
+                continue;
+            if (!pick || row.tierId > pick->tierId || (row.tierId == pick->tierId && row.rank < pick->rank))
+                pick = &row;
+        }
+        return pick;
+    };
+
     BisItem const* found = nullptr;
 
     // Neutral rows first, faction rows override them.
@@ -288,7 +311,7 @@ uint32 BisPriorityMgr::GetItemPriority(Player* bot, uint32 itemId, uint8* outSlo
     {
         auto it = neutral->second.find(itemId);
         if (it != neutral->second.end())
-            found = &it->second;
+            found = best(it->second);
     }
 
     auto factional = _items.find(MakeKey(cls, spec, faction));
@@ -296,14 +319,12 @@ uint32 BisPriorityMgr::GetItemPriority(Player* bot, uint32 itemId, uint8* outSlo
     {
         auto it = factional->second.find(itemId);
         if (it != factional->second.end())
-            found = &it->second;
+            if (BisItem const* pick = best(it->second))
+                found = pick;
     }
 
     if (!found)
         return 0;
-
-    if (found->tierId > GetEffectiveTierCap(bot))
-        return 0;  // content this bot has not unlocked yet
 
     if (outSlot)
         *outSlot = found->slot;

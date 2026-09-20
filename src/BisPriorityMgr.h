@@ -131,8 +131,14 @@ private:
 
     // Read-only after LoadTables(); safe to share across map threads.
     std::unordered_map<uint16, BisTier> _tiers;
-    // (cls<<16|spec<<8|faction) -> itemId -> entry
-    std::unordered_map<uint32, std::unordered_map<uint32, BisItem>> _items;
+    // (cls<<16|spec<<8|faction) -> itemId -> every tier that lists it.
+    //
+    // A piece often appears in several phases at once: Dal'Rend's Sacred Charge
+    // is rank 1 pre-raid, rank 3 at MC and rank 2 at BWL for a Fury warrior.
+    // Collapsing those to one row lost whichever the bot could actually reach,
+    // so the rows are kept side by side and GetItemPriority picks the highest
+    // tier within the bot's cap.
+    std::unordered_map<uint32, std::unordered_map<uint32, std::vector<BisItem>>> _items;
     // (cls<<16|spec<<8|faction) -> lowest tier present, so an empty or
     // out-of-reach list is detected without scanning the bucket.
     std::unordered_map<uint32, uint16> _minTierByCombo;

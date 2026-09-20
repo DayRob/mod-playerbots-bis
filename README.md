@@ -78,6 +78,18 @@ maîtrise d'arme, qui eux disqualifient définitivement. Un bot trop jeune annon
 pièce en précisant le niveau qui lui manque, la garde en sac, et l'équipera en
 grandissant. `PlayerbotsBis.ClaimBelowRequiredLevel = 0` rétablit l'exigence de niveau.
 
+### Un objet listé à plusieurs paliers
+
+Une même pièce apparaît souvent dans plusieurs phases : `Dal'Rend's Sacred Charge` est
+rang 1 en pré-raid, rang 3 à MC et rang 2 à BWL pour un guerrier Fureur. Les lignes sont
+donc conservées côte à côte, et `GetItemPriority` retient **le palier le plus haut que le
+bot peut atteindre**, le rang départageant une égalité.
+
+C'est indispensable : ne garder que la ligne du palier le plus élevé rendait la pièce
+invisible pour un bot plafonné plus bas. Un guerrier Fureur en pré-raid ne voyait plus du
+tout ses Dal'Rend, pourtant rang 1 de sa propre liste, parce que seule la ligne du palier
+30 survivait au chargement et se trouvait hors de sa portée.
+
 ### Une pièce hors liste ne déloge jamais une pièce de la liste
 
 La branche 3 délègue à mod-playerbots, dont la règle est « 1,1 fois mieux selon le score
