@@ -25,6 +25,22 @@
 -- Ce fichier ne couvre que 11 combinaisons classe/spe. Toutes les autres sont
 -- fournies par 03_vanilla_preraid.sql, qui complete le palier 10 a 28/28.
 
+-- Rejeu du fichier, meme logique que dans 03_vanilla_preraid.sql : les INSERT
+-- sont en INSERT IGNORE, il faut donc effacer d'abord pour pouvoir corriger une
+-- liste.
+--
+-- Seules les combinaisons PROPRES a ce fichier sont effacees. Quatre des onze
+-- combinaisons listees ici sont aussi couvertes par 03_vanilla_preraid.sql
+-- (guerrier Protection 1/2, voleur Combat 4/1, druide Equilibre 11/0, druide
+-- Farouche 11/1). Pour celles-la, le fichier 03 fait autorite : ses listes sont
+-- classees par rang, alors que WoWSims ne publie qu'un set optimal sans
+-- alternative. Comme 03 s'execute avant 04, ses lignes sont deja en place et les
+-- INSERT IGNORE de ce fichier n'y touchent pas. Les effacer ici inverserait
+-- cette priorite.
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 5 AND `spec` = 2;
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 8 AND `spec` IN (0, 1, 2);
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 9 AND `spec` IN (0, 1, 2);
+
 DROP TEMPORARY TABLE IF EXISTS `bis_seed_ids`;
 CREATE TEMPORARY TABLE `bis_seed_ids` (
     `class`   TINYINT UNSIGNED NOT NULL,

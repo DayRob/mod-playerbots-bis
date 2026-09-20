@@ -31,6 +31,20 @@
 -- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10), Druide Restauration (11/2), Druide Farouche (11/1), Druide Equilibre (11/0)
 -- contre item_template sur un serveur AzerothCore reel.
 
+-- Rejeu du fichier : les INSERT plus bas sont en INSERT IGNORE et n'ecrasent
+-- donc jamais une ligne existante. Pour que ce fichier redevienne la source de
+-- verite quand son contenu change, il efface d'abord SES PROPRES combinaisons.
+-- La portee est volontairement limitee aux classes/spes couvertes ici : le
+-- palier 10 est aussi alimente par 04_vanilla_preraid_wowsims.sql, dont les
+-- combinaisons ne doivent pas etre emportees au passage.
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 1  AND `spec` IN (0, 1, 2);
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 2  AND `spec` IN (0, 1, 2);
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 3  AND `spec` IN (0, 1, 2);
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 4  AND `spec` IN (0, 1, 2);
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 5  AND `spec` IN (0, 1);
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 7  AND `spec` IN (0, 1, 2);
+DELETE FROM `playerbots_bis_item` WHERE `tier_id` = 10 AND `class` = 11 AND `spec` IN (0, 1, 2, 10);
+
 DROP TEMPORARY TABLE IF EXISTS `bis_seed`;
 CREATE TEMPORARY TABLE `bis_seed` (
     `class`     TINYINT UNSIGNED NOT NULL,
