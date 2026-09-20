@@ -9,6 +9,13 @@
 -- item_template garde quand meme les noms anglais (les traductions vivent dans
 -- item_template_locale), donc rien a changer.
 --
+-- PIEGE : quelques objets ont ete RENOMMES entre Vanilla et WotLK, alors que les
+-- guides Wowhead Classic gardent l'ancien nom. La base d'un serveur 3.3.5 porte
+-- le nom WotLK. Exemple rencontre : l'objet 20671 s'appelle "Abyssal Plate
+-- Legplates" en Classic et "Abyssal Plate Legguards" en WotLK - c'est ce
+-- dernier qu'il faut ecrire. La premiere requete de verification en fin de
+-- fichier attrape ces cas.
+--
 -- rank : 1 = premier choix, 2 = alternative, 3 = depannage. Le bot prend la
 -- meilleure ligne qu'il possede. Un palier superieur bat toujours ce palier-ci.
 --
@@ -1458,7 +1465,7 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (1, 2,  6, 0, 1, 'Eldritch Reinforced Legplates'),
 (1, 2,  6, 0, 1, 'Legplates of Heroism'),
 (1, 2,  6, 0, 2, 'Cloudkeeper Legplates'),
-(1, 2,  6, 0, 2, 'Abyssal Plate Legplates'),
+(1, 2,  6, 0, 2, 'Abyssal Plate Legguards'),
 (1, 2,  6, 0, 2, 'Legplates of Valor'),
 (1, 2,  6, 0, 3, 'Legplates of Vigilance'),
 (1, 2,  6, 0, 3, 'Wraithplate Leggings'),

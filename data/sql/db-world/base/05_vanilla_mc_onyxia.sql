@@ -255,7 +255,7 @@ INSERT INTO `bis_seed20` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name
 (1, 0, 13, 0, 3, 'Counterattack Lodestone'),
 (1, 0, 12, 2, 2, 'Rune of the Guard Captain'),
 (1, 0, 13, 2, 2, 'Rune of the Guard Captain'),
-(1, 0, 15, 0, 1, 'Bonereavers Edge'),
+(1, 0, 15, 0, 1, 'Bonereaver''s Edge'),
 (1, 0, 15, 0, 1, 'Arcanite Reaper'),
 (1, 0, 15, 0, 2, 'The Unstoppable Force'),
 (1, 0, 15, 0, 2, 'Corpsemaker'),
