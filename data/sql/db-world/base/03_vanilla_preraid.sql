@@ -11,10 +11,15 @@
 --
 -- PIEGE : quelques objets ont ete RENOMMES entre Vanilla et WotLK, alors que les
 -- guides Wowhead Classic gardent l'ancien nom. La base d'un serveur 3.3.5 porte
--- le nom WotLK. Exemple rencontre : l'objet 20671 s'appelle "Abyssal Plate
--- Legplates" en Classic et "Abyssal Plate Legguards" en WotLK - c'est ce
--- dernier qu'il faut ecrire. La premiere requete de verification en fin de
--- fichier attrape ces cas.
+-- le nom WotLK, et c'est celui-la qu'il faut ecrire ici. Deux cas rencontres :
+--
+--   20671  "Abyssal Plate Legplates"   -> "Abyssal Plate Legguards"
+--   22403  "Nacreous Shell Necklace"   -> "Diana's Pearl Necklace"
+--
+-- Le second montre que le renommage n'est pas toujours un simple mot change :
+-- l'objet porte un nom entierement different. La seule facon fiable de trancher
+-- est de chercher l'identifiant dans item_template, pas le nom.
+-- La premiere requete de verification en fin de fichier attrape ces cas.
 --
 -- rank : 1 = premier choix, 2 = alternative, 3 = depannage. Le bot prend la
 -- meilleure ligne qu'il possede. Un palier superieur bat toujours ce palier-ci.
@@ -760,7 +765,7 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (7, 0,  0, 0, 3, 'Crimson Felt Hat'),
 (7, 0,  0, 0, 3, 'Helm of Latent Power'),
 (7, 0,  1, 0, 1, 'Barbed Thorn Necklace'),
-(7, 0,  1, 0, 3, 'Nacreous Shell Necklace'),
+(7, 0,  1, 0, 3, 'Diana''s Pearl Necklace'),
 (7, 0,  1, 0, 3, 'Star of Mystaria'),
 (7, 0,  2, 0, 1, 'Burial Shawl'),
 (7, 0,  2, 0, 3, 'Elder Wizard''s Mantle'),
@@ -1701,7 +1706,7 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (11, 0,  0, 0, 2, 'Crimson Felt Hat'),
 (11, 0,  0, 0, 3, 'Green Lens'),
 (11, 0,  0, 0, 3, 'Dreamweave Circlet'),
-(11, 0,  1, 0, 1, 'Nacreous Shell Necklace'),
+(11, 0,  1, 0, 1, 'Diana''s Pearl Necklace'),
 (11, 0,  1, 0, 2, 'Star of Mystaria'),
 (11, 0,  1, 0, 3, 'Tempest Talisman'),
 (11, 0,  1, 0, 3, 'Lady Maye''s Pendant'),
