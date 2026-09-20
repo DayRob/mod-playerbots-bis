@@ -1681,10 +1681,9 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 -- Complete les 15 lignes wowsims du fichier 04, a qui il manquait la main
 -- gauche et l'idole.
 --
--- ATTENTION : le BiS de cou de cette spe est Nacreous Shell Necklace, le seul
--- nom de tout le fichier qui n'a pas resolu contre item_template lors de
--- l'import. Si la verification le signale a nouveau, le druide Equilibre se
--- rabattra sur Star of Mystaria en rang 2.
+-- Le BiS de cou de cette spe est celui que le guide appelle "Nacreous Shell
+-- Necklace". Sur une base 3.3.5 l'objet 22403 porte le nom WotLK
+-- "Diana's Pearl Necklace" - voir l'en-tete du fichier sur les renommages.
 --
 -- Le guide met en "Best" plusieurs objets a suffixe aleatoire ("of Arcane
 -- Wrath") : Archivist Cape, Flameweave Cuffs, Drakestone. Seul le nom de base
