@@ -201,6 +201,10 @@ fichier liste les noms non résolus. C'est le format à suivre pour contribuer u
 connues :
 
 - Paliers vides : Zul'Gurub (40), AQ20 (50), WotLK Pre-Raid (130), Ruby Sanctum (180).
+- Palier 20 (MC / Onyxia) : le guerrier Armes et le guerrier Fureur viennent d'un guide
+  Wowhead (fichier `05`) ; les 22 autres spés viennent encore de la conversion du fichier
+  `02`, dont les rangs ne proviennent d'aucun guide. Voleur Assassinat, Voleur Subtilité
+  et Prêtre Discipline n'y ont toujours aucune ligne.
 - Paliers partiels : les trois derniers paliers TBC (100, 110, 120) ne couvrent que 15 à
   16 combinaisons classe/spé, contre 23 à 24 pour les paliers TBC précédents.
 - Palier 10 (Vanilla Pre-Raid) : **complet**, 28 combinaisons sur 28, 1238 lignes.
