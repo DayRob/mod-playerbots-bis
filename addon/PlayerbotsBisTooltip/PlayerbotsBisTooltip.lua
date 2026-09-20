@@ -1,5 +1,5 @@
 --[[
-  Playerbots BiS Tooltip — released under GNU GPL v2, matching mod-playerbots-bis.
+  Playerbots BiS Tooltip - released under GNU GPL v2, matching mod-playerbots-bis.
 
   Adds to an item's tooltip the class/spec combinations that list it as best in
   slot, straight from the server's own playerbots_bis_item table. The data lives
@@ -204,9 +204,9 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
             for _ in pairs(PlayerbotsBisTooltipItems) do count = count + 1 end
         end
         Print(count .. " objets charges.")
-        Print("/pbbis all — bascule entre ta classe seule et toutes les classes (actuel : "
+        Print("/pbbis all - bascule entre ta classe seule et toutes les classes (actuel : "
               .. (db.allClasses and "toutes" or "ta classe") .. ")")
-        Print("/pbbis maxtier <n> — masque les paliers superieurs a n (actuel : "
+        Print("/pbbis maxtier <n> - masque les paliers superieurs a n (actuel : "
               .. (db.maxTier == 0 and "aucun plafond" or db.maxTier) .. ")")
     end
 end
@@ -227,7 +227,7 @@ frame:SetScript("OnEvent", function(_, _, name)
     end
 
     if not PlayerbotsBisTooltipItems then
-        Print("BisData.lua est absent ou vide — relance tools/export_bis_tooltip.ps1.")
+        Print("BisData.lua est absent ou vide - relance tools/export_bis_tooltip.ps1.")
         return
     end
 

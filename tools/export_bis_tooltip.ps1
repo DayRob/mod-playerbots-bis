@@ -19,7 +19,7 @@ param(
 )
 
 if (-not (Test-Path $MySql)) {
-    throw "mysql.exe introuvable : $MySql — passe le bon chemin avec -MySql."
+    throw "mysql.exe introuvable : $MySql - passe le bon chemin avec -MySql."
 }
 
 # -N retire la ligne d'en-tete, -B produit du tabule sans bordures.
@@ -44,7 +44,7 @@ Write-Host "Lecture des objets..."
 $itemRows = Invoke-Sql "SELECT i.item_id, i.class, i.spec, i.tier_id, i.rank FROM playerbots_bis_item i ORDER BY i.item_id, i.tier_id, i.rank;"
 
 $sb = New-Object System.Text.StringBuilder
-[void]$sb.AppendLine("-- Genere par tools/export_bis_tooltip.ps1 — ne pas editer a la main.")
+[void]$sb.AppendLine("-- Genere par tools/export_bis_tooltip.ps1 - ne pas editer a la main.")
 [void]$sb.AppendLine("-- Source : $Database.playerbots_bis_item, $(Get-Date -Format 'yyyy-MM-dd HH:mm').")
 [void]$sb.AppendLine()
 [void]$sb.AppendLine("PlayerbotsBisTooltipTiers = {")
