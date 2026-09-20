@@ -13,10 +13,10 @@
 -- meilleure ligne qu'il possede. Un palier superieur bat toujours ce palier-ci.
 --
 -- Source : guides Best-in-Slot Pre-Raid de Wowhead Classic.
--- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1),
+-- Contenu actuel : Guerrier Armes (1/0), Guerrier Fureur (1/1), Guerrier Protection (1/2),
 -- Paladin Sacre (2/0), Paladin Protection (2/1), Paladin Vindicte (2/2),
 -- Chasseur (3/0,1,2), Voleur (4/0,1,2), Pretre soin (5/0,1),
--- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10), Druide Restauration (11/2)
+-- Chaman Elementaire (7/0), Chaman Amelioration (7/1), Chaman Restauration (7/2), Druide Ours (11/10), Druide Restauration (11/2), Druide Farouche (11/1)
 -- contre item_template sur un serveur AzerothCore reel.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed`;
@@ -1392,6 +1392,276 @@ INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`)
 (2, 2, 15, 0, 3, 'Nightfall'),
 (2, 2, 15, 1, 3, 'The Unstoppable Force'),
 (2, 2, 17, 0, 1, 'Libram of Hope');
+
+-- =====================================================================
+-- Guerrier Protection (classe 1, spe 2) - tank.
+--
+-- Remplace les 8 lignes wowsims du fichier 04, qui ne couvraient que la moitie
+-- des emplacements : ni cou, ni anneau, ni bijou, ni dos, ni aucune arme.
+-- Les lignes wowsims restent inserees, la cle primaire dedoublonnant ce qui
+-- se recoupe ; ce fichier passant en premier, ses rangs l'emportent.
+--
+-- --- Armes : trois tableaux fusionnes en un ---
+-- Le guide separe les armes par race : epees et masses pour l'Humain, haches
+-- pour l'Orc, dagues pour les autres (via Mugger's Belt). Tout cela repose sur
+-- les bonus de competence d'arme, que le module ne modelise pas - sa table
+-- connait la classe, la spe, l'emplacement et la faction, pas la race.
+-- Les trois listes sont donc fusionnees sur l'emplacement 15. Un guerrier
+-- maitrisant de toute facon les quatre types d'arme, le bot prendra la mieux
+-- classee qu'il obtient. Il perdra le bonus de +5 en competence d'arme que le
+-- guide met en avant, faute de pouvoir raisonner dessus.
+--
+-- --- Rangs ---
+-- 1 = "Best Overall" ou "Best Threat" du guide, plus les pieces de son set
+--     d'exemple "Realistic First Raid Goal"
+-- 2 = autres alternatives nommees, accessibles
+-- 3 = reputation PvP (Alterac, Arathi), drops monde tres rares, armes de niche
+--
+-- Beaucoup de pieces en rang 1 appartiennent au set Heroism, c'est-a-dire au
+-- Tier 0.5. Avec AllowEarlyDungeonSet2 = 0 elles restent hors de portee
+-- jusqu'a BWL : le bot se rabattra sur les rangs 2 en attendant, ce qui est
+-- exactement le role de l'echelle de rangs.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(1, 2,  0, 0, 1, 'Helm of Heroism'),
+(1, 2,  0, 0, 1, 'Lionheart Helm'),
+(1, 2,  0, 0, 1, 'Helm of the Executioner'),
+(1, 2,  0, 0, 2, 'Crown of Tyranny'),
+(1, 2,  0, 0, 2, 'Helm of Valor'),
+(1, 2,  0, 0, 2, 'Golem Skull Helm'),
+(1, 2,  0, 0, 3, 'Helm of Awareness'),
+(1, 2,  0, 0, 3, 'Avenguard Helm'),
+(1, 2,  1, 0, 1, 'Beads of Ogre Might'),
+(1, 2,  1, 0, 1, 'Mark of Fordring'),
+(1, 2,  1, 0, 2, 'Pendant of Celerity'),
+(1, 2,  1, 0, 2, 'Will of the Martyr'),
+(1, 2,  1, 0, 3, 'Stormpike Soldier''s Pendant'),
+(1, 2,  1, 0, 3, 'Master Sergeant''s Insignia'),
+(1, 2,  2, 0, 1, 'Spaulders of Heroism'),
+(1, 2,  2, 0, 1, 'Spaulders of Valor'),
+(1, 2,  2, 0, 2, 'Slamshot Shoulders'),
+(1, 2,  2, 0, 2, 'Ebonsteel Spaulders'),
+(1, 2,  2, 0, 3, 'Stockade Pauldrons'),
+(1, 2,  4, 0, 1, 'Breastplate of Heroism'),
+(1, 2,  4, 0, 1, 'Savage Gladiator Chain'),
+(1, 2,  4, 0, 1, 'Breastplate of Valor'),
+(1, 2,  4, 0, 2, 'Breastplate of the Chromatic Flight'),
+(1, 2,  4, 0, 2, 'Ogre Forged Hauberk'),
+(1, 2,  4, 0, 3, 'Ornate Adamantium Breastplate'),
+(1, 2,  4, 0, 3, 'Kromcrush''s Chestplate'),
+(1, 2,  5, 0, 1, 'Mugger''s Belt'),
+(1, 2,  5, 0, 1, 'Brigam Girdle'),
+(1, 2,  5, 0, 2, 'Omokk''s Girth Restrainer'),
+(1, 2,  5, 0, 2, 'Handcrafted Mastersmith Girdle'),
+(1, 2,  5, 0, 2, 'Belt of Heroism'),
+(1, 2,  5, 0, 3, 'Highlander''s Plate Girdle'),
+(1, 2,  6, 0, 1, 'Eldritch Reinforced Legplates'),
+(1, 2,  6, 0, 1, 'Legplates of Heroism'),
+(1, 2,  6, 0, 2, 'Cloudkeeper Legplates'),
+(1, 2,  6, 0, 2, 'Abyssal Plate Legplates'),
+(1, 2,  6, 0, 2, 'Legplates of Valor'),
+(1, 2,  6, 0, 3, 'Legplates of Vigilance'),
+(1, 2,  6, 0, 3, 'Wraithplate Leggings'),
+(1, 2,  7, 0, 1, 'Boots of Heroism'),
+(1, 2,  7, 0, 1, 'Boots of Valor'),
+(1, 2,  7, 0, 2, 'Bloodmail Boots'),
+(1, 2,  7, 0, 2, 'Ribsteel Footguards'),
+(1, 2,  7, 0, 3, 'Sapphiron''s Scale Boots'),
+(1, 2,  7, 0, 3, 'Boots of Avoidance'),
+(1, 2,  8, 0, 1, 'Bracers of Heroism'),
+(1, 2,  8, 0, 1, 'Battleborn Armbraces'),
+(1, 2,  8, 0, 2, 'Vigorsteel Vambraces'),
+(1, 2,  8, 0, 2, 'Blackmist Armguards'),
+(1, 2,  8, 0, 2, 'Bracers of Valor'),
+(1, 2,  8, 0, 3, 'Slashclaw Bracers'),
+(1, 2,  8, 0, 3, 'Vambraces of the Sadist'),
+(1, 2,  9, 0, 1, 'Edgemaster''s Handguards'),
+(1, 2,  9, 0, 1, 'Gauntlets of Heroism'),
+(1, 2,  9, 0, 1, 'Voone''s Vice Grips'),
+(1, 2,  9, 0, 2, 'Reiver Claws'),
+(1, 2,  9, 0, 3, 'Gordok''s Handguards'),
+(1, 2,  9, 0, 3, 'Force Imbued Gauntlets'),
+(1, 2, 10, 0, 1, 'Band of the Ogre King'),
+(1, 2, 11, 0, 1, 'Band of the Ogre King'),
+(1, 2, 10, 0, 1, 'Band of Flesh'),
+(1, 2, 11, 0, 1, 'Band of Flesh'),
+(1, 2, 10, 0, 1, 'Blackstone Ring'),
+(1, 2, 11, 0, 1, 'Blackstone Ring'),
+(1, 2, 10, 0, 2, 'Myrmidon''s Signet'),
+(1, 2, 11, 0, 2, 'Myrmidon''s Signet'),
+(1, 2, 10, 0, 2, 'Tarnished Elven Ring'),
+(1, 2, 11, 0, 2, 'Tarnished Elven Ring'),
+(1, 2, 10, 0, 2, 'Painweaver Band'),
+(1, 2, 11, 0, 2, 'Painweaver Band'),
+(1, 2, 10, 1, 2, 'Magni''s Will'),
+(1, 2, 11, 1, 2, 'Magni''s Will'),
+(1, 2, 10, 0, 3, 'Band of the Steadfast Hero'),
+(1, 2, 11, 0, 3, 'Band of the Steadfast Hero'),
+(1, 2, 10, 0, 3, 'Naglering'),
+(1, 2, 11, 0, 3, 'Naglering'),
+(1, 2, 10, 0, 3, 'Don Julio''s Band'),
+(1, 2, 11, 0, 3, 'Don Julio''s Band'),
+(1, 2, 12, 0, 1, 'Diamond Flask'),
+(1, 2, 13, 0, 1, 'Diamond Flask'),
+(1, 2, 12, 0, 1, 'Blackhand''s Breadth'),
+(1, 2, 13, 0, 1, 'Blackhand''s Breadth'),
+(1, 2, 12, 0, 1, 'Hand of Justice'),
+(1, 2, 13, 0, 1, 'Hand of Justice'),
+(1, 2, 12, 2, 2, 'Rune of the Guard Captain'),
+(1, 2, 13, 2, 2, 'Rune of the Guard Captain'),
+(1, 2, 12, 0, 2, 'Counterattack Lodestone'),
+(1, 2, 13, 0, 2, 'Counterattack Lodestone'),
+(1, 2, 12, 0, 2, 'Vigilance Charm'),
+(1, 2, 13, 0, 2, 'Vigilance Charm'),
+(1, 2, 12, 0, 3, 'Mark of the Chosen'),
+(1, 2, 13, 0, 3, 'Mark of the Chosen'),
+(1, 2, 12, 0, 3, 'Force of Will'),
+(1, 2, 13, 0, 3, 'Force of Will'),
+(1, 2, 12, 1, 3, 'Stormpike Insignia Rank 6'),
+(1, 2, 13, 1, 3, 'Stormpike Insignia Rank 6'),
+(1, 2, 12, 2, 3, 'Frostwolf Insignia Rank 6'),
+(1, 2, 13, 2, 3, 'Frostwolf Insignia Rank 6'),
+(1, 2, 14, 0, 1, 'Stoneskin Gargoyle Cape'),
+(1, 2, 14, 0, 2, 'Shifting Cloak'),
+(1, 2, 14, 0, 2, 'The Emperor''s New Cape'),
+(1, 2, 14, 0, 2, 'Phantasmal Cloak'),
+(1, 2, 14, 0, 3, 'Armswake Cloak'),
+(1, 2, 14, 0, 3, 'Redoubt Cloak'),
+(1, 2, 15, 0, 1, 'Blackguard'),
+(1, 2, 15, 0, 1, 'Mirah''s Song'),
+(1, 2, 15, 0, 2, 'Ironfoe'),
+(1, 2, 15, 0, 2, 'Mass of McGowan'),
+(1, 2, 15, 0, 2, 'Annihilator'),
+(1, 2, 15, 0, 2, 'Bone Slicing Hatchet'),
+(1, 2, 15, 0, 2, 'Hedgecutter'),
+(1, 2, 15, 0, 2, 'Felstriker'),
+(1, 2, 15, 0, 2, 'Heartseeker'),
+(1, 2, 15, 0, 3, 'Timeworn Mace'),
+(1, 2, 15, 0, 3, 'Serathil'),
+(1, 2, 15, 0, 3, 'Tooth of Eranikus'),
+(1, 2, 15, 0, 3, 'Scarlet Kris'),
+(1, 2, 15, 0, 3, 'Bonescraper'),
+(1, 2, 15, 0, 3, 'Darrowspike'),
+(1, 2, 15, 0, 3, 'The Lobotomizer'),
+(1, 2, 15, 1, 3, 'Stormstrike Hammer'),
+(1, 2, 15, 1, 3, 'Electrified Dagger'),
+(1, 2, 15, 2, 3, 'Frostbite'),
+(1, 2, 15, 2, 3, 'Glacial Blade'),
+(1, 2, 16, 0, 1, 'Dreadguard''s Protector'),
+(1, 2, 16, 0, 2, 'Force Reactive Disk'),
+(1, 2, 16, 0, 2, 'Draconian Deflector'),
+(1, 2, 16, 0, 3, 'The Immovable Object'),
+(1, 2, 16, 0, 3, 'Wall of the Dead'),
+(1, 2, 16, 0, 3, 'Sacred Protector'),
+(1, 2, 16, 0, 3, 'Darrowshire Strongguard'),
+(1, 2, 16, 0, 3, 'Distracting Dagger'),
+(1, 2, 17, 0, 1, 'Satyr''s Bow'),
+(1, 2, 17, 0, 1, 'Blackcrow'),
+(1, 2, 17, 0, 2, 'Gorewood Bow'),
+(1, 2, 17, 0, 3, 'Bloodseeker'),
+(1, 2, 17, 0, 3, 'Carapace Spine Crossbow');
+
+-- =====================================================================
+-- Druide Farouche / chat (classe 11, spe 1) - degats en melee.
+--
+-- Remplace les 8 lignes wowsims du fichier 04, qui laissaient a nu le cou,
+-- les anneaux, les bijoux, le dos et les deux emplacements d'arme.
+--
+-- Manual Crowd Pummeler : meme arbitrage que chez l'ours. Le guide en fait le
+-- BiS absolu ("MCP a lui seul apporte 10 % du DPS total"), mais c'est une arme
+-- a charges limitees qui se detruit une fois epuisee et qu'il faut refarmer a
+-- Gnomeregan. Un bot ne sait pas faire ca : elle passe en rang 3, et
+-- Bonecrusher - le "Distant Second" du guide - prend le rang 1.
+--
+-- Beaucoup d'objets a suffixe aleatoire ici ("of the Tiger", "of Striking") :
+-- seul le nom de base existe dans item_template, le bot ne distinguera donc
+-- pas un bon suffixe d'un mauvais. Ils sont tous en rang 3 pour cette raison.
+--
+-- Le guide precise qu'aucune idole ne sert au chat : Idol of Brutality, l'idole
+-- de tank, reste donc le meilleur choix pour l'emplacement 17.
+-- Emplacement 16 vide : le chat porte une deux-mains.
+--
+-- Rangs : BiS -> 1, alternative solide -> 2, suffixe aleatoire et reste -> 3.
+-- =====================================================================
+INSERT INTO `bis_seed` (`class`, `spec`, `slot`, `faction`, `rank`, `item_name`) VALUES
+(11, 1,  0, 0, 1, 'Wolfshead Helm'),
+(11, 1,  1, 0, 1, 'Pendant of Celerity'),
+(11, 1,  1, 0, 2, 'Beads of Ogre Might'),
+(11, 1,  1, 0, 3, 'Mark of Fordring'),
+(11, 1,  1, 0, 3, 'Prismatic Pendant'),
+(11, 1,  1, 0, 3, 'Jungle Necklace'),
+(11, 1,  2, 0, 1, 'Truestrike Shoulders'),
+(11, 1,  2, 0, 3, 'Dark Warder''s Pauldrons'),
+(11, 1,  2, 0, 3, 'Wyrmhide Spaulders'),
+(11, 1,  2, 0, 3, 'Flamescarred Shoulders'),
+(11, 1,  2, 0, 3, 'Wyrmtongue Shoulders'),
+(11, 1,  2, 1, 3, 'Clouddrift Mantle'),
+(11, 1,  4, 0, 1, 'Cadaverous Armor'),
+(11, 1,  4, 0, 3, 'Breastplate of Bloodthirst'),
+(11, 1,  4, 0, 3, 'Grizzled Pelt'),
+(11, 1,  4, 0, 3, 'Tombstone Breastplate'),
+(11, 1,  5, 0, 1, 'Cloudrunner Girdle'),
+(11, 1,  5, 0, 3, 'Adventurer''s Belt'),
+(11, 1,  5, 0, 3, 'Supreme Sash'),
+(11, 1,  5, 0, 3, 'Mighty Girdle'),
+(11, 1,  5, 0, 3, 'Nightshade Girdle'),
+(11, 1,  6, 0, 1, 'Plaguehound Leggings'),
+(11, 1,  6, 0, 1, 'Devilsaur Leggings'),
+(11, 1,  6, 0, 3, 'Abyssal Leather Leggings'),
+(11, 1,  6, 0, 3, 'Shadowcraft Pants'),
+(11, 1,  6, 0, 3, 'Traveler''s Leggings'),
+(11, 1,  7, 0, 1, 'Boots of Ferocity'),
+(11, 1,  7, 0, 3, 'Swiftwalker Boots'),
+(11, 1,  7, 0, 3, 'Mongoose Boots'),
+(11, 1,  7, 0, 3, 'Swiftfoot Treads'),
+(11, 1,  7, 0, 3, 'Sandstalker Ankleguards'),
+(11, 1,  8, 0, 1, 'Bracers of the Eclipse'),
+(11, 1,  8, 0, 1, 'Wristguards of Renown'),
+(11, 1,  8, 0, 1, 'Deepfury Bracers'),
+(11, 1,  8, 0, 3, 'Blackmist Armguards'),
+(11, 1,  9, 0, 1, 'Devilsaur Gauntlets'),
+(11, 1,  9, 0, 2, 'Slaghide Gauntlets'),
+(11, 1,  9, 0, 3, 'Adventurer''s Gloves'),
+(11, 1,  9, 0, 3, 'Supreme Gloves'),
+(11, 1,  9, 0, 3, 'Mighty Gauntlets'),
+(11, 1, 10, 0, 1, 'Tarnished Elven Ring'),
+(11, 1, 11, 0, 1, 'Tarnished Elven Ring'),
+(11, 1, 10, 0, 2, 'Blackstone Ring'),
+(11, 1, 11, 0, 2, 'Blackstone Ring'),
+(11, 1, 10, 0, 3, 'Prismatic Band'),
+(11, 1, 11, 0, 3, 'Prismatic Band'),
+(11, 1, 10, 0, 3, 'Jungle Ring'),
+(11, 1, 11, 0, 3, 'Jungle Ring'),
+(11, 1, 10, 0, 3, 'Drakeclaw Band'),
+(11, 1, 11, 0, 3, 'Drakeclaw Band'),
+(11, 1, 10, 0, 3, 'Magma Forged Band'),
+(11, 1, 11, 0, 3, 'Magma Forged Band'),
+(11, 1, 12, 0, 1, 'Gnomish Battle Chicken'),
+(11, 1, 13, 0, 1, 'Gnomish Battle Chicken'),
+(11, 1, 12, 0, 1, 'Blackhand''s Breadth'),
+(11, 1, 13, 0, 1, 'Blackhand''s Breadth'),
+(11, 1, 12, 0, 1, 'Hand of Justice'),
+(11, 1, 13, 0, 1, 'Hand of Justice'),
+(11, 1, 12, 2, 1, 'Rune of the Guard Captain'),
+(11, 1, 13, 2, 1, 'Rune of the Guard Captain'),
+(11, 1, 12, 0, 3, 'Counterattack Lodestone'),
+(11, 1, 13, 0, 3, 'Counterattack Lodestone'),
+(11, 1, 12, 0, 3, 'Heart of Wyrmthalak'),
+(11, 1, 13, 0, 3, 'Heart of Wyrmthalak'),
+(11, 1, 12, 0, 3, 'Glimmering Mithril Insignia'),
+(11, 1, 13, 0, 3, 'Glimmering Mithril Insignia'),
+(11, 1, 14, 0, 1, 'Cape of the Black Baron'),
+(11, 1, 14, 0, 2, 'Blackveil Cape'),
+(11, 1, 14, 0, 3, 'Shadow Prowler''s Cloak'),
+(11, 1, 14, 0, 3, 'Shifting Cloak'),
+(11, 1, 14, 0, 3, 'Shroud of Domination'),
+(11, 1, 15, 0, 1, 'Bonecrusher'),
+(11, 1, 15, 0, 3, 'Manual Crowd Pummeler'),
+(11, 1, 15, 0, 3, 'Impervious Giant'),
+(11, 1, 15, 0, 3, 'Brutehammer'),
+(11, 1, 15, 0, 3, 'Fierce Mauler'),
+(11, 1, 15, 0, 3, 'Painbringer'),
+(11, 1, 17, 0, 1, 'Idol of Brutality');
 
 -- Resolution des noms -> item_template.entry.
 -- MIN(entry) departage les rares homonymes d'item_template.

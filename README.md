@@ -204,9 +204,10 @@ connues :
 - Paliers partiels : les trois derniers paliers TBC (100, 110, 120) ne couvrent que 15 à
   16 combinaisons classe/spé, contre 23 à 24 pour les paliers TBC précédents.
 - Palier 10 (Vanilla Pre-Raid) : **complet**, 28 combinaisons sur 28, 1238 lignes.
-- Listes minces au palier 10 : Guerrier Protection et Druide Farouche n'ont que 8 lignes,
-  soit moins de la moitié des emplacements. Les listes issues de wowsims en comptent 17,
-  soit un objet par emplacement sans aucune alternative. Une liste complète en fait 48 à 57.
+- Listes sans alternative au palier 10 : les listes issues de wowsims comptent 17 lignes,
+  soit un objet par emplacement et aucun repli si le bot ne l'obtient pas. Elles couvrent
+  en revanche bien les 15 emplacements. Seul Druide Équilibre a deux emplacements à nu
+  (main gauche, idole).
 
 Une spé sans aucune ligne atteignable ne se retrouve pas pénalisée : `HasReachableList`
 la fait sortir de la branche 2, donc elle ne cède le BiS de personne et garde intégralement
