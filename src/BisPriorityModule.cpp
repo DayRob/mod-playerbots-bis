@@ -4,6 +4,7 @@
  * option) any later version.
  */
 
+#include "BisActionContext.h"
 #include "BisPriorityMgr.h"
 #include "BisValueContext.h"
 #include "Chat.h"
@@ -22,15 +23,17 @@
 
 namespace
 {
-    // Append our value context to one class's shared list. Add() assigns into
-    // that list's creator map, so our "item usage" / "item upgrade" creators
-    // replace playerbots'. Per-bot context lists hold the map by reference, so
+    // Append our contexts to one class's shared lists. Add() assigns into each
+    // list's creator map, so our "item usage" / "item upgrade" values and our
+    // "loot roll" action replace playerbots'. Per-bot context lists hold the
+    // maps by reference, so
     // bots that already exist pick this up as soon as they next resolve the
     // value by name.
     template <class Ctx>
-    void RegisterClassValueContext()
+    void RegisterClassContexts()
     {
         Ctx::sharedValueContexts.Add(new BisValueContext());
+        Ctx::sharedActionContexts.Add(new BisActionContext());
     }
 }
 
@@ -69,16 +72,16 @@ public:
         // BisPriorityMgr::AppliesTo() returns false, and the replacement values
         // hand back exactly what playerbots would have answered.
 
-        RegisterClassValueContext<WarriorAiObjectContext>();
-        RegisterClassValueContext<PaladinAiObjectContext>();
-        RegisterClassValueContext<HunterAiObjectContext>();
-        RegisterClassValueContext<RogueAiObjectContext>();
-        RegisterClassValueContext<PriestAiObjectContext>();
-        RegisterClassValueContext<DKAiObjectContext>();
-        RegisterClassValueContext<ShamanAiObjectContext>();
-        RegisterClassValueContext<MageAiObjectContext>();
-        RegisterClassValueContext<WarlockAiObjectContext>();
-        RegisterClassValueContext<DruidAiObjectContext>();
+        RegisterClassContexts<WarriorAiObjectContext>();
+        RegisterClassContexts<PaladinAiObjectContext>();
+        RegisterClassContexts<HunterAiObjectContext>();
+        RegisterClassContexts<RogueAiObjectContext>();
+        RegisterClassContexts<PriestAiObjectContext>();
+        RegisterClassContexts<DKAiObjectContext>();
+        RegisterClassContexts<ShamanAiObjectContext>();
+        RegisterClassContexts<MageAiObjectContext>();
+        RegisterClassContexts<WarlockAiObjectContext>();
+        RegisterClassContexts<DruidAiObjectContext>();
 
         if (sBisPriorityMgr->IsEnabled())
             LOG_INFO("server.loading",

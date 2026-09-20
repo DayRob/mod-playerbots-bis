@@ -104,6 +104,7 @@ public:
 
     bool AnnounceMasterLoot() const { return _announceMasterLoot; }
     bool ClaimBelowRequiredLevel() const { return _claimBelowRequiredLevel; }
+    bool NeedOnlyForBis() const { return _needOnlyForBis; }
 
     // Highest tier this bot may pursue: the configured cap, optionally narrowed
     // by the bot's mod-individual-progression state.
@@ -158,6 +159,7 @@ private:
     bool _announceOwnBis = true;
     bool _announceMasterLoot = true;
     bool _claimBelowRequiredLevel = true;
+    bool _needOnlyForBis = false;
     uint16 _maxTier = 0;
     bool _useIndividualProgression = false;
     uint32 _progressionCacheSeconds = 300;

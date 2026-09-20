@@ -7,8 +7,9 @@
 #
 # REQUIRES mod-playerbots to be present and enabled — this is a playerbots
 # extension, not a standalone module. It does NOT modify mod-playerbots: it
-# registers replacement "item usage" / "item upgrade" values into the shared
-# value contexts, which the playerbots engine resolves by name.
+# registers replacement "item usage" / "item upgrade" values and a replacement
+# "loot roll" action into the shared contexts, which the playerbots engine
+# resolves by name.
 #
 # THE DIRECTORY NAME MATTERS. AzerothCore derives the loader entry point from
 # the module folder name, so this module must live in modules/mod-playerbots-bis

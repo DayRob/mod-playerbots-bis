@@ -78,6 +78,27 @@ maîtrise d'arme, qui eux disqualifient définitivement. Un bot trop jeune annon
 pièce en précisant le niveau qui lui manque, la garde en sac, et l'équipera en
 grandissant. `PlayerbotsBis.ClaimBelowRequiredLevel = 0` rétablit l'exigence de niveau.
 
+### Réserver le NEED au BiS
+
+Par défaut, mod-playerbots vote NEED sur toute pièce que son calcul juge meilleure d'un
+facteur 1.1. En raid, quarante bots se disputent donc des objets dont aucun ne fera son
+équipement final. `PlayerbotsBis.NeedOnlyForBis = 1` réserve le NEED au véritable BiS et
+rétrograde le reste en GREED :
+
+| Situation | Vote |
+|---|---|
+| La pièce est le BiS du bot, et une amélioration | NEED |
+| Amélioration ordinaire selon la logique d'origine | GREED |
+| L'objet ne lui sert à rien | PASS |
+
+Le GREED reste soumis à `AiPlayerbot.LootGreedRollLevel` : à `0`, les bots passent au
+lieu de greeder. Une spé sans liste atteignable garde ses NEED d'origine, sinon elle ne
+pourrait plus s'équiper du tout.
+
+L'implémentation ne recopie pas l'arbre de décision de mod-playerbots : elle vote GREED
+elle-même sur les rolls à rétrograder, puis délègue à `LootRollAction::Execute()`, qui
+ignore les rolls déjà votés.
+
 Ce verdict est consulté par mod-playerbots à **neuf endroits** : le roll de butin, le
 ramassage, le choix d'une récompense de quête, l'échange, l'achat, la vente, la
 comparaison interne sac / équipé, et l'interrogation directe. Le module n'a donc pas
@@ -157,6 +178,7 @@ PlayerbotsBis.Enable = 1
 PlayerbotsBis.MaxTier = 20            # cale les bots sur la phase de ton serveur
 PlayerbotsBis.LeaveOtherSpecsBis = 1  # laisser à son propriétaire le BiS d'une autre spé
 PlayerbotsBis.AnnounceOwnBis = 1      # annoncer son propre BiS avant de roller
+PlayerbotsBis.NeedOnlyForBis = 0      # 1 = NEED reserve au BiS, GREED sur le reste
 ```
 
 Le fichier `.conf.dist` documente chaque réglage et donne la table des `tier_id`.

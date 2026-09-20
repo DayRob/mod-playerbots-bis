@@ -67,6 +67,31 @@ PlayerbotsBis.AnnounceMasterLoot = 1
 # Defaut : 1 (active)
 PlayerbotsBis.ClaimBelowRequiredLevel = 1
 
+# Les bots ne font NEED que sur leur propre BiS.
+#
+# Sans cette option, mod-playerbots vote NEED sur tout ce que son calcul juge
+# meilleur d'un facteur 1.1 - donc sur quantite de pieces que le bot ne
+# cherche pas vraiment. En raid, cela veut dire quarante bots qui te disputent
+# un objet dont aucun ne fera son equipement final.
+#
+# A 1, la repartition devient :
+#   NEED   uniquement si la piece est le BiS du bot (et une amelioration)
+#   GREED  si c'est une amelioration ordinaire, selon la logique d'origine
+#   PASS   si l'objet ne lui sert a rien
+#
+# ATTENTION : le GREED reste soumis a AiPlayerbot.LootGreedRollLevel. Si ce
+# reglage vaut 0, les bots PASSENT au lieu de GREED et ne ramasseront plus
+# aucune amelioration hors BiS. Mets-le a 1 si tu veux le comportement decrit
+# ci-dessus.
+#
+# Une classe/spe sans liste atteignable n'est pas concernee : elle garde ses
+# NEED d'origine, sinon elle ne pourrait plus s'equiper du tout.
+#
+# Sans effet en butin de maitre, ou playerbots passe de toute facon et ou c'est
+# toi qui distribues (voir AnnounceMasterLoot).
+# Defaut : 0 (desactive)
+PlayerbotsBis.NeedOnlyForBis = 0
+
 # Note : il n'y a PAS de niveau minimum. La couche BiS s'ajoute a la logique
 # d'origine de mod-playerbots au lieu de la remplacer, donc un bot de niveau 20
 # continue de s'equiper normalement ; il reconnait simplement son BiS quand il en
