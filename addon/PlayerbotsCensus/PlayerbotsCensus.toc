@@ -1,0 +1,8 @@
+## Interface: 30300
+## Title: Playerbots Census
+## Notes: Recense la population en ligne (classe, race, niveau, zone, guilde) par balayage /who, et l'archive pour export.
+## Author: mod-playerbots-bis
+## Version: 1.0
+## SavedVariables: PlayerbotsCensusDB
+
+PlayerbotsCensus.lua
