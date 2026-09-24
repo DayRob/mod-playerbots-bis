@@ -175,15 +175,33 @@ end
 -- Item cache
 --------------------------------------------------------------------------------
 
-local scanner = CreateFrame("GameTooltip", "PlayerbotsBisScanTooltip", UIParent, "GameTooltipTemplate")
-scanner:SetOwner(UIParent, "ANCHOR_NONE")
+-- nil = not tried yet, false = this client cannot give us one.
+local scanner
+
+-- Built on first use, never at load. A client missing GameTooltipTemplate would
+-- otherwise throw here and take the whole file down with it, leaving the addon
+-- with no browser and no error to show for it.
+local function EnsureScanner()
+    if scanner ~= nil then return scanner end
+    local ok, frame = pcall(CreateFrame, "GameTooltip", "PlayerbotsBisScanTooltip",
+                            UIParent, "GameTooltipTemplate")
+    scanner = (ok and frame) or false
+    return scanner
+end
 
 -- Touching an uncached item with a tooltip makes the client ask the server for
 -- it. Nothing is read from the tooltip; the point is the query it triggers.
+-- Without one we lose nothing that matters: GetItemInfo on an uncached item
+-- asks the server too, it just answers on a later call, and the ticker is
+-- already waiting for exactly that.
 local function RequestItem(itemId)
-    scanner:SetOwner(UIParent, "ANCHOR_NONE")
-    scanner:SetHyperlink("item:" .. itemId .. ":0:0:0:0:0:0:0")
-    scanner:Hide()
+    local tip = EnsureScanner()
+    if not tip then return end
+    pcall(function()
+        tip:SetOwner(UIParent, "ANCHOR_NONE")
+        tip:SetHyperlink("item:" .. itemId .. ":0:0:0:0:0:0:0")
+        tip:Hide()
+    end)
 end
 
 --------------------------------------------------------------------------------
@@ -245,8 +263,12 @@ end
 local function RowEnter(self)
     if not self.itemId then return end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetHyperlink("item:" .. self.itemId .. ":0:0:0:0:0:0:0")
-    GameTooltip:Show()
+    if pcall(GameTooltip.SetHyperlink, GameTooltip,
+             "item:" .. self.itemId .. ":0:0:0:0:0:0:0") then
+        GameTooltip:Show()
+    else
+        GameTooltip:Hide()
+    end
 end
 
 local function RowLeave() GameTooltip:Hide() end
