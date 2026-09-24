@@ -1,7 +1,11 @@
 # Playerbots BiS Tooltip
 
-Addon 3.3.5a qui ajoute sous l'infobulle d'un objet les classes et spés qui le
-listent en BiS, lues **directement depuis les tables du serveur**.
+Addon 3.3.5a en deux morceaux, lus **directement depuis les tables du serveur** :
+
+- une **infobulle** qui ajoute sous un objet les classes et spés qui le listent
+  en BiS ;
+- un **navigateur** (`/pbbis`) qui affiche une liste complète, créneau par
+  créneau, sans passer par un site externe.
 
 ```
 BiS - Guerrier Fureur - Vanilla Pre-Raid (rang 1)
@@ -27,11 +31,30 @@ pas de seconde copie qui dérive.
 Le script prend aussi `-MySql`, `-User`, `-Password` et `-Database` si ta
 configuration diffère des valeurs par défaut d'AzerothCore.
 
+## Le navigateur
+
+`/pbbis` (ou `/pbbislist`) ouvre une fenêtre : trois sélecteurs **Classe / Spé /
+Phase**, et en dessous la liste groupée par créneau d'équipement, triée par rang.
+
+- **Clic gauche / clic droit** sur un sélecteur : valeur suivante / précédente.
+  Seules les combinaisons qui existent réellement dans tes tables sont proposées.
+- **Survol** d'une ligne : la vraie infobulle de l'objet — avec, dessous, les
+  lignes BiS de l'autre moitié de l'addon.
+- **Maj+clic** : insère le lien dans le chat. **Ctrl+clic** : cabine d'essayage.
+- Le bouton **Tous les rangs / Rang 1 seul** réduit la liste au choix principal.
+
+Certains objets apparaissent d'abord en `Chargement...` sous une section
+**En attente du serveur**. C'est normal : `GetItemInfo` ne répond que pour les
+objets déjà en cache côté client, et un objet jamais croisé n'y est pas. Le
+navigateur les demande au serveur et remplit les lignes dès que les noms
+arrivent — quelques secondes la première fois, instantané ensuite.
+
 ## Commandes
 
 | Commande | Effet |
 |---|---|
-| `/pbbis` | nombre d'objets chargés et réglages courants |
+| `/pbbis` | ouvre le navigateur des listes (aussi `/pbbislist`) |
+| `/pbbis info` | nombre d'objets chargés et réglages courants |
 | `/pbbis all` | bascule entre ta seule classe et toutes les classes |
 | `/pbbis maxtier <n>` | masque les paliers au-dessus de `n` (`0` = aucun plafond) |
 

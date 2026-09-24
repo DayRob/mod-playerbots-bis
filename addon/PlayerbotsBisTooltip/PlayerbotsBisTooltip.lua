@@ -198,16 +198,26 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         else
             Print("usage : /pbbis maxtier <nombre>, 0 pour aucun plafond.")
         end
+    elseif cmd == "" then
+        -- Bare command opens the browser: it is what you reach for most, and
+        -- the numbers below are one word away.
+        if PlayerbotsBisBrowser_Toggle then
+            PlayerbotsBisBrowser_Toggle()
+        else
+            Print("navigateur indisponible - PlayerbotsBisBrowser.lua n'est pas charge.")
+        end
     else
         local count = 0
         if PlayerbotsBisTooltipItems then
             for _ in pairs(PlayerbotsBisTooltipItems) do count = count + 1 end
         end
         Print(count .. " objets charges.")
+        Print("/pbbis - ouvre le navigateur des listes (aussi /pbbislist)")
         Print("/pbbis all - bascule entre ta classe seule et toutes les classes (actuel : "
               .. (db.allClasses and "toutes" or "ta classe") .. ")")
         Print("/pbbis maxtier <n> - masque les paliers superieurs a n (actuel : "
               .. (db.maxTier == 0 and "aucun plafond" or db.maxTier) .. ")")
+        Print("/pbbis info - ce resume")
     end
 end
 

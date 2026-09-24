@@ -1,9 +1,10 @@
 ## Interface: 30300
 ## Title: Playerbots BiS Tooltip
-## Notes: Affiche sous l'infobulle d'un objet les classes et specs qui le listent en BiS, d'apres les tables de mod-playerbots-bis.
+## Notes: Infobulle BiS + navigateur des listes en jeu (/pbbis), d'apres les tables de mod-playerbots-bis.
 ## Author: mod-playerbots-bis
-## Version: 1.0
+## Version: 1.1
 ## SavedVariables: PlayerbotsBisTooltipDB
 
 BisData.lua
 PlayerbotsBisTooltip.lua
+PlayerbotsBisBrowser.lua
