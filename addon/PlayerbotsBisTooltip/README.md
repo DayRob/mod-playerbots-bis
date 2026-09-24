@@ -50,6 +50,9 @@ rang.
 - **Menus déroulants** pour la classe, la spé et la phase. Seules les
   combinaisons qui existent réellement dans tes tables y figurent : pas de spé
   vide, pas de phase sans objet.
+- **La phase ne bouge pas** quand tu changes de spé ou de classe. Si la nouvelle
+  sélection ne la propose pas, l'addon descend à la phase immédiatement
+  inférieure plutôt que de sauter à la plus récente.
 - **Survol** d'une ligne : la vraie infobulle de l'objet — avec, dessous, les
   lignes BiS de l'autre moitié de l'addon.
 - **Maj+clic** : insère le lien dans le chat. **Ctrl+clic** : cabine d'essayage.

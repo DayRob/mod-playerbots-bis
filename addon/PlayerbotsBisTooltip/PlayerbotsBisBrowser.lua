@@ -144,6 +144,21 @@ local function TiersOf(class, spec)
     return out
 end
 
+-- The phase you are reading is the thing you least want moved under you, so it
+-- survives a change of spec or class whenever the new selection still has it.
+-- When it does not, drop to the nearest phase at or below it rather than jumping
+-- to the newest: someone comparing pre-raid lists stays in pre-raid.
+local function NearestTier(tiers, wanted)
+    if not wanted then return tiers[#tiers] end
+
+    local below
+    for _, t in ipairs(tiers) do          -- sorted ascending
+        if t == wanted then return t end
+        if t < wanted then below = t end
+    end
+    return below or tiers[1]
+end
+
 -- Pick the first selection that actually has rows, so the window never opens empty.
 local function EnsureSelection()
     BuildIndex()
@@ -153,20 +168,21 @@ local function EnsureSelection()
         local _, token = UnitClass("player")
         local mine = CLASS_TOKEN_ID[token or ""]
         sel.class = (mine and index[mine]) and mine or classes[1]
-        sel.spec, sel.tier = nil, nil
+        sel.spec = nil
     end
 
     local specs = SpecsOf(sel.class)
     if #specs == 0 then return false end
+    -- A spec number means nothing across classes - warrior 1 is Fury, paladin 1
+    -- is Protection - so a new class starts on its first spec.
     if not sel.spec or not index[sel.class][sel.spec] then
         sel.spec = specs[1]
-        sel.tier = nil
     end
 
     local tiers = TiersOf(sel.class, sel.spec)
     if #tiers == 0 then return false end
     if not sel.tier or not index[sel.class][sel.spec][sel.tier] then
-        sel.tier = tiers[#tiers]   -- newest phase by default
+        sel.tier = NearestTier(tiers, sel.tier)
     end
     return true
 end
@@ -372,12 +388,12 @@ local function BuildWindow()
         local classDD = MakeDropdown("PlayerbotsBisBrowserClassDrop", 6, 120, "Classe",
             function() return classes end,
             ClassName,
-            function(v) sel.class, sel.spec, sel.tier = v, nil, nil end)
+            function(v) sel.class, sel.spec = v, nil end)
 
         local specDD = MakeDropdown("PlayerbotsBisBrowserSpecDrop", 186, 120, "Spe",
             function() return SpecsOf(sel.class) end,
             function(v) return SpecName(sel.class, v) end,
-            function(v) sel.spec, sel.tier = v, nil end)
+            function(v) sel.spec = v end)
 
         local tierDD = MakeDropdown("PlayerbotsBisBrowserTierDrop", 366, 190, "Phase",
             function() return TiersOf(sel.class, sel.spec) end,
@@ -415,14 +431,13 @@ local function BuildWindow()
         classBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         classBtn:SetScript("OnClick", function(_, button)
             sel.class = Cycle(classes, sel.class, button == "RightButton" and -1 or 1)
-            sel.spec, sel.tier = nil, nil
+            sel.spec = nil
             f.Refresh(true)
         end)
 
         specBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         specBtn:SetScript("OnClick", function(_, button)
             sel.spec = Cycle(SpecsOf(sel.class), sel.spec, button == "RightButton" and -1 or 1)
-            sel.tier = nil
             f.Refresh(true)
         end)
 
