@@ -91,7 +91,8 @@ local function BuildLines(itemId)
         return nil
     end
 
-    local mine, othersSeen, others = {}, {}, {}
+    local mine = {}
+    local otherSpecs, otherOrder = {}, {}
     local myClass = PlayerClassId()
 
     for i = 1, #rows, 4 do
@@ -99,11 +100,32 @@ local function BuildLines(itemId)
         if db.maxTier == 0 or tier <= db.maxTier then
             if db.allClasses or class == myClass then
                 table.insert(mine, { class = class, spec = spec, tier = tier, rank = rank })
-            elseif not othersSeen[class] then
-                othersSeen[class] = true
-                table.insert(others, ClassName(class))
+            else
+                if not otherSpecs[class] then
+                    otherSpecs[class] = {}
+                    table.insert(otherOrder, class)
+                end
+                otherSpecs[class][spec] = true
             end
         end
+    end
+
+    -- The summary names the specs too. One line per item either way, and
+    -- "Druide" alone does not answer the only question worth asking about
+    -- another class's BiS: which of its specs.
+    local others = {}
+    table.sort(otherOrder)
+    for _, class in ipairs(otherOrder) do
+        local specs = {}
+        for spec in pairs(otherSpecs[class]) do table.insert(specs, spec) end
+        table.sort(specs)
+
+        local names = {}
+        for _, spec in ipairs(specs) do table.insert(names, SpecName(class, spec)) end
+        -- "Classe - spe, spe ; Classe - spe" rather than parentheses: the druid
+        -- bear sentinel is already named "Farouche (ours)", and nesting that
+        -- inside another pair of brackets reads badly.
+        table.insert(others, ClassName(class) .. " - " .. table.concat(names, ", "))
     end
 
     if #mine == 0 and #others == 0 then
@@ -136,8 +158,7 @@ local function AddTooltipLines(tooltip, itemId)
     end
 
     if others and #others > 0 then
-        table.sort(others)
-        tooltip:AddLine("Aussi BiS pour : " .. table.concat(others, ", "), 0.5, 0.5, 0.5, true)
+        tooltip:AddLine("Aussi BiS pour : " .. table.concat(others, " ; "), 0.5, 0.5, 0.5, true)
     end
 
     tooltip:Show()  -- the frame must be resized around the lines we just added

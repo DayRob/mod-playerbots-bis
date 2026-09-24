@@ -10,7 +10,7 @@ Addon 3.3.5a en deux morceaux, lus **directement depuis les tables du serveur** 
 ```
 BiS - Guerrier Fureur - Vanilla Pre-Raid (rang 1)
 BiS - Voleur Combat - Vanilla Pre-Raid (rang 1)
-Aussi BiS pour : Chasseur
+Aussi BiS pour : Chasseur - Précision ; Druide - Farouche, Restauration
 ```
 
 L'addon ne tient aucune liste à lui. `BisData.lua` est généré depuis
@@ -60,7 +60,9 @@ arrivent — quelques secondes la première fois, instantané ensuite.
 
 Par défaut seules les lignes de **ta** classe sont détaillées, les autres
 apparaissant en résumé — sinon une pièce partagée par huit spés produit huit
-lignes d'infobulle.
+lignes d'infobulle. Le résumé **nomme les spés** : `Druide` tout seul ne répond
+pas à la seule question qui se pose devant une pièce d'une autre classe.
+`/pbbis all` donne en plus le palier et le rang de chacune.
 
 Règle `maxtier` sur la même valeur que `PlayerbotsBis.MaxTier` pour voir ce que
 tes bots voient : au-delà de leur plafond, un objet leur est invisible.
