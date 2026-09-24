@@ -499,3 +499,110 @@ PlayerbotsBisBrowser_Toggle = Toggle
 
 SLASH_PLAYERBOTSBISBROWSER1 = "/pbbislist"
 SlashCmdList["PLAYERBOTSBISBROWSER"] = Toggle
+
+--------------------------------------------------------------------------------
+-- Minimap button
+--------------------------------------------------------------------------------
+
+-- Placed on a circle around the minimap and dragged along it, which is what a
+-- button collector expects to find: a named Button parented to Minimap.
+local MINIMAP_RADIUS = 80
+local DEFAULT_ANGLE  = 214
+
+local function PlaceOnRing(btn, angle)
+    local rad = math.rad(angle)
+    btn:ClearAllPoints()
+    btn:SetPoint("CENTER", Minimap, "CENTER",
+                 MINIMAP_RADIUS * math.cos(rad),
+                 MINIMAP_RADIUS * math.sin(rad))
+end
+
+local function DragToRing(btn)
+    local cx, cy = Minimap:GetCenter()
+    if not cx then return end
+    local scale = Minimap:GetEffectiveScale()
+    local px, py = GetCursorPosition()
+    px, py = px / scale, py / scale
+
+    -- Same convention both ways: x = r*cos, y = r*sin, so atan2(dy, dx) is the
+    -- angle PlaceOnRing wants back.
+    local angle = math.deg(math.atan2(py - cy, px - cx))
+    PlayerbotsBisTooltipDB.minimapAngle = angle
+    PlaceOnRing(btn, angle)
+end
+
+local function BuildMinimapButton()
+    if _G.PlayerbotsBisMinimapButton then return _G.PlayerbotsBisMinimapButton end
+
+    local btn = CreateFrame("Button", "PlayerbotsBisMinimapButton", Minimap)
+    btn:SetWidth(31)
+    btn:SetHeight(31)
+    btn:SetFrameStrata("MEDIUM")
+    btn:SetFrameLevel(8)
+    btn:SetMovable(true)
+    btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    btn:RegisterForDrag("LeftButton")
+
+    local icon = btn:CreateTexture(nil, "BACKGROUND")
+    icon:SetWidth(20)
+    icon:SetHeight(20)
+    icon:SetPoint("TOPLEFT", btn, "TOPLEFT", 7, -6)
+    icon:SetTexture("Interface\\Icons\\INV_Misc_Book_09")
+    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+    local border = btn:CreateTexture(nil, "OVERLAY")
+    border:SetWidth(53)
+    border:SetHeight(53)
+    border:SetPoint("TOPLEFT", btn, "TOPLEFT", 0, 0)
+    border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+
+    btn:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+
+    btn:SetScript("OnDragStart", function(self)
+        self:SetScript("OnUpdate", DragToRing)
+    end)
+    btn:SetScript("OnDragStop", function(self)
+        self:SetScript("OnUpdate", nil)
+    end)
+
+    btn:SetScript("OnClick", function(_, button)
+        if button == "RightButton" then
+            local cmd = SlashCmdList["PLAYERBOTSBISTOOLTIP"]
+            if cmd then cmd("all") end
+        else
+            Toggle()
+        end
+    end)
+
+    btn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:AddLine("Listes BiS")
+        GameTooltip:AddLine("Clic gauche : ouvrir le navigateur", 1, 1, 1)
+        GameTooltip:AddLine("Clic droit : ta classe seule / toutes les classes", 1, 1, 1)
+        GameTooltip:AddLine("Glisser : deplacer autour de la minicarte", 0.6, 0.6, 0.6)
+        GameTooltip:Show()
+    end)
+    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    PlaceOnRing(btn, PlayerbotsBisTooltipDB.minimapAngle or DEFAULT_ANGLE)
+    return btn
+end
+
+-- Exposed so /pbbis minimap can hide or show it.
+function PlayerbotsBisBrowser_ToggleMinimap()
+    local btn = _G.PlayerbotsBisMinimapButton
+    if not btn then return end
+    PlayerbotsBisTooltipDB.minimapHide = not PlayerbotsBisTooltipDB.minimapHide
+    if PlayerbotsBisTooltipDB.minimapHide then btn:Hide() else btn:Show() end
+    return not PlayerbotsBisTooltipDB.minimapHide
+end
+
+local boot = CreateFrame("Frame")
+boot:RegisterEvent("ADDON_LOADED")
+boot:SetScript("OnEvent", function(self, _, name)
+    if name ~= ADDON then return end
+    PlayerbotsBisTooltipDB = PlayerbotsBisTooltipDB or {}
+    local btn = BuildMinimapButton()
+    if PlayerbotsBisTooltipDB.minimapHide then btn:Hide() end
+    self:UnregisterEvent("ADDON_LOADED")
+end)

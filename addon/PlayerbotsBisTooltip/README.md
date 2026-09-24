@@ -31,6 +31,16 @@ pas de seconde copie qui dérive.
 Le script prend aussi `-MySql`, `-User`, `-Password` et `-Database` si ta
 configuration diffère des valeurs par défaut d'AzerothCore.
 
+## Le bouton de minicarte
+
+Un bouton apparaît autour de la minicarte. **Clic gauche** : ouvre le navigateur.
+**Clic droit** : bascule entre ta seule classe et toutes les classes. **Glisser** :
+le déplace le long du cercle, la position est retenue. `/pbbis minimap` le masque
+ou le réaffiche.
+
+C'est un `Button` nommé, enfant de `Minimap` : les collecteurs de boutons le
+rangent automatiquement.
+
 ## Le navigateur
 
 `/pbbis` (ou `/pbbislist`) ouvre une fenêtre : trois sélecteurs **Classe / Spé /
@@ -55,6 +65,7 @@ arrivent — quelques secondes la première fois, instantané ensuite.
 |---|---|
 | `/pbbis` | ouvre le navigateur des listes (aussi `/pbbislist`) |
 | `/pbbis info` | nombre d'objets chargés et réglages courants |
+| `/pbbis minimap` | affiche ou masque le bouton de minicarte |
 | `/pbbis all` | bascule entre ta seule classe et toutes les classes |
 | `/pbbis maxtier <n>` | masque les paliers au-dessus de `n` (`0` = aucun plafond) |
 

@@ -526,6 +526,7 @@ local function Usage()
     Print("  /pbcensus keep <n>   releves archives (actuel " .. db.keep .. ")")
     Print("  /pbcensus raw        stocke ou non le detail par personnage (actuel "
         .. (db.rawRows and "oui" or "non") .. ")")
+    Print("  /pbcensus minimap    affiche ou masque le bouton")
     Print("  /pbcensus clear      vide l'archive")
 end
 
@@ -570,6 +571,13 @@ local function HandleSlash(msg)
     elseif cmd == "raw" then
         db.rawRows = not db.rawRows
         Print("detail par personnage : " .. (db.rawRows and "stocke" or "non stocke"))
+    elseif cmd == "minimap" then
+        local btn = _G.PlayerbotsCensusMinimapButton
+        db.minimapHide = not db.minimapHide
+        if btn then
+            if db.minimapHide then btn:Hide() else btn:Show() end
+        end
+        Print(db.minimapHide and "bouton de minicarte masque." or "bouton de minicarte affiche.")
     elseif cmd == "clear" then
         db.snapshots = {}
         Print("archive videe.")
@@ -577,6 +585,98 @@ local function HandleSlash(msg)
     else
         Usage()
     end
+end
+
+--------------------------------------------------------------------------------
+-- Minimap button
+--------------------------------------------------------------------------------
+
+-- Placed on a circle around the minimap and dragged along it, which is what a
+-- button collector expects to find: a named Button parented to Minimap.
+local MINIMAP_RADIUS = 80
+local DEFAULT_ANGLE  = 190
+
+local function PlaceOnRing(btn, angle)
+    local rad = math.rad(angle)
+    btn:ClearAllPoints()
+    btn:SetPoint("CENTER", Minimap, "CENTER",
+                 MINIMAP_RADIUS * math.cos(rad),
+                 MINIMAP_RADIUS * math.sin(rad))
+end
+
+local function DragToRing(btn)
+    local cx, cy = Minimap:GetCenter()
+    if not cx then return end
+    local scale = Minimap:GetEffectiveScale()
+    local px, py = GetCursorPosition()
+    px, py = px / scale, py / scale
+
+    -- Same convention both ways: x = r*cos, y = r*sin, so atan2(dy, dx) is the
+    -- angle PlaceOnRing wants back.
+    local angle = math.deg(math.atan2(py - cy, px - cx))
+    db.minimapAngle = angle
+    PlaceOnRing(btn, angle)
+end
+
+local function BuildMinimapButton()
+    if _G.PlayerbotsCensusMinimapButton then return _G.PlayerbotsCensusMinimapButton end
+
+    local btn = CreateFrame("Button", "PlayerbotsCensusMinimapButton", Minimap)
+    btn:SetWidth(31)
+    btn:SetHeight(31)
+    btn:SetFrameStrata("MEDIUM")
+    btn:SetFrameLevel(8)
+    btn:SetMovable(true)
+    btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    btn:RegisterForDrag("LeftButton")
+
+    local icon = btn:CreateTexture(nil, "BACKGROUND")
+    icon:SetWidth(20)
+    icon:SetHeight(20)
+    icon:SetPoint("TOPLEFT", btn, "TOPLEFT", 7, -6)
+    icon:SetTexture("Interface\\Icons\\INV_Misc_GroupLooking")
+    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+    local border = btn:CreateTexture(nil, "OVERLAY")
+    border:SetWidth(53)
+    border:SetHeight(53)
+    border:SetPoint("TOPLEFT", btn, "TOPLEFT", 0, 0)
+    border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+
+    btn:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+
+    btn:SetScript("OnDragStart", function(self)
+        self:SetScript("OnUpdate", DragToRing)
+    end)
+    btn:SetScript("OnDragStop", function(self)
+        self:SetScript("OnUpdate", nil)
+    end)
+
+    btn:SetScript("OnClick", function(_, button)
+        if button == "RightButton" then
+            if scan.running then StopScan() else HandleSlash("scan") end
+        else
+            HandleSlash("")
+        end
+    end)
+
+    btn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:AddLine("Playerbots Census")
+        GameTooltip:AddLine("Clic gauche : ouvrir la fenetre", 1, 1, 1)
+        GameTooltip:AddLine(scan.running and "Clic droit : arreter le balayage"
+                                          or "Clic droit : lancer un balayage", 1, 1, 1)
+        if lastResult then
+            GameTooltip:AddLine(string.format("Dernier releve : %d en ligne (%s)",
+                lastResult.total, lastResult.ts), 0.6, 0.6, 0.6)
+        end
+        GameTooltip:AddLine("Glisser : deplacer autour de la minicarte", 0.6, 0.6, 0.6)
+        GameTooltip:Show()
+    end)
+    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    PlaceOnRing(btn, db.minimapAngle or DEFAULT_ANGLE)
+    return btn
 end
 
 --------------------------------------------------------------------------------
@@ -604,6 +704,9 @@ boot:SetScript("OnEvent", function(self, event, arg1)
     SLASH_PLAYERBOTSCENSUS1 = "/pbcensus"
     SLASH_PLAYERBOTSCENSUS2 = "/pbc"
     SlashCmdList["PLAYERBOTSCENSUS"] = HandleSlash
+
+    local btn = BuildMinimapButton()
+    if db.minimapHide then btn:Hide() end
 
     Print("v" .. VERSION .. " charge. /pbcensus pour ouvrir.")
 end)

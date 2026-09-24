@@ -56,6 +56,12 @@ releve est une photo a 5 secondes pres.
 Copier le dossier `PlayerbotsCensus` dans
 `<WoW>\Interface\AddOns\`, puis `/reload` ou relancer le client.
 
+## Le bouton de minicarte
+
+**Clic gauche** : ouvre la fenêtre. **Clic droit** : lance ou arrête un balayage.
+**Glisser** : déplace le bouton le long du cercle. L'infobulle rappelle le
+dernier relevé. `/pbcensus minimap` le masque ou le réaffiche.
+
 ## Commandes
 
 | Commande | Effet |
@@ -67,6 +73,7 @@ Copier le dossier `PlayerbotsCensus` dans
 | `/pbcensus delay <s>` | intervalle entre requetes (defaut 1.5) |
 | `/pbcensus keep <n>` | releves conserves (defaut 8) |
 | `/pbcensus raw` | stocke ou non le detail par personnage |
+| `/pbcensus minimap` | affiche ou masque le bouton de minicarte |
 | `/pbcensus clear` | vide l'archive |
 
 Un balayage dure environ `maxLevel x delay` secondes : ~2 minutes en 1..80,
