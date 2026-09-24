@@ -43,11 +43,13 @@ rangent automatiquement.
 
 ## Le navigateur
 
-`/pbbis` (ou `/pbbislist`) ouvre une fenêtre : trois sélecteurs **Classe / Spé /
-Phase**, et en dessous la liste groupée par créneau d'équipement, triée par rang.
+`/pbbis` (ou `/pbbislist`) ouvre une fenêtre : trois menus déroulants **Classe /
+Spé / Phase**, et en dessous la liste groupée par créneau d'équipement, triée par
+rang.
 
-- **Clic gauche / clic droit** sur un sélecteur : valeur suivante / précédente.
-  Seules les combinaisons qui existent réellement dans tes tables sont proposées.
+- **Menus déroulants** pour la classe, la spé et la phase. Seules les
+  combinaisons qui existent réellement dans tes tables y figurent : pas de spé
+  vide, pas de phase sans objet.
 - **Survol** d'une ligne : la vraie infobulle de l'objet — avec, dessous, les
   lignes BiS de l'autre moitié de l'addon.
 - **Maj+clic** : insère le lien dans le chat. **Ctrl+clic** : cabine d'essayage.

@@ -285,8 +285,8 @@ end
 
 local function BuildWindow()
     local f = CreateFrame("Frame", "PlayerbotsBisBrowserFrame", UIParent)
-    f:SetWidth(520)
-    f:SetHeight(460)
+    f:SetWidth(600)
+    f:SetHeight(470)
     f:SetPoint("CENTER")
     f:SetBackdrop({
         bgFile   = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -310,58 +310,137 @@ local function BuildWindow()
     local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -8, -8)
 
-    -- Selectors. Clicking cycles to the next value: three dropdowns would need
-    -- three menu frames for a list that never exceeds a handful of entries.
-    local function MakeSelector(label, x, width)
-        local b = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-        b:SetWidth(width)
-        b:SetHeight(22)
-        b:SetPoint("TOPLEFT", f, "TOPLEFT", x, -46)
+    -- Selectors. Three dropdowns when the client has UIDropDownMenu, which is
+    -- every stock 3.3.5 client; cycling buttons if it somehow does not, so a
+    -- missing template cannot cost the whole window.
+    local hasDropDowns = type(UIDropDownMenu_Initialize) == "function"
+                     and type(UIDropDownMenu_CreateInfo) == "function"
+                     and type(UIDropDownMenu_AddButton) == "function"
+
+    local function Caption(anchor, text, dx)
         local cap = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-        cap:SetPoint("BOTTOMLEFT", b, "TOPLEFT", 3, 1)
-        cap:SetText(label)
-        return b
+        cap:SetPoint("BOTTOMLEFT", anchor, "TOPLEFT", dx, 1)
+        cap:SetText(text)
     end
 
-    local classBtn = MakeSelector("Classe", 20, 150)
-    local specBtn  = MakeSelector("Spe", 176, 150)
-    local tierBtn  = MakeSelector("Phase", 332, 166)
+    -- setText is filled in below by whichever selector style we end up with.
+    local setClassText, setSpecText, setTierText
 
-    local function Cycle(list, cur, step)
-        if #list == 0 then return cur end
-        local at = 1
-        for i, v in ipairs(list) do
-            if v == cur then at = i break end
+    if hasDropDowns then
+        -- UIDropDownMenu_SetWidth and _SetText swapped argument order between
+        -- client generations. Touching the template's own widgets does the same
+        -- job without having to guess which signature this client carries.
+        local function Size(dd, width)
+            local n = dd:GetName()
+            local mid, txt = _G[n .. "Middle"], _G[n .. "Text"]
+            if mid then mid:SetWidth(width) end
+            if txt then txt:SetWidth(width - 15) end
+            dd:SetWidth(width + 25)
+            dd.noResize = 1
         end
-        at = at + step
-        if at > #list then at = 1 elseif at < 1 then at = #list end
-        return list[at]
+
+        local function Label(dd, text)
+            local txt = _G[dd:GetName() .. "Text"]
+            if txt then txt:SetText(text) end
+        end
+
+        local function MakeDropdown(name, x, width, caption, values, label, apply)
+            local dd = CreateFrame("Frame", name, f, "UIDropDownMenuTemplate")
+            dd:SetPoint("TOPLEFT", f, "TOPLEFT", x, -46)
+            Caption(dd, caption, 20)
+
+            UIDropDownMenu_Initialize(dd, function(_, level)
+                for _, v in ipairs(values()) do
+                    local info = UIDropDownMenu_CreateInfo()
+                    info.text    = label(v)
+                    info.value   = v
+                    info.arg1    = v
+                    info.checked = nil
+                    info.func    = function(_, chosen)
+                        apply(chosen)
+                        f.Refresh(true)
+                        CloseDropDownMenus()
+                    end
+                    UIDropDownMenu_AddButton(info, level)
+                end
+            end)
+
+            Size(dd, width)
+            return dd
+        end
+
+        local classDD = MakeDropdown("PlayerbotsBisBrowserClassDrop", 6, 120, "Classe",
+            function() return classes end,
+            ClassName,
+            function(v) sel.class, sel.spec, sel.tier = v, nil, nil end)
+
+        local specDD = MakeDropdown("PlayerbotsBisBrowserSpecDrop", 186, 120, "Spe",
+            function() return SpecsOf(sel.class) end,
+            function(v) return SpecName(sel.class, v) end,
+            function(v) sel.spec, sel.tier = v, nil end)
+
+        local tierDD = MakeDropdown("PlayerbotsBisBrowserTierDrop", 366, 190, "Phase",
+            function() return TiersOf(sel.class, sel.spec) end,
+            TierName,
+            function(v) sel.tier = v end)
+
+        setClassText = function(t) Label(classDD, t) end
+        setSpecText  = function(t) Label(specDD, t) end
+        setTierText  = function(t) Label(tierDD, t) end
+    else
+        local function MakeSelector(label, x, width)
+            local b = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+            b:SetWidth(width)
+            b:SetHeight(22)
+            b:SetPoint("TOPLEFT", f, "TOPLEFT", x, -46)
+            Caption(b, label, 3)
+            return b
+        end
+
+        local classBtn = MakeSelector("Classe", 26, 160)
+        local specBtn  = MakeSelector("Spe", 200, 160)
+        local tierBtn  = MakeSelector("Phase", 374, 180)
+
+        local function Cycle(list, cur, step)
+            if #list == 0 then return cur end
+            local at = 1
+            for i, v in ipairs(list) do
+                if v == cur then at = i break end
+            end
+            at = at + step
+            if at > #list then at = 1 elseif at < 1 then at = #list end
+            return list[at]
+        end
+
+        classBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        classBtn:SetScript("OnClick", function(_, button)
+            sel.class = Cycle(classes, sel.class, button == "RightButton" and -1 or 1)
+            sel.spec, sel.tier = nil, nil
+            f.Refresh(true)
+        end)
+
+        specBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        specBtn:SetScript("OnClick", function(_, button)
+            sel.spec = Cycle(SpecsOf(sel.class), sel.spec, button == "RightButton" and -1 or 1)
+            sel.tier = nil
+            f.Refresh(true)
+        end)
+
+        tierBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        tierBtn:SetScript("OnClick", function(_, button)
+            sel.tier = Cycle(TiersOf(sel.class, sel.spec), sel.tier, button == "RightButton" and -1 or 1)
+            f.Refresh(true)
+        end)
+
+        setClassText = function(t) classBtn:SetText(t) end
+        setSpecText  = function(t) specBtn:SetText(t) end
+        setTierText  = function(t) tierBtn:SetText(t) end
     end
-
-    classBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    classBtn:SetScript("OnClick", function(_, button)
-        sel.class = Cycle(classes, sel.class, button == "RightButton" and -1 or 1)
-        sel.spec, sel.tier = nil, nil
-        f.Refresh(true)
-    end)
-
-    specBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    specBtn:SetScript("OnClick", function(_, button)
-        sel.spec = Cycle(SpecsOf(sel.class), sel.spec, button == "RightButton" and -1 or 1)
-        sel.tier = nil
-        f.Refresh(true)
-    end)
-
-    tierBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    tierBtn:SetScript("OnClick", function(_, button)
-        sel.tier = Cycle(TiersOf(sel.class, sel.spec), sel.tier, button == "RightButton" and -1 or 1)
-        f.Refresh(true)
-    end)
 
     local rankBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     rankBtn:SetWidth(120)
     rankBtn:SetHeight(20)
-    rankBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -76)
+    rankBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -80)
     rankBtn:SetScript("OnClick", function()
         sel.allRanks = not sel.allRanks
         f.Refresh(true)
@@ -372,9 +451,9 @@ local function BuildWindow()
     summary:SetJustifyH("LEFT")
 
     local scroll = CreateFrame("ScrollFrame", "PlayerbotsBisBrowserScroll", f, "FauxScrollFrameTemplate")
-    scroll:SetWidth(452)
+    scroll:SetWidth(530)
     scroll:SetHeight(VISIBLE_ROWS * ROW_HEIGHT)
-    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -104)
+    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -108)
     scroll:SetScript("OnVerticalScroll", function(self, offset)
         FauxScrollFrame_OnVerticalScroll(self, offset, ROW_HEIGHT, function() f.Refresh() end)
     end)
@@ -382,7 +461,7 @@ local function BuildWindow()
     local rows = {}
     for i = 1, VISIBLE_ROWS do
         local r = CreateFrame("Button", nil, f)
-        r:SetWidth(452)
+        r:SetWidth(530)
         r:SetHeight(ROW_HEIGHT)
         r:SetPoint("TOPLEFT", scroll, "TOPLEFT", 0, -(i - 1) * ROW_HEIGHT)
 
@@ -394,7 +473,7 @@ local function BuildWindow()
         r.text = r:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         r.text:SetPoint("LEFT", r.icon, "RIGHT", 6, 0)
         r.text:SetJustifyH("LEFT")
-        r.text:SetWidth(330)
+        r.text:SetWidth(400)
 
         r.info = r:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
         r.info:SetPoint("RIGHT", r, "RIGHT", -6, 0)
@@ -408,16 +487,18 @@ local function BuildWindow()
     end
 
     local hint = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    hint:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 22, 20)
+    hint:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 28, 20)
     hint:SetJustifyH("LEFT")
-    hint:SetText("Clic gauche/droit sur un selecteur pour changer  -  Maj+clic : lien dans le chat  -  Ctrl+clic : essayage")
+    hint:SetText(hasDropDowns
+        and "Maj+clic : lien dans le chat  -  Ctrl+clic : essayage"
+        or  "Clic gauche/droit sur un selecteur  -  Maj+clic : lien  -  Ctrl+clic : essayage")
 
     function f.Refresh(rebuild)
         if rebuild then Rebuild() end
 
-        classBtn:SetText(ClassName(sel.class or 0))
-        specBtn:SetText(SpecName(sel.class or 0, sel.spec or 0))
-        tierBtn:SetText(TierName(sel.tier or 0))
+        setClassText(ClassName(sel.class or 0))
+        setSpecText(SpecName(sel.class or 0, sel.spec or 0))
+        setTierText(TierName(sel.tier or 0))
         rankBtn:SetText(sel.allRanks and "Tous les rangs" or "Rang 1 seul")
 
         local items = 0
