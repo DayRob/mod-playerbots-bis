@@ -312,8 +312,17 @@ Clic sur un bot pour déplier, **Maj+clic** sur un objet pour le lier dans le ch
 **Ctrl+clic** pour l'essayer. Le bouton bascule entre *manquants seulement* et *toutes les
 pièces*, ce qui distingue l'objet que le bot n'a pas de celui qu'il a mais ne porte pas.
 
-Le décompte ne porte que sur les lignes de **rang 1** : un créneau est couvert quand le bot
-porte la pièce que la liste retient pour lui, pas un repli.
+### Ce que compte le ratio
+
+Le dénominateur est le **nombre de créneaux d'équipement** que la liste couvre, pas le
+nombre de lignes. Pour chaque créneau on retient **une seule cible** : la pièce du palier le
+plus haut que le bot peut atteindre, rang 1 à l'intérieur de ce palier. `12/17` se lit donc
+« douze créneaux sur dix-sept portent la bonne pièce ».
+
+Compter toutes les lignes de rang 1 comptait le même créneau une fois par palier — une tête
+listée en pré-raid **et** à Molten Core en valait deux — si bien que le dénominateur
+grossissait avec le nombre de phases ouvertes et que 100 % devenait inatteignable par
+construction. Un guerrier affichait ainsi 35 « pièces » pour dix-sept créneaux.
 
 ### Le détail dans le chat
 

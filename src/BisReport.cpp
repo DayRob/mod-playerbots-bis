@@ -16,6 +16,7 @@
 #include "Player.h"
 #include "Playerbots.h"
 #include <algorithm>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -107,6 +108,29 @@ namespace
         // No formatting: the payload must reach the client byte for byte, and a
         // stray brace in a guild name would otherwise be read as a placeholder.
         handler->SendSysMessage(std::string(ADDON_PREFIX) + payload);
+    }
+
+    // One target per slot: the best reachable pick, highest phase first and rank 1
+    // within it.
+    //
+    // Counting every rank-1 row instead counts the same slot once per phase - a
+    // head slot listed in pre-raid and again in Molten Core contributes two -
+    // so the denominator grows with the number of phases opened and 100% stops
+    // being reachable by construction. A warrior showed 35 "pieces" for
+    // seventeen slots.
+    std::map<uint8, BisItem> TargetsPerSlot(std::vector<BisItem> const& list)
+    {
+        std::map<uint8, BisItem> targets;
+        for (BisItem const& row : list)
+        {
+            auto it = targets.find(row.slot);
+            if (it == targets.end())
+                targets.emplace(row.slot, row);
+            else if (row.tierId > it->second.tierId ||
+                     (row.tierId == it->second.tierId && row.rank < it->second.rank))
+                it->second = row;
+        }
+        return targets;
     }
 
     struct BotTally
@@ -212,16 +236,14 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
 
         ++analysed;
 
-        // Only rank 1 counts: a slot is covered when the bot wears the piece the
-        // list actually picks for it, not one of its fallbacks.
+        // A slot is covered when the bot wears the piece the list picks for it at
+        // the highest phase it can reach.
         BotTally best;
         std::vector<std::string> addonItems;
 
-        for (BisItem const& row : list)
+        for (auto const& pair : TargetsPerSlot(list))
         {
-            if (row.rank != 1)
-                continue;
-
+            BisItem const& row = pair.second;
             uint8 const state = ResolveState(bot, row.itemId);
 
             ++best.rows;
@@ -317,10 +339,9 @@ bool BisReport::HandleMissing(ChatHandler* handler, char const* args)
                              SpecName(cls, spec), uint32(bot->GetLevel()));
 
     uint32 shown = 0;
-    for (BisItem const& row : list)
+    for (auto const& pair : TargetsPerSlot(list))
     {
-        if (row.rank != 1)
-            continue;  // the pick for the slot, not its fallbacks
+        BisItem const& row = pair.second;
 
         uint8 const state = ResolveState(bot, row.itemId);
         if (state == BIS_EQUIPPED)
