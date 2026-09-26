@@ -28,9 +28,39 @@ local CLASS_COLOR = {
     [9] = { 0.58, 0.51, 0.79 }, [11] = { 1.00, 0.49, 0.04 },
 }
 
+-- Equipment slot indices as the server sends them. The labels come from the
+-- client's own global strings so the window follows the game locale; the table
+-- below is only a fallback.
+local SLOT_GLOBAL = {
+    [0] = "HEADSLOT", [1] = "NECKSLOT", [2] = "SHOULDERSLOT", [3] = "SHIRTSLOT",
+    [4] = "CHESTSLOT", [5] = "WAISTSLOT", [6] = "LEGSSLOT", [7] = "FEETSLOT",
+    [8] = "WRISTSLOT", [9] = "HANDSSLOT", [10] = "FINGER0SLOT", [11] = "FINGER1SLOT",
+    [12] = "TRINKET0SLOT", [13] = "TRINKET1SLOT", [14] = "BACKSLOT",
+    [15] = "MAINHANDSLOT", [16] = "SECONDARYHANDSLOT", [17] = "RANGEDSLOT",
+    [18] = "TABARDSLOT",
+}
+
+local SLOT_FR = {
+    [0] = "Tete", [1] = "Cou", [2] = "Epaules", [3] = "Chemise", [4] = "Torse",
+    [5] = "Taille", [6] = "Jambes", [7] = "Pieds", [8] = "Poignets", [9] = "Mains",
+    [10] = "Doigt 1", [11] = "Doigt 2", [12] = "Bijou 1", [13] = "Bijou 2",
+    [14] = "Dos", [15] = "Main droite", [16] = "Main gauche", [17] = "Distance",
+    [18] = "Tabard",
+}
+
+local function SlotName(index)
+    local key = SLOT_GLOBAL[index]
+    return (key and _G[key]) or SLOT_FR[index] or ("creneau " .. tostring(index))
+end
+
+-- 1 : slots incomplets, cible et replis possedes
+-- 2 : slots incomplets, tous les replis
+-- 3 : tout
+local VIEW_LABEL = { "Manquants seulement", "Avec les replis", "Tout afficher" }
+local view = 1
+
 local roster = { scope = "", when = "", bots = {}, byName = {} }
 local collapsed = {}       -- bot name -> true when its items are hidden
-local missingOnly = true
 local display = {}
 local pending = {}
 local win
@@ -81,10 +111,11 @@ local function AddItems(name, packed)
     local bot = roster.byName[name]
     if not bot then return end
 
-    for id, state, tier, slot in string.gmatch(packed, "(%d+):(%d+):(%d+):(%d+)") do
+    for id, state, tier, slot, rank, target in
+            string.gmatch(packed, "(%d+):(%d+):(%d+):(%d+):(%d+):(%d+)") do
         table.insert(bot.items, {
-            id = tonumber(id), state = tonumber(state),
-            tier = tonumber(tier), slot = tonumber(slot),
+            id = tonumber(id), state = tonumber(state), tier = tonumber(tier),
+            slot = tonumber(slot), rank = tonumber(rank), target = target == "1",
         })
     end
 end
@@ -107,39 +138,65 @@ local function Rebuild()
 
     for _, bot in ipairs(roster.bots) do
         table.insert(display, { header = true, bot = bot })
+
         if not collapsed[bot.name] then
-            -- Slot order, then the worst state first inside a slot.
-            local rows = {}
+            -- Grouped by slot, because a slot is the unit that matters: its
+            -- target, then the fallbacks that explain what the bot wears instead.
+            local bySlot, order = {}, {}
             for _, item in ipairs(bot.items) do
-                if not missingOnly or item.state ~= STATE_EQUIPPED then
-                    table.insert(rows, item)
+                if not bySlot[item.slot] then
+                    bySlot[item.slot] = {}
+                    table.insert(order, item.slot)
+                end
+                table.insert(bySlot[item.slot], item)
+            end
+            table.sort(order)
+
+            local shown = 0
+            for _, slot in ipairs(order) do
+                local entries = bySlot[slot]
+                table.sort(entries, function(a, b)
+                    if a.target ~= b.target then return a.target end
+                    if a.rank ~= b.rank then return a.rank < b.rank end
+                    return a.tier > b.tier
+                end)
+
+                local target = entries[1]
+                local done = target and target.state == STATE_EQUIPPED
+                if view < 3 and done then
+                    entries = nil   -- slot settled, nothing to say about it
+                end
+
+                if entries then
+                    local rows = {}
+                    for _, item in ipairs(entries) do
+                        -- A fallback earns its line when the bot owns it, or when
+                        -- you asked to see the alternatives on offer.
+                        if item.target or view >= 2 or item.state ~= STATE_MISSING then
+                            table.insert(rows, item)
+                        end
+                    end
+
+                    if #rows > 0 then
+                        table.insert(display, { slot = true, bot = bot, label = SlotName(slot) })
+                        for _, item in ipairs(rows) do
+                            if not GetItemInfo(item.id) then
+                                pending[item.id] = true
+                                RequestItem(item.id)
+                            end
+                            table.insert(display, { item = item, bot = bot })
+                        end
+                        shown = shown + 1
+                    end
                 end
             end
-            table.sort(rows, function(a, b)
-                if a.state ~= b.state then return a.state < b.state end
-                return a.slot < b.slot
-            end)
 
-            for _, item in ipairs(rows) do
-                local name = GetItemInfo(item.id)
-                if not name then
-                    pending[item.id] = true
-                    RequestItem(item.id)
-                end
-                table.insert(display, { item = item, bot = bot })
-            end
-
-            if #rows == 0 then
-                -- No rows at all is not the same thing as nothing missing, and
-                -- saying "tout est equipe" for an empty list hides a problem
-                -- instead of showing it.
+            if shown == 0 then
                 local text
                 if #bot.items == 0 then
                     text = "aucune piece recue pour ce bot"
-                elseif missingOnly then
-                    text = "tout est equipe"
                 else
-                    text = "aucune ligne"
+                    text = "tous les creneaux sont equipes"
                 end
                 table.insert(display, { note = true, bot = bot, text = text })
             end
@@ -212,11 +269,12 @@ local function BuildWindow()
     head:SetJustifyH("LEFT")
 
     local filterBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    filterBtn:SetWidth(160)
+    filterBtn:SetWidth(170)
     filterBtn:SetHeight(20)
     filterBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -66)
     filterBtn:SetScript("OnClick", function()
-        missingOnly = not missingOnly
+        view = view + 1
+        if view > 3 then view = 1 end
         f.Refresh(true)
     end)
 
@@ -288,7 +346,7 @@ local function BuildWindow()
     function f.Refresh(rebuild)
         if rebuild then Rebuild() end
 
-        filterBtn:SetText(missingOnly and "Manquants seulement" or "Toutes les pieces")
+        filterBtn:SetText(VIEW_LABEL[view])
 
         local bots, eq, tot = 0, 0, 0
         for _, bot in ipairs(roster.bots) do
@@ -335,6 +393,11 @@ local function BuildWindow()
                     elseif ratio < 0.85 then colour = "|cffffcc00" end
                     r.info:SetText(string.format("%s%d/%d|r", colour, bot.equipped, bot.total))
                     r.botName = bot.name
+                elseif e.slot then
+                    r.bar:Hide()
+                    r.icon:SetTexture(nil)
+                    r.text:SetText("   |cffffd100" .. e.label .. "|r")
+                    r.info:SetText("")
                 elseif e.note then
                     r.bar:Hide()
                     r.icon:SetTexture(nil)
@@ -346,12 +409,18 @@ local function BuildWindow()
                     local name, _, quality, _, _, _, _, _, _, texture = GetItemInfo(item.id)
                     r.icon:SetTexture(texture or "Interface\\Icons\\INV_Misc_QuestionMark")
 
+                    -- The target carries the slot; a fallback is dimmed so the
+                    -- eye lands on the piece the list actually picks.
+                    local rank = string.format("%srang %d|r ",
+                        item.target and "|cffffffff" or "|cff707070", item.rank or 1)
+
                     if name then
                         local hex = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality or 1]
                         hex = (hex and hex.hex) or "|cffffffff"
-                        r.text:SetText("      " .. hex .. name .. "|r")
+                        r.text:SetText("      " .. rank .. hex .. name .. "|r")
                     else
-                        r.text:SetText("      |cff808080Chargement... (" .. item.id .. ")|r")
+                        r.text:SetText("      " .. rank .. "|cff808080Chargement... ("
+                                       .. item.id .. ")|r")
                     end
 
                     local tag

@@ -309,8 +309,22 @@ mieux équipé**, avec une barre de couverture aux couleurs de classe :
 
 Un **bouton de minicarte** l'ouvre (clic gauche) et relance le relevé (clic droit).
 Clic sur un bot pour déplier, **Maj+clic** sur un objet pour le lier dans le chat,
-**Ctrl+clic** pour l'essayer. Le bouton bascule entre *manquants seulement* et *toutes les
-pièces*, ce qui distingue l'objet que le bot n'a pas de celui qu'il a mais ne porte pas.
+**Ctrl+clic** pour l'essayer.
+
+Déplié, un bot est présenté **créneau par créneau** : la cible du créneau, puis ses replis.
+
+```
+- Cruvmarl   Guerrier Fureur niv 60                      1/17
+   Main droite
+      rang 1  Faucheuse de Felstriker   manquant       Molten Core
+      rang 2  Main de Justice           equipe         Vanilla Pre-Raid
+```
+
+Un créneau à moitié couvert se lit d'un coup d'œil : la pièce visée manque, mais le bot
+porte le repli. Le bouton de vue tourne sur trois positions — *manquants seulement*
+(créneaux incomplets, cible et replis possédés), *avec les replis* (ajoute les replis que le
+bot n'a pas, pour voir ce qu'il reste à farmer), *tout afficher* (y compris les créneaux
+réglés).
 
 ### Ce que compte le ratio
 

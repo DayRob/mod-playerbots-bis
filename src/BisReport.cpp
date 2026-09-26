@@ -237,25 +237,37 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         ++analysed;
 
         // A slot is covered when the bot wears the piece the list picks for it at
-        // the highest phase it can reach.
+        // the highest phase it can reach - that is what the ratio counts.
+        std::map<uint8, BisItem> const targets = TargetsPerSlot(list);
+
         BotTally best;
         std::vector<std::string> addonItems;
 
-        for (auto const& pair : TargetsPerSlot(list))
+        // Every reachable row travels, with its rank and a flag marking the
+        // target. Only targets are tallied, but a slot whose rank-1 piece is
+        // missing while its rank-2 is worn is half covered, and saying so needs
+        // the fallbacks on screen.
+        for (BisItem const& row : list)
         {
-            BisItem const& row = pair.second;
             uint8 const state = ResolveState(bot, row.itemId);
 
-            ++best.rows;
-            if (state == BIS_EQUIPPED)
-                ++best.equipped;
-            else if (state == BIS_CARRIED)
-                ++best.carried;
-            else
-                ++best.missing;
+            auto target = targets.find(row.slot);
+            bool const isTarget = target != targets.end() && target->second.itemId == row.itemId;
+
+            if (isTarget)
+            {
+                ++best.rows;
+                if (state == BIS_EQUIPPED)
+                    ++best.equipped;
+                else if (state == BIS_CARRIED)
+                    ++best.carried;
+                else
+                    ++best.missing;
+            }
 
             addonItems.push_back(std::to_string(row.itemId) + ":" + std::to_string(uint32(state)) +
-                                 ":" + std::to_string(row.tierId) + ":" + std::to_string(uint32(row.slot)));
+                                 ":" + std::to_string(row.tierId) + ":" + std::to_string(uint32(row.slot)) +
+                                 ":" + std::to_string(uint32(row.rank)) + ":" + (isTarget ? "1" : "0"));
         }
 
         handler->PSendSysMessage("{} - {} {} niv {} : {}/{} equipes, {} en sac, {} manquants.",
@@ -338,13 +350,20 @@ bool BisReport::HandleMissing(ChatHandler* handler, char const* args)
     handler->PSendSysMessage("{} - {} {} niv {} :", bot->GetName(), ClassName(cls),
                              SpecName(cls, spec), uint32(bot->GetLevel()));
 
-    uint32 shown = 0;
-    for (auto const& pair : TargetsPerSlot(list))
-    {
-        BisItem const& row = pair.second;
+    std::map<uint8, BisItem> const targets = TargetsPerSlot(list);
 
+    uint32 shown = 0;
+    for (BisItem const& row : list)
+    {
+        auto target = targets.find(row.slot);
+        bool const isTarget = target != targets.end() && target->second.itemId == row.itemId;
+
+        // A fallback is only worth a line when it is the one the bot actually
+        // wears: it explains why a slot is not empty despite its target missing.
         uint8 const state = ResolveState(bot, row.itemId);
-        if (state == BIS_EQUIPPED)
+        if (state == BIS_EQUIPPED && isTarget)
+            continue;
+        if (!isTarget && state != BIS_EQUIPPED)
             continue;
 
         ItemTemplate const* proto = sObjectMgr->GetItemTemplate(row.itemId);
@@ -352,9 +371,16 @@ bool BisReport::HandleMissing(ChatHandler* handler, char const* args)
             continue;
 
         std::string const tier = sBisPriorityMgr->GetTierName(row.tierId);
-        handler->PSendSysMessage("  {} {} - {}", ChatHelper::FormatItem(proto),
-                                 state == BIS_CARRIED ? "|cffffcc00(dans ses sacs)|r" : "|cffff2020(manquant)|r",
-                                 tier.empty() ? "?" : tier);
+        char const* tag;
+        if (state == BIS_EQUIPPED)
+            tag = "|cff1eff00(porte, repli)|r";
+        else if (state == BIS_CARRIED)
+            tag = "|cffffcc00(dans ses sacs)|r";
+        else
+            tag = "|cffff2020(manquant)|r";
+
+        handler->PSendSysMessage("  rang {} {} {} - {}", uint32(row.rank), ChatHelper::FormatItem(proto),
+                                 tag, tier.empty() ? "?" : tier);
         ++shown;
     }
 
