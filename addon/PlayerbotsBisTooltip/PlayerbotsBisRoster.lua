@@ -400,21 +400,24 @@ listener:RegisterEvent("CHAT_MSG_ADDON")
 listener:SetScript("OnEvent", function(_, _, prefix, message)
     if prefix ~= PREFIX or not message then return end
 
-    local kind, rest = string.match(message, "^(%a)|(.*)$")
+    -- Fields are separated by ';'. Never '|': the client parses chat text for
+    -- escape sequences before an addon sees it, and "B|Cruvmarl" looks like the
+    -- start of a colour code, which kills the client with ERROR #134.
+    local kind, rest = string.match(message, "^(%a);(.*)$")
     if not kind then return end
 
     if kind == "S" then
-        local count, scope = string.match(rest, "^(%d+)|(.*)$")
+        local count, scope = string.match(rest, "^(%d+);(.*)$")
         ResetRoster(tonumber(count) or 0, scope)
     elseif kind == "B" then
         local name, cls, spec, level, eq, tot, car, mis =
-            string.match(rest, "^(.-)|(%d+)|(%d+)|(%d+)|(%d+)|(%d+)|(%d+)|(%d+)$")
+            string.match(rest, "^(.-);(%d+);(%d+);(%d+);(%d+);(%d+);(%d+);(%d+)$")
         if name then
             AddBot(name, tonumber(cls), tonumber(spec), tonumber(level),
                    tonumber(eq), tonumber(tot), tonumber(car), tonumber(mis))
         end
     elseif kind == "I" then
-        local name, packed = string.match(rest, "^(.-)|(.*)$")
+        local name, packed = string.match(rest, "^(.-);(.*)$")
         if name then AddItems(name, packed) end
     elseif kind == "E" then
         if not win then win = BuildWindow() end

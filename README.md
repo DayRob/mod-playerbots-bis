@@ -327,7 +327,14 @@ Même chose pour un seul bot, directement dans le chat, avec les liens d'objets 
 Le module envoie le relevé en messages addon (préfixe `PBBISREP`) au joueur qui lance la
 commande : un en-tête, une ligne par bot, ses pièces par paquets de 200 octets, puis un
 marqueur de fin sur lequel la fenêtre s'ouvre. Pour 40 bots cela fait environ 120 messages,
-envoyés une fois, à la demande.
+envoyés une fois, à la demande. Le flux est plafonné à 150 bots ; au-delà, le chat garde
+tout mais la fenêtre s'arrête là.
+
+Les champs sont séparés par `;`, **jamais par `|`**. Le client passe le texte de tchat dans
+son analyseur de séquences d'échappement avant qu'un addon ne le voie, et `|` en ouvre une :
+`B|Cruvmarl` se lit comme un début de code couleur `|c......`, et un code malformé tue le
+client sur le champ (ERROR #134). C'est exactement pour ça que `ChatHandler` double les `|`
+en `||` dans les messages système.
 
 ## Licence et crédits
 

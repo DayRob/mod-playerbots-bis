@@ -78,6 +78,18 @@ namespace
     // two halves to CHAT_MSG_ADDON.
     char const* const ADDON_PREFIX = "PBBISREP";
 
+    // Fields are separated by ';', never '|'. The client runs chat text through
+    // its escape parser before an addon ever sees it, and '|' opens an escape
+    // sequence: "B|Cruvmarl" reads as the start of a colour code |c......, and a
+    // malformed one kills the client outright (ERROR #134). ChatHandler doubles
+    // '|' into '||' in system messages for exactly this reason.
+    char const FIELD_SEP = ';';
+
+    // A burst is delivered in one tick, so the stream is capped. Forty guild
+    // bots is a hundred-odd messages; five hundred would be well past what is
+    // reasonable to push at a client at once.
+    constexpr size_t ADDON_MAX_BOTS = 150;
+
     // Addon messages cap at 255 bytes including the prefix, so payloads stay
     // well under that and a long item list travels in several pieces.
     constexpr size_t ADDON_PAYLOAD_MAX = 200;
@@ -173,7 +185,7 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
 
     // The companion addon listens for this stream and opens its window on the
     // closing marker.
-    SendAddon(viewer, "S|" + std::to_string(bots.size()) + "|" + scope);
+    SendAddon(viewer, std::string("S") + FIELD_SEP + std::to_string(bots.size()) + FIELD_SEP + scope);
 
     uint32 analysed = 0;
     uint32 noList = 0;
@@ -224,20 +236,21 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
                                  bot->GetName(), ClassName(cls), SpecName(cls, spec), uint32(level),
                                  best.equipped, best.rows, best.carried, best.missing);
 
-        if (!viewer)
+        if (!viewer || analysed > uint32(ADDON_MAX_BOTS))
             continue;
 
-        SendAddon(viewer, "B|" + bot->GetName() + "|" + std::to_string(uint32(cls)) + "|" +
-                          std::to_string(uint32(spec)) + "|" + std::to_string(uint32(level)) + "|" +
-                          std::to_string(best.equipped) + "|" + std::to_string(best.rows) + "|" +
-                          std::to_string(best.carried) + "|" + std::to_string(best.missing));
+        SendAddon(viewer, std::string("B") + FIELD_SEP + bot->GetName() + FIELD_SEP +
+                          std::to_string(uint32(cls)) + FIELD_SEP + std::to_string(uint32(spec)) + FIELD_SEP +
+                          std::to_string(uint32(level)) + FIELD_SEP + std::to_string(best.equipped) + FIELD_SEP +
+                          std::to_string(best.rows) + FIELD_SEP + std::to_string(best.carried) + FIELD_SEP +
+                          std::to_string(best.missing));
 
         std::string chunk;
         for (std::string const& item : addonItems)
         {
             if (!chunk.empty() && chunk.size() + item.size() + 1 > ADDON_PAYLOAD_MAX)
             {
-                SendAddon(viewer, "I|" + bot->GetName() + "|" + chunk);
+                SendAddon(viewer, std::string("I") + FIELD_SEP + bot->GetName() + FIELD_SEP + chunk);
                 chunk.clear();
             }
 
@@ -247,12 +260,15 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         }
 
         if (!chunk.empty())
-            SendAddon(viewer, "I|" + bot->GetName() + "|" + chunk);
+            SendAddon(viewer, std::string("I") + FIELD_SEP + bot->GetName() + FIELD_SEP + chunk);
     }
 
-    SendAddon(viewer, "E|");
+    SendAddon(viewer, std::string("E") + FIELD_SEP);
 
     handler->PSendSysMessage("---");
+    if (analysed > uint32(ADDON_MAX_BOTS))
+        handler->PSendSysMessage("Fenetre limitee aux {} premiers bots ; le reste est ci-dessus.",
+                                 uint32(ADDON_MAX_BOTS));
     handler->PSendSysMessage("{} : {} bot(s) analyses, {} sans liste.", scope, analysed, noList);
 
     return true;
