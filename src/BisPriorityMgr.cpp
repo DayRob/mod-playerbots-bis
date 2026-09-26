@@ -340,33 +340,59 @@ std::vector<BisItem> BisPriorityMgr::GetReachableList(Player* bot)
     if (!bot || !_loaded)
         return out;
 
+    uint8 const cls = bot->getClass();
     uint8 const spec = ResolveSpec(bot);
     uint8 const faction = bot->GetTeamId() == TEAM_ALLIANCE ? 1 : 2;
-
-    auto bucket = _items.find(MakeKey(bot->getClass(), spec, faction));
-    if (bucket == _items.end())
-        return out;
-
     uint16 const cap = GetEffectiveTierCap(bot);
 
     // Same choice GetItemPriority makes for a single item, applied to the whole
     // list: of the tiers that name this piece, the highest one within the cap,
-    // ties broken on the better rank. Anything above the cap is content the bot
-    // is not meant to be chasing yet.
-    for (auto const& entry : bucket->second)
+    // ties broken on the better rank.
+    auto best = [cap](std::vector<BisItem> const& rows) -> BisItem const*
     {
         BisItem const* pick = nullptr;
-        for (BisItem const& row : entry.second)
+        for (BisItem const& row : rows)
         {
             if (row.tierId > cap)
                 continue;
             if (!pick || row.tierId > pick->tierId || (row.tierId == pick->tierId && row.rank < pick->rank))
                 pick = &row;
         }
+        return pick;
+    };
 
-        if (pick)
-            out.push_back(*pick);
-    }
+    // A list lives in TWO buckets: the neutral rows under faction 0, which carry
+    // most of the table, and the faction rows that override them. Reading only
+    // the faction bucket - as this did at first - finds almost nothing and
+    // reports a fully geared bot as having no list at all.
+    std::unordered_map<uint32, BisItem> chosen;
+
+    auto absorb = [&](uint8 f, bool overrides)
+    {
+        auto bucket = _items.find(MakeKey(cls, spec, f));
+        if (bucket == _items.end())
+            return;
+
+        for (auto const& entry : bucket->second)
+        {
+            BisItem const* pick = best(entry.second);
+            if (!pick)
+                continue;
+
+            auto it = chosen.find(entry.first);
+            if (it == chosen.end())
+                chosen.emplace(entry.first, *pick);
+            else if (overrides)
+                it->second = *pick;
+        }
+    };
+
+    absorb(0, false);
+    absorb(faction, true);
+
+    out.reserve(chosen.size());
+    for (auto const& entry : chosen)
+        out.push_back(entry.second);
 
     std::sort(out.begin(), out.end(), [](BisItem const& a, BisItem const& b)
     {

@@ -339,9 +339,11 @@ d'échappement avant qu'un addon ne voie le texte, et `B|Cruvmarl` se lit comme 
 code couleur `|c......`. C'est pour cette raison que `ChatHandler` double les `|` en `||`
 dans les messages système.
 
-Un filtre s'exécute une fois **par cadre de tchat**, donc la même ligne peut arriver
-plusieurs fois ; les lignes d'un relevé étant uniques, un ensemble des lignes déjà vues
-suffit à ne pas les compter deux fois.
+Un filtre s'exécute une fois **par cadre de tchat**, donc la même ligne arrive une fois par
+cadre affichant les messages système. Ces copies se suivent immédiatement — la chaîne de
+filtres d'un message se termine avant que le suivant soit traité — donc comparer à la ligne
+précédente suffit. Un ensemble de *tout* ce qui a été vu, lui, avalerait un second relevé
+dont l'en-tête serait identique au premier.
 
 ## Licence et crédits
 

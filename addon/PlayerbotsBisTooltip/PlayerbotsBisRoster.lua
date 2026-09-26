@@ -130,8 +130,18 @@ local function Rebuild()
             end
 
             if #rows == 0 then
-                table.insert(display, { note = true, bot = bot,
-                                        text = missingOnly and "tout est equipe" or "aucune ligne" })
+                -- No rows at all is not the same thing as nothing missing, and
+                -- saying "tout est equipe" for an empty list hides a problem
+                -- instead of showing it.
+                local text
+                if #bot.items == 0 then
+                    text = "aucune piece recue pour ce bot"
+                elseif missingOnly then
+                    text = "tout est equipe"
+                else
+                    text = "aucune ligne"
+                end
+                table.insert(display, { note = true, bot = bot, text = text })
             end
         end
     end
@@ -400,14 +410,16 @@ PlayerbotsBisRoster_Toggle = Toggle
 -- killed the 3.3.5 client (ERROR #134); a system message is the same path the
 -- command's own summary lines already travel, so it is known to be safe here.
 --
--- A filter runs once per chat frame, so the same line can arrive several times.
--- Lines within a report are unique, which makes a seen-set enough to keep the
--- second copy from being parsed twice.
-local seen = {}
+-- A filter runs once per chat frame, so the same line arrives once per frame
+-- showing system messages. Those copies are back to back - the filter chain for
+-- one message finishes before the next is handled - so comparing against the
+-- previous line is enough, and unlike a set of everything seen it cannot swallow
+-- a later report whose header happens to be identical.
+local lastRaw
 
 local function Dispatch(payload, raw)
-    if seen[raw] then return end
-    seen[raw] = true
+    if raw == lastRaw then return end
+    lastRaw = raw
 
     local kind, rest = string.match(payload, "^(%a);(.*)$")
     if not kind then return end
@@ -415,8 +427,6 @@ local function Dispatch(payload, raw)
     if kind == "S" then
         local count, scope = string.match(rest, "^(%d+);(.*)$")
         ResetRoster(tonumber(count) or 0, scope)
-        seen = {}
-        seen[raw] = true
     elseif kind == "B" then
         local name, cls, spec, level, eq, tot, car, mis =
             string.match(rest, "^(.-);(%d+);(%d+);(%d+);(%d+);(%d+);(%d+);(%d+)$")
