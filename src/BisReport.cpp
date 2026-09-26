@@ -8,7 +8,6 @@
 #include "BisPriorityMgr.h"
 #include "Chat.h"
 #include "ChatHelper.h"
-#include "DatabaseEnv.h"
 #include "Guild.h"
 #include "GuildMgr.h"
 #include "Item.h"
@@ -17,7 +16,6 @@
 #include "Player.h"
 #include "Playerbots.h"
 #include <algorithm>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -75,29 +73,24 @@ namespace
         return bot->GetItemCount(itemId, true) > 0 ? BIS_CARRIED : BIS_MISSING;
     }
 
-    // Created on demand so the report needs no manual SQL import. It holds
-    // nothing that cannot be rebuilt by running the command again.
-    void EnsureTable()
+    // The addon channel the companion window listens on. A server-built addon
+    // message is "PREFIX\tPAYLOAD"; the client splits on the tab and hands the
+    // two halves to CHAT_MSG_ADDON.
+    char const* const ADDON_PREFIX = "PBBISREP";
+
+    // Addon messages cap at 255 bytes including the prefix, so payloads stay
+    // well under that and a long item list travels in several pieces.
+    constexpr size_t ADDON_PAYLOAD_MAX = 200;
+
+    void SendAddon(Player* to, std::string const& payload)
     {
-        CharacterDatabase.DirectExecute(
-            "CREATE TABLE IF NOT EXISTS `playerbots_bis_report` ("
-            "`guid` INT UNSIGNED NOT NULL,"
-            "`name` VARCHAR(12) NOT NULL,"
-            "`guild_id` INT UNSIGNED NOT NULL DEFAULT 0,"
-            "`class` TINYINT UNSIGNED NOT NULL,"
-            "`spec` TINYINT UNSIGNED NOT NULL,"
-            "`level` TINYINT UNSIGNED NOT NULL,"
-            "`slot` TINYINT UNSIGNED NOT NULL,"
-            "`item_id` INT UNSIGNED NOT NULL,"
-            "`tier_id` SMALLINT UNSIGNED NOT NULL,"
-            "`rank` TINYINT UNSIGNED NOT NULL,"
-            "`state` TINYINT UNSIGNED NOT NULL COMMENT '0 manquant, 1 en sac, 2 equipe',"
-            "`updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-            "PRIMARY KEY (`guid`,`item_id`),"
-            "KEY `guild_id` (`guild_id`),"
-            "KEY `state` (`state`),"
-            "KEY `item_id` (`item_id`)"
-            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-playerbots-bis : couverture BiS par bot'");
+        if (!to)
+            return;
+
+        WorldPacket data;
+        ChatHandler::BuildChatPacket(data, CHAT_MSG_ADDON, LANG_ADDON, to->GetGUID(), to->GetGUID(),
+                                     std::string(ADDON_PREFIX) + "\t" + payload, CHAT_TAG_NONE);
+        to->SendDirectMessage(&data);
     }
 
     struct BotTally
@@ -108,7 +101,8 @@ namespace
         uint32 rows     = 0;
     };
 
-    // Returns the bots the module applies to, optionally narrowed to one guild.
+    // Bots the module applies to, optionally narrowed to one guild. Only bots in
+    // the world can be inspected: the answer comes from their live inventory.
     std::vector<Player*> CollectBots(uint32 guildId, bool all)
     {
         std::vector<Player*> bots;
@@ -149,17 +143,18 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
     std::string const arg = args ? args : "";
     bool const all = arg.find("all") != std::string::npos;
 
+    Player* const viewer = handler->GetSession() ? handler->GetSession()->GetPlayer() : nullptr;
+
     uint32 guildId = 0;
     if (!all)
     {
-        Player* me = handler->GetSession() ? handler->GetSession()->GetPlayer() : nullptr;
-        if (!me || !me->GetGuildId())
+        if (!viewer || !viewer->GetGuildId())
         {
             handler->PSendSysMessage("Tu n'es dans aucune guilde. Utilise .playerbotsbis report all "
                                      "pour couvrir tous les bots.");
             return true;
         }
-        guildId = me->GetGuildId();
+        guildId = viewer->GetGuildId();
     }
 
     std::vector<Player*> const bots = CollectBots(guildId, all);
@@ -169,11 +164,17 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         return true;
     }
 
-    EnsureTable();
+    std::string scope = "tous les bots";
+    if (!all)
+    {
+        Guild* g = sGuildMgr->GetGuildById(guildId);
+        scope = g ? g->GetName() : "guilde";
+    }
 
-    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+    // The companion addon listens for this stream and opens its window on the
+    // closing marker.
+    SendAddon(viewer, "S|" + std::to_string(bots.size()) + "|" + scope);
 
-    uint32 totalRows = 0;
     uint32 analysed = 0;
     uint32 noList = 0;
 
@@ -181,97 +182,78 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
     {
         std::vector<BisItem> const list = sBisPriorityMgr->GetReachableList(bot);
 
-        uint32 const guid = bot->GetGUID().GetCounter();
-        trans->Append("DELETE FROM playerbots_bis_report WHERE guid = {}", guid);
+        uint8 const cls = bot->getClass();
+        uint8 const spec = sBisPriorityMgr->GetSpec(bot);
+        uint8 const level = bot->GetLevel();
 
         if (list.empty())
         {
             ++noList;
             handler->PSendSysMessage("{} - {} {} niv {} : aucune liste a ce palier.",
-                                     bot->GetName(), ClassName(bot->getClass()),
-                                     SpecName(bot->getClass(), sBisPriorityMgr->GetSpec(bot)),
-                                     uint32(bot->GetLevel()));
+                                     bot->GetName(), ClassName(cls), SpecName(cls, spec), uint32(level));
             continue;
         }
 
         ++analysed;
 
-        uint8 const cls = bot->getClass();
-        uint8 const spec = sBisPriorityMgr->GetSpec(bot);
-        uint8 const level = bot->GetLevel();
-        uint32 const botGuild = bot->GetGuildId();
-
-        std::string name = bot->GetName();
-        CharacterDatabase.EscapeString(name);
-
-        // Only rank 1 counts towards the headline number: a slot is covered when
-        // the bot wears the piece the list actually picks for it, not a fallback.
+        // Only rank 1 counts: a slot is covered when the bot wears the piece the
+        // list actually picks for it, not one of its fallbacks.
         BotTally best;
-
-        std::ostringstream values;
-        uint32 pending = 0;
+        std::vector<std::string> addonItems;
 
         for (BisItem const& row : list)
         {
+            if (row.rank != 1)
+                continue;
+
             uint8 const state = ResolveState(bot, row.itemId);
 
-            if (row.rank == 1)
-            {
-                ++best.rows;
-                if (state == BIS_EQUIPPED)
-                    ++best.equipped;
-                else if (state == BIS_CARRIED)
-                    ++best.carried;
-                else
-                    ++best.missing;
-            }
+            ++best.rows;
+            if (state == BIS_EQUIPPED)
+                ++best.equipped;
+            else if (state == BIS_CARRIED)
+                ++best.carried;
+            else
+                ++best.missing;
 
-            if (pending)
-                values << ",";
-            values << "(" << guid << ",'" << name << "'," << botGuild << "," << uint32(cls) << ","
-                   << uint32(spec) << "," << uint32(level) << "," << uint32(row.slot) << ","
-                   << row.itemId << "," << row.tierId << "," << uint32(row.rank) << ","
-                   << uint32(state) << ",NOW())";
-            ++pending;
-            ++totalRows;
-
-            // Flushed in batches so one bot with a long list never builds a
-            // single enormous statement.
-            if (pending >= 200)
-            {
-                trans->Append("INSERT INTO playerbots_bis_report "
-                              "(guid,name,guild_id,class,spec,level,slot,item_id,tier_id,`rank`,state,updated) "
-                              "VALUES {}", values.str());
-                values.str("");
-                values.clear();
-                pending = 0;
-            }
+            addonItems.push_back(std::to_string(row.itemId) + ":" + std::to_string(uint32(state)) +
+                                 ":" + std::to_string(row.tierId) + ":" + std::to_string(uint32(row.slot)));
         }
-
-        if (pending)
-            trans->Append("INSERT INTO playerbots_bis_report "
-                          "(guid,name,guild_id,class,spec,level,slot,item_id,tier_id,`rank`,state,updated) "
-                          "VALUES {}", values.str());
 
         handler->PSendSysMessage("{} - {} {} niv {} : {}/{} equipes, {} en sac, {} manquants.",
                                  bot->GetName(), ClassName(cls), SpecName(cls, spec), uint32(level),
                                  best.equipped, best.rows, best.carried, best.missing);
+
+        if (!viewer)
+            continue;
+
+        SendAddon(viewer, "B|" + bot->GetName() + "|" + std::to_string(uint32(cls)) + "|" +
+                          std::to_string(uint32(spec)) + "|" + std::to_string(uint32(level)) + "|" +
+                          std::to_string(best.equipped) + "|" + std::to_string(best.rows) + "|" +
+                          std::to_string(best.carried) + "|" + std::to_string(best.missing));
+
+        std::string chunk;
+        for (std::string const& item : addonItems)
+        {
+            if (!chunk.empty() && chunk.size() + item.size() + 1 > ADDON_PAYLOAD_MAX)
+            {
+                SendAddon(viewer, "I|" + bot->GetName() + "|" + chunk);
+                chunk.clear();
+            }
+
+            if (!chunk.empty())
+                chunk += ",";
+            chunk += item;
+        }
+
+        if (!chunk.empty())
+            SendAddon(viewer, "I|" + bot->GetName() + "|" + chunk);
     }
 
-    CharacterDatabase.CommitTransaction(trans);
+    SendAddon(viewer, "E|");
 
     handler->PSendSysMessage("---");
-    if (all)
-        handler->PSendSysMessage("{} bot(s) analyses, {} sans liste, {} lignes ecrites dans "
-                                 "characters.playerbots_bis_report.", analysed, noList, totalRows);
-    else
-    {
-        Guild* guild = sGuildMgr->GetGuildById(guildId);
-        handler->PSendSysMessage("Guilde {} : {} bot(s) analyses, {} sans liste, {} lignes ecrites dans "
-                                 "characters.playerbots_bis_report.",
-                                 guild ? guild->GetName() : std::string("?"), analysed, noList, totalRows);
-    }
-    handler->PSendSysMessage(".playerbotsbis missing <nom> pour le detail d'un bot.");
+    handler->PSendSysMessage("{} : {} bot(s) analyses, {} sans liste.", scope, analysed, noList);
 
     return true;
 }

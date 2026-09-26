@@ -279,48 +279,55 @@ monde, même désactivé, précisément pour pouvoir être basculé à chaud.
 ## Savoir ce qui manque à chaque bot
 
 La spé n'est stockée nulle part : `AiFactory` la recalcule depuis les talents à chaque
-fois. Une requête SQL ne peut donc pas dire à quelle liste un bot se rattache, et c'est
-ce qui bloquait tout rapport de couverture. La commande fige la réponse.
+fois. Rien en dehors du serveur ne peut donc rattacher un bot à sa liste — ni une requête
+SQL, ni un addon. Le module calcule la réponse et la **diffuse au client**.
+
+En jeu :
 
 ```
 .playerbotsbis report
 ```
 
-Analyse les bots **de ta guilde** actuellement connectés, affiche une ligne par bot, et
-écrit le détail dans `characters.playerbots_bis_report` (créée au besoin).
+Analyse les bots **de ta guilde** actuellement connectés, résume dans le chat, et ouvre la
+fenêtre de l'addon compagnon. `report all` couvre tous les bots au lieu de la seule
+guilde. Un bot doit être **connecté** : la réponse vient de son équipement et de ses sacs
+en mémoire, il n'y a pas d'autre source.
+
+Rien n'est écrit en base. Le rapport est calculé et envoyé, point.
+
+### La fenêtre
+
+`/pbbis roster` rouvre le dernier relevé. Les bots sont classés **du moins équipé au
+mieux équipé**, avec une barre de couverture aux couleurs de classe :
 
 ```
-[Cruvmarl] - Guerrier Fureur niv 60 : 12/17 equipes, 1 en sac, 4 manquants.
-[Betu] - Pretre Sacre niv 58 : 9/16 equipes, 0 en sac, 7 manquants.
+- Cruvmarl   Guerrier Fureur niv 60                      1/4
+      Faucheuse de Felstriker      manquant       Molten Core
+      Anneau de sang               dans ses sacs  Vanilla Pre-Raid
++ Betu       Pretre Sacre niv 58                        15/16
 ```
 
-`report all` couvre tous les bots au lieu de la seule guilde. Un bot doit être
-**connecté** pour être analysé : le module lit son sac et son équipement en mémoire.
+Clic sur un bot pour déplier, **Maj+clic** sur un objet pour le lier dans le chat,
+**Ctrl+clic** pour l'essayer. Le bouton bascule entre *manquants seulement* et *toutes les
+pièces*, ce qui distingue l'objet que le bot n'a pas de celui qu'il a mais ne porte pas.
+
+Le décompte ne porte que sur les lignes de **rang 1** : un créneau est couvert quand le bot
+porte la pièce que la liste retient pour lui, pas un repli.
+
+### Le détail dans le chat
 
 ```
 .playerbotsbis missing <nom>
 ```
 
-Détaille un bot dans le chat, avec les liens d'objets cliquables, le palier de chaque
-pièce et la distinction entre *manquant* et *déjà dans ses sacs*.
+Même chose pour un seul bot, directement dans le chat, avec les liens d'objets cliquables.
 
-### La table
+### Le transport
 
-Une ligne par (bot, objet) de la liste atteignable :
-
-| Colonne | Contenu |
-|---|---|
-| `guid`, `name`, `guild_id` | le bot |
-| `class`, `spec`, `level` | `spec` = 10 pour le druide farouche ours (sentinelle du module) |
-| `slot`, `item_id`, `tier_id`, `rank` | la ligne de liste ; `rank` = 1 est la pièce retenue pour le créneau |
-| `state` | 0 manquant, 1 en sac, 2 équipé |
-
-Le décompte affiché en jeu ne porte que sur les lignes de **rang 1** : un créneau est
-couvert quand le bot porte la pièce que la liste retient pour lui, pas un repli. La table
-garde tous les rangs pour qui veut aller plus loin.
-
-La jointure vers les noms de paliers se fait sur `acore_world.playerbots_bis_tier`, et
-vers les noms d'objets sur `acore_world.item_template`.
+Le module envoie le relevé en messages addon (préfixe `PBBISREP`) au joueur qui lance la
+commande : un en-tête, une ligne par bot, ses pièces par paquets de 200 octets, puis un
+marqueur de fin sur lequel la fenêtre s'ouvre. Pour 40 bots cela fait environ 120 messages,
+envoyés une fois, à la demande.
 
 ## Licence et crédits
 

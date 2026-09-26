@@ -219,6 +219,12 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         else
             Print("usage : /pbbis maxtier <nombre>, 0 pour aucun plafond.")
         end
+    elseif cmd == "roster" or cmd == "bots" then
+        if PlayerbotsBisRoster_Toggle then
+            PlayerbotsBisRoster_Toggle()
+        else
+            Print("fenetre d'etat indisponible - PlayerbotsBisRoster.lua n'est pas charge.")
+        end
     elseif cmd == "minimap" then
         if PlayerbotsBisBrowser_ToggleMinimap then
             local shown = PlayerbotsBisBrowser_ToggleMinimap()
@@ -245,6 +251,7 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
               .. (db.allClasses and "toutes" or "ta classe") .. ")")
         Print("/pbbis maxtier <n> - masque les paliers superieurs a n (actuel : "
               .. (db.maxTier == 0 and "aucun plafond" or db.maxTier) .. ")")
+        Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
         Print("/pbbis minimap - affiche ou masque le bouton de minicarte")
         Print("/pbbis info - ce resume")
     end

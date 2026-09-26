@@ -702,3 +702,10 @@ boot:SetScript("OnEvent", function(self, _, name)
     if PlayerbotsBisTooltipDB.minimapHide then btn:Hide() end
     self:UnregisterEvent("ADDON_LOADED")
 end)
+
+-- Shared with the roster window, which needs the same names and the same way of
+-- coaxing an uncached item out of the server.
+PlayerbotsBis_ClassName   = ClassName
+PlayerbotsBis_SpecName    = SpecName
+PlayerbotsBis_TierName    = TierName
+PlayerbotsBis_RequestItem = RequestItem
