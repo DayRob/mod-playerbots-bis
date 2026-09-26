@@ -307,6 +307,7 @@ mieux équipé**, avec une barre de couverture aux couleurs de classe :
 + Betu       Pretre Sacre niv 58                        15/16
 ```
 
+Un **bouton de minicarte** l'ouvre (clic gauche) et relance le relevé (clic droit).
 Clic sur un bot pour déplier, **Maj+clic** sur un objet pour le lier dans le chat,
 **Ctrl+clic** pour l'essayer. Le bouton bascule entre *manquants seulement* et *toutes les
 pièces*, ce qui distingue l'objet que le bot n'a pas de celui qu'il a mais ne porte pas.
@@ -324,17 +325,23 @@ Même chose pour un seul bot, directement dans le chat, avec les liens d'objets 
 
 ### Le transport
 
-Le module envoie le relevé en messages addon (préfixe `PBBISREP`) au joueur qui lance la
-commande : un en-tête, une ligne par bot, ses pièces par paquets de 200 octets, puis un
-marqueur de fin sur lequel la fenêtre s'ouvre. Pour 40 bots cela fait environ 120 messages,
-envoyés une fois, à la demande. Le flux est plafonné à 150 bots ; au-delà, le chat garde
-tout mais la fenêtre s'arrête là.
+Le relevé voyage en **messages système** portant le marqueur `PBBISREP;` : un en-tête, une
+ligne par bot, ses pièces par paquets de 200 octets, puis un marqueur de fin sur lequel la
+fenêtre s'ouvre. L'addon les intercepte avec un filtre `CHAT_MSG_SYSTEM` et les masque ;
+sans l'addon ils sont simplement visibles, jamais fatals. Le flux est plafonné à 150 bots.
 
-Les champs sont séparés par `;`, **jamais par `|`**. Le client passe le texte de tchat dans
-son analyseur de séquences d'échappement avant qu'un addon ne le voie, et `|` en ouvre une :
-`B|Cruvmarl` se lit comme un début de code couleur `|c......`, et un code malformé tue le
-client sur le champ (ERROR #134). C'est exactement pour ça que `ChatHandler` double les `|`
-en `||` dans les messages système.
+Ce n'est pas un `CHAT_MSG_ADDON`, et c'est délibéré : un paquet addon construit côté serveur
+**tuait le client 3.3.5** (ERROR #134), alors que les lignes de résumé imprimées par la même
+commande arrivaient sans problème. Le flux emprunte donc le chemin déjà prouvé.
+
+Les champs sont séparés par `;`, **jamais par `|`** : le client analyse les séquences
+d'échappement avant qu'un addon ne voie le texte, et `B|Cruvmarl` se lit comme un début de
+code couleur `|c......`. C'est pour cette raison que `ChatHandler` double les `|` en `||`
+dans les messages système.
+
+Un filtre s'exécute une fois **par cadre de tchat**, donc la même ligne peut arriver
+plusieurs fois ; les lignes d'un relevé étant uniques, un ensemble des lignes déjà vues
+suffit à ne pas les compter deux fois.
 
 ## Licence et crédits
 

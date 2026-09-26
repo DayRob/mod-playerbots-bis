@@ -226,11 +226,19 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
             Print("fenetre d'etat indisponible - PlayerbotsBisRoster.lua n'est pas charge.")
         end
     elseif cmd == "minimap" then
+        local said = false
         if PlayerbotsBisBrowser_ToggleMinimap then
             local shown = PlayerbotsBisBrowser_ToggleMinimap()
-            Print(shown and "bouton de minicarte affiche." or "bouton de minicarte masque.")
-        else
-            Print("bouton de minicarte indisponible.")
+            Print(shown and "bouton listes affiche." or "bouton listes masque.")
+            said = true
+        end
+        if PlayerbotsBisRoster_ToggleMinimap then
+            local shown = PlayerbotsBisRoster_ToggleMinimap()
+            Print(shown and "bouton etat des bots affiche." or "bouton etat des bots masque.")
+            said = true
+        end
+        if not said then
+            Print("boutons de minicarte indisponibles.")
         end
     elseif cmd == "" then
         -- Bare command opens the browser: it is what you reach for most, and

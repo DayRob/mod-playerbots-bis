@@ -392,23 +392,31 @@ end
 PlayerbotsBisRoster_Toggle = Toggle
 
 --------------------------------------------------------------------------------
--- Events
+-- Reception
 --------------------------------------------------------------------------------
 
-local listener = CreateFrame("Frame")
-listener:RegisterEvent("CHAT_MSG_ADDON")
-listener:SetScript("OnEvent", function(_, _, prefix, message)
-    if prefix ~= PREFIX or not message then return end
+-- The stream arrives as ordinary system messages carrying a marker, and this
+-- filter hides them from the chat frame. Server-built CHAT_MSG_ADDON packets
+-- killed the 3.3.5 client (ERROR #134); a system message is the same path the
+-- command's own summary lines already travel, so it is known to be safe here.
+--
+-- A filter runs once per chat frame, so the same line can arrive several times.
+-- Lines within a report are unique, which makes a seen-set enough to keep the
+-- second copy from being parsed twice.
+local seen = {}
 
-    -- Fields are separated by ';'. Never '|': the client parses chat text for
-    -- escape sequences before an addon sees it, and "B|Cruvmarl" looks like the
-    -- start of a colour code, which kills the client with ERROR #134.
-    local kind, rest = string.match(message, "^(%a);(.*)$")
+local function Dispatch(payload, raw)
+    if seen[raw] then return end
+    seen[raw] = true
+
+    local kind, rest = string.match(payload, "^(%a);(.*)$")
     if not kind then return end
 
     if kind == "S" then
         local count, scope = string.match(rest, "^(%d+);(.*)$")
         ResetRoster(tonumber(count) or 0, scope)
+        seen = {}
+        seen[raw] = true
     elseif kind == "B" then
         local name, cls, spec, level, eq, tot, car, mis =
             string.match(rest, "^(.-);(%d+);(%d+);(%d+);(%d+);(%d+);(%d+);(%d+)$")
@@ -425,4 +433,142 @@ listener:SetScript("OnEvent", function(_, _, prefix, message)
         win:Show()
         Print(string.format("%d bots recus.", #roster.bots))
     end
+end
+
+local MARKER = "PBBISREP;"
+
+local function Filter(_, _, msg)
+    if type(msg) ~= "string" then return false end
+    if string.sub(msg, 1, string.len(MARKER)) ~= MARKER then return false end
+
+    -- Ours: parse it, and hide it either way rather than spilling the raw
+    -- stream into the chat frame.
+    Dispatch(string.sub(msg, string.len(MARKER) + 1), msg)
+    return true
+end
+
+if ChatFrame_AddMessageEventFilter then
+    ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM", Filter)
+else
+    Print("|cffff2020ce client n'a pas ChatFrame_AddMessageEventFilter|r - "
+          .. "le releve restera visible dans le tchat.")
+end
+
+--------------------------------------------------------------------------------
+-- Minimap button
+--------------------------------------------------------------------------------
+
+local MINIMAP_RADIUS = 80
+local DEFAULT_ANGLE  = 236
+
+local function PlaceOnRing(btn, angle)
+    local rad = math.rad(angle)
+    btn:ClearAllPoints()
+    btn:SetPoint("CENTER", Minimap, "CENTER",
+                 MINIMAP_RADIUS * math.cos(rad),
+                 MINIMAP_RADIUS * math.sin(rad))
+end
+
+local function DragToRing(btn)
+    local cx, cy = Minimap:GetCenter()
+    if not cx then return end
+    local scale = Minimap:GetEffectiveScale()
+    local px, py = GetCursorPosition()
+    px, py = px / scale, py / scale
+
+    local angle = math.deg(math.atan2(py - cy, px - cx))
+    PlayerbotsBisTooltipDB.rosterAngle = angle
+    PlaceOnRing(btn, angle)
+end
+
+-- Typing the command in the chat box is exactly what SendChatMessage does, and
+-- the server intercepts a line starting with '.' as a command before it is ever
+-- broadcast, so nothing is said out loud.
+local function RequestReport()
+    if not SendChatMessage then return false end
+    local ok = pcall(SendChatMessage, ".playerbotsbis report", "SAY")
+    return ok
+end
+
+local function BuildMinimapButton()
+    if _G.PlayerbotsBisRosterMinimapButton then return _G.PlayerbotsBisRosterMinimapButton end
+
+    local btn = CreateFrame("Button", "PlayerbotsBisRosterMinimapButton", Minimap)
+    btn:SetWidth(31)
+    btn:SetHeight(31)
+    btn:SetFrameStrata("MEDIUM")
+    btn:SetFrameLevel(8)
+    btn:SetMovable(true)
+    btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    btn:RegisterForDrag("LeftButton")
+
+    local icon = btn:CreateTexture(nil, "BACKGROUND")
+    icon:SetWidth(20)
+    icon:SetHeight(20)
+    icon:SetPoint("TOPLEFT", btn, "TOPLEFT", 7, -6)
+    icon:SetTexture("Interface\\Icons\\INV_Misc_Note_01")
+    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+    local border = btn:CreateTexture(nil, "OVERLAY")
+    border:SetWidth(53)
+    border:SetHeight(53)
+    border:SetPoint("TOPLEFT", btn, "TOPLEFT", 0, 0)
+    border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+
+    btn:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+
+    btn:SetScript("OnDragStart", function(self) self:SetScript("OnUpdate", DragToRing) end)
+    btn:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
+
+    btn:SetScript("OnClick", function(_, button)
+        if button == "RightButton" then
+            if not RequestReport() then
+                Print("tape |cffffd100.playerbotsbis report|r pour actualiser.")
+            end
+        else
+            Toggle()
+        end
+    end)
+
+    btn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:AddLine("Etat BiS des bots")
+        GameTooltip:AddLine("Clic gauche : ouvrir la fenetre", 1, 1, 1)
+        GameTooltip:AddLine("Clic droit : actualiser le releve", 1, 1, 1)
+        if roster.bots and #roster.bots > 0 then
+            local eq, tot = 0, 0
+            for _, bot in ipairs(roster.bots) do
+                eq = eq + bot.equipped
+                tot = tot + bot.total
+            end
+            GameTooltip:AddLine(string.format("Dernier releve : %d bots, %d/%d pieces (%s)",
+                #roster.bots, eq, tot, roster.when), 0.6, 0.6, 0.6)
+        else
+            GameTooltip:AddLine("Aucun releve encore", 0.6, 0.6, 0.6)
+        end
+        GameTooltip:AddLine("Glisser : deplacer autour de la minicarte", 0.6, 0.6, 0.6)
+        GameTooltip:Show()
+    end)
+    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    PlaceOnRing(btn, PlayerbotsBisTooltipDB.rosterAngle or DEFAULT_ANGLE)
+    return btn
+end
+
+function PlayerbotsBisRoster_ToggleMinimap()
+    local btn = _G.PlayerbotsBisRosterMinimapButton
+    if not btn then return end
+    PlayerbotsBisTooltipDB.rosterHide = not PlayerbotsBisTooltipDB.rosterHide
+    if PlayerbotsBisTooltipDB.rosterHide then btn:Hide() else btn:Show() end
+    return not PlayerbotsBisTooltipDB.rosterHide
+end
+
+local boot = CreateFrame("Frame")
+boot:RegisterEvent("ADDON_LOADED")
+boot:SetScript("OnEvent", function(self, _, name)
+    if name ~= "PlayerbotsBisTooltip" then return end
+    PlayerbotsBisTooltipDB = PlayerbotsBisTooltipDB or {}
+    local btn = BuildMinimapButton()
+    if PlayerbotsBisTooltipDB.rosterHide then btn:Hide() end
+    self:UnregisterEvent("ADDON_LOADED")
 end)

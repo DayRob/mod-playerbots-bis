@@ -73,10 +73,15 @@ namespace
         return bot->GetItemCount(itemId, true) > 0 ? BIS_CARRIED : BIS_MISSING;
     }
 
-    // The addon channel the companion window listens on. A server-built addon
-    // message is "PREFIX\tPAYLOAD"; the client splits on the tab and hands the
-    // two halves to CHAT_MSG_ADDON.
-    char const* const ADDON_PREFIX = "PBBISREP";
+    // The marker the companion window watches for.
+    //
+    // The stream travels as ordinary system messages, not as CHAT_MSG_ADDON.
+    // Addon messages built server side killed the 3.3.5 client outright
+    // (ERROR #134), while the summary lines printed by this very command arrive
+    // fine - so the stream now rides the path already proven to work here. The
+    // addon hides these lines with a CHAT_MSG_SYSTEM filter; without the addon
+    // they are merely visible, never fatal.
+    char const* const ADDON_PREFIX = "PBBISREP;";
 
     // Fields are separated by ';', never '|'. The client runs chat text through
     // its escape parser before an addon ever sees it, and '|' opens an escape
@@ -94,15 +99,14 @@ namespace
     // well under that and a long item list travels in several pieces.
     constexpr size_t ADDON_PAYLOAD_MAX = 200;
 
-    void SendAddon(Player* to, std::string const& payload)
+    void SendAddon(ChatHandler* handler, std::string const& payload)
     {
-        if (!to)
+        if (!handler)
             return;
 
-        WorldPacket data;
-        ChatHandler::BuildChatPacket(data, CHAT_MSG_ADDON, LANG_ADDON, to->GetGUID(), to->GetGUID(),
-                                     std::string(ADDON_PREFIX) + "\t" + payload, CHAT_TAG_NONE);
-        to->SendDirectMessage(&data);
+        // No formatting: the payload must reach the client byte for byte, and a
+        // stray brace in a guild name would otherwise be read as a placeholder.
+        handler->SendSysMessage(std::string(ADDON_PREFIX) + payload);
     }
 
     struct BotTally
@@ -183,9 +187,9 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         scope = g ? g->GetName() : "guilde";
     }
 
-    // The companion addon listens for this stream and opens its window on the
-    // closing marker.
-    SendAddon(viewer, std::string("S") + FIELD_SEP + std::to_string(bots.size()) + FIELD_SEP + scope);
+    // The companion addon listens for these lines and opens its window on the
+    // closing marker; it hides them from the chat frame as they arrive.
+    SendAddon(handler, std::string("S") + FIELD_SEP + std::to_string(bots.size()) + FIELD_SEP + scope);
 
     uint32 analysed = 0;
     uint32 noList = 0;
@@ -236,10 +240,10 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
                                  bot->GetName(), ClassName(cls), SpecName(cls, spec), uint32(level),
                                  best.equipped, best.rows, best.carried, best.missing);
 
-        if (!viewer || analysed > uint32(ADDON_MAX_BOTS))
+        if (analysed > uint32(ADDON_MAX_BOTS))
             continue;
 
-        SendAddon(viewer, std::string("B") + FIELD_SEP + bot->GetName() + FIELD_SEP +
+        SendAddon(handler, std::string("B") + FIELD_SEP + bot->GetName() + FIELD_SEP +
                           std::to_string(uint32(cls)) + FIELD_SEP + std::to_string(uint32(spec)) + FIELD_SEP +
                           std::to_string(uint32(level)) + FIELD_SEP + std::to_string(best.equipped) + FIELD_SEP +
                           std::to_string(best.rows) + FIELD_SEP + std::to_string(best.carried) + FIELD_SEP +
@@ -250,7 +254,7 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         {
             if (!chunk.empty() && chunk.size() + item.size() + 1 > ADDON_PAYLOAD_MAX)
             {
-                SendAddon(viewer, std::string("I") + FIELD_SEP + bot->GetName() + FIELD_SEP + chunk);
+                SendAddon(handler, std::string("I") + FIELD_SEP + bot->GetName() + FIELD_SEP + chunk);
                 chunk.clear();
             }
 
@@ -260,10 +264,10 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         }
 
         if (!chunk.empty())
-            SendAddon(viewer, std::string("I") + FIELD_SEP + bot->GetName() + FIELD_SEP + chunk);
+            SendAddon(handler, std::string("I") + FIELD_SEP + bot->GetName() + FIELD_SEP + chunk);
     }
 
-    SendAddon(viewer, std::string("E") + FIELD_SEP);
+    SendAddon(handler, std::string("E") + FIELD_SEP);
 
     handler->PSendSysMessage("---");
     if (analysed > uint32(ADDON_MAX_BOTS))
