@@ -110,6 +110,16 @@ public:
     // by the bot's mod-individual-progression state.
     uint16 GetEffectiveTierCap(Player* bot);
 
+    // The bot's spec as the lists index it, Bear sentinel included. Nothing
+    // persists a spec - AiFactory recomputes it from the talents every time -
+    // so anything outside the running server has to ask the module for it.
+    uint8 GetSpec(Player* bot) { return ResolveSpec(bot); }
+
+    // Every row this bot can actually reach, one entry per item at its best
+    // reachable tier, sorted by slot then rank. Empty when nothing is
+    // maintained for its class/spec/faction within the cap.
+    std::vector<BisItem> GetReachableList(Player* bot);
+
     bool IsLoaded() const { return _loaded; }
     size_t TierCount() const { return _tiers.size(); }
     size_t ItemCount() const { return _itemCount; }

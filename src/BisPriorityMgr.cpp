@@ -334,6 +334,52 @@ uint32 BisPriorityMgr::GetItemPriority(Player* bot, uint32 itemId, uint8* outSlo
     return uint32(found->tierId) * TIER_WEIGHT + (255u - std::min<uint32>(found->rank, 255u));
 }
 
+std::vector<BisItem> BisPriorityMgr::GetReachableList(Player* bot)
+{
+    std::vector<BisItem> out;
+    if (!bot || !_loaded)
+        return out;
+
+    uint8 const spec = ResolveSpec(bot);
+    uint8 const faction = bot->GetTeamId() == TEAM_ALLIANCE ? 1 : 2;
+
+    auto bucket = _items.find(MakeKey(bot->getClass(), spec, faction));
+    if (bucket == _items.end())
+        return out;
+
+    uint16 const cap = GetEffectiveTierCap(bot);
+
+    // Same choice GetItemPriority makes for a single item, applied to the whole
+    // list: of the tiers that name this piece, the highest one within the cap,
+    // ties broken on the better rank. Anything above the cap is content the bot
+    // is not meant to be chasing yet.
+    for (auto const& entry : bucket->second)
+    {
+        BisItem const* pick = nullptr;
+        for (BisItem const& row : entry.second)
+        {
+            if (row.tierId > cap)
+                continue;
+            if (!pick || row.tierId > pick->tierId || (row.tierId == pick->tierId && row.rank < pick->rank))
+                pick = &row;
+        }
+
+        if (pick)
+            out.push_back(*pick);
+    }
+
+    std::sort(out.begin(), out.end(), [](BisItem const& a, BisItem const& b)
+    {
+        if (a.slot != b.slot)
+            return a.slot < b.slot;
+        if (a.rank != b.rank)
+            return a.rank < b.rank;
+        return a.tierId > b.tierId;
+    });
+
+    return out;
+}
+
 bool BisPriorityMgr::HasReachableList(Player* bot)
 {
     if (!_loaded)

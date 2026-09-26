@@ -276,6 +276,52 @@ commande prend aussi en compte un changement de `PlayerbotsBis.Enable` ou de
 `PlayerbotsBis.MaxTier` : le module s'enregistre auprès du moteur dès le premier tick du
 monde, même désactivé, précisément pour pouvoir être basculé à chaud.
 
+## Savoir ce qui manque à chaque bot
+
+La spé n'est stockée nulle part : `AiFactory` la recalcule depuis les talents à chaque
+fois. Une requête SQL ne peut donc pas dire à quelle liste un bot se rattache, et c'est
+ce qui bloquait tout rapport de couverture. La commande fige la réponse.
+
+```
+.playerbotsbis report
+```
+
+Analyse les bots **de ta guilde** actuellement connectés, affiche une ligne par bot, et
+écrit le détail dans `characters.playerbots_bis_report` (créée au besoin).
+
+```
+[Cruvmarl] - Guerrier Fureur niv 60 : 12/17 equipes, 1 en sac, 4 manquants.
+[Betu] - Pretre Sacre niv 58 : 9/16 equipes, 0 en sac, 7 manquants.
+```
+
+`report all` couvre tous les bots au lieu de la seule guilde. Un bot doit être
+**connecté** pour être analysé : le module lit son sac et son équipement en mémoire.
+
+```
+.playerbotsbis missing <nom>
+```
+
+Détaille un bot dans le chat, avec les liens d'objets cliquables, le palier de chaque
+pièce et la distinction entre *manquant* et *déjà dans ses sacs*.
+
+### La table
+
+Une ligne par (bot, objet) de la liste atteignable :
+
+| Colonne | Contenu |
+|---|---|
+| `guid`, `name`, `guild_id` | le bot |
+| `class`, `spec`, `level` | `spec` = 10 pour le druide farouche ours (sentinelle du module) |
+| `slot`, `item_id`, `tier_id`, `rank` | la ligne de liste ; `rank` = 1 est la pièce retenue pour le créneau |
+| `state` | 0 manquant, 1 en sac, 2 équipé |
+
+Le décompte affiché en jeu ne porte que sur les lignes de **rang 1** : un créneau est
+couvert quand le bot porte la pièce que la liste retient pour lui, pas un repli. La table
+garde tous les rangs pour qui veut aller plus loin.
+
+La jointure vers les noms de paliers se fait sur `acore_world.playerbots_bis_tier`, et
+vers les noms d'objets sur `acore_world.item_template`.
+
 ## Licence et crédits
 
 GNU GPL v2, comme AzerothCore et mod-playerbots.

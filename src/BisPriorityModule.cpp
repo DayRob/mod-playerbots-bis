@@ -6,6 +6,7 @@
 
 #include "BisActionContext.h"
 #include "BisPriorityMgr.h"
+#include "BisReport.h"
 #include "BisValueContext.h"
 #include "Chat.h"
 #include "DKAiObjectContext.h"
@@ -110,7 +111,9 @@ public:
         using namespace Acore::ChatCommands;
 
         static ChatCommandTable bisCommandTable = {
-            {"reload", HandleBisReloadCommand, SEC_GAMEMASTER, Console::Yes},
+            {"reload",  HandleBisReloadCommand,  SEC_GAMEMASTER, Console::Yes},
+            {"report",  HandleBisReportCommand,  SEC_GAMEMASTER, Console::No},
+            {"missing", HandleBisMissingCommand, SEC_GAMEMASTER, Console::No},
         };
 
         static ChatCommandTable commandTable = {
@@ -130,6 +133,18 @@ public:
                                  static_cast<uint32>(sBisPriorityMgr->ItemCount()),
                                  sBisPriorityMgr->IsEnabled() ? "yes" : "no");
         return true;
+    }
+
+    // Both need a player: the report defaults to the caller's guild, and either
+    // way only bots currently in the world can be inspected.
+    static bool HandleBisReportCommand(ChatHandler* handler, char const* args)
+    {
+        return BisReport::HandleReport(handler, args);
+    }
+
+    static bool HandleBisMissingCommand(ChatHandler* handler, char const* args)
+    {
+        return BisReport::HandleMissing(handler, args);
     }
 };
 
