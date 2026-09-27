@@ -299,6 +299,26 @@ deux druides.
 `08` ne touche qu'à la spé Combat : `03` donne déjà des listes à plusieurs rangs au voleur
 Assassinat et Finesse, seule Combat était écrasée par `04`.
 
+### Ni PvP ni réputation
+
+Les listes ne contiennent **aucun objet derrière un rang d'honneur ou une réputation**.
+Ce n'est pas un choix de goût, c'est ce que le code permet : dans mod-playerbots,
+`GetHonorPoints()` n'est lu qu'à un seul endroit, `TellPvpStatsAction`, qui se contente de
+réciter le solde. Rien ne dépense l'honneur, et rien ne pousse un bot vers exalté. Les bots
+entrent bien en champ de bataille — `BattleGroundJoinAction` existe — mais le butin ne suit
+jamais.
+
+Un objet inatteignable en rang 1 fige le créneau en rouge pour toujours ; en rang 2 il
+encombre le dépliage d'options fantômes. Il n'a donc pas sa place du tout.
+
+Sont concernés : les sets PvP de rang (Champion's, Lieutenant Commander's, Blood Guard's,
+Knight-Captain's, Legionnaire's, Knight-Lieutenant's), les récompenses de réputation
+d'Alterac, du bassin d'Arathi et du Goulet des Chanteguerres, et les quêtes de champ de
+bataille.
+
+Ce que les bots **peuvent** obtenir reste en revanche listé : drops de donjon, récompenses
+de quête ordinaires, et objets d'artisanat — ceux-là tu peux les fabriquer pour eux.
+
 ### Ce qui est classé rang 1
 
 Le rang 1 doit rester **atteignable par un bot**. Un objet verrouillé derrière une

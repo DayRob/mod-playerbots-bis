@@ -48,8 +48,6 @@ CREATE TEMPORARY TABLE `bis_seed_wl` (
 INSERT INTO `bis_seed_wl` (`slot`, `faction`, `rank`, `item_name`) VALUES
 -- Tete (0)
 ( 0, 0, 1, 'Spellweaver''s Turban'),
-( 0, 1, 2, 'Lieutenant Commander''s Dreadweave Cowl'),   -- Alliance uniquement
-( 0, 2, 2, 'Champion''s Dreadweave Cowl'),   -- Horde uniquement
 ( 0, 0, 2, 'Deathmist Mask'),
 ( 0, 0, 3, 'Green Lens'),
 ( 0, 0, 3, 'Felcloth Hood'),
@@ -65,10 +63,8 @@ INSERT INTO `bis_seed_wl` (`slot`, `faction`, `rank`, `item_name`) VALUES
 ( 1, 0, 3, 'Tempest Talisman'),
 ( 1, 0, 3, 'Anastari Heirloom'),
 -- Epaules (2)
-( 2, 1, 1, 'Lieutenant Commander''s Dreadweave Spaulders'),   -- Alliance uniquement
-( 2, 2, 1, 'Champion''s Dreadweave Spaulders'),   -- Horde uniquement
 ( 2, 0, 2, 'Felcloth Shoulders'),
-( 2, 0, 2, 'Burial Shawl'),
+( 2, 0, 1, 'Burial Shawl'),   -- promu rang 1 : le set PvP qui l'occupait est hors de portee
 ( 2, 0, 3, 'Kentic Amice'),
 ( 2, 0, 3, 'Thuzadin Mantle'),
 ( 2, 0, 3, 'Shroud of the Nathrezim'),
@@ -86,11 +82,7 @@ INSERT INTO `bis_seed_wl` (`slot`, `faction`, `rank`, `item_name`) VALUES
 ( 4, 0, 3, 'Shadoweave Robe'),
 -- Ceinture (5)
 ( 5, 0, 1, 'Ban''thok Sash'),
-( 5, 1, 2, 'Highlander''s Cloth Girdle'),   -- Alliance uniquement
-( 5, 2, 2, 'Defiler''s Cloth Girdle'),   -- Horde uniquement
 ( 5, 0, 3, 'Felheart Belt'),
-( 5, 1, 3, 'Stormpike Cloth Girdle'),   -- Alliance uniquement
-( 5, 2, 3, 'Frostwolf Cloth Belt'),   -- Horde uniquement
 ( 5, 0, 3, 'Belt of the Archmage'),
 ( 5, 0, 3, 'Clutch of Andros'),
 ( 5, 0, 3, 'Deathmist Belt'),
@@ -99,8 +91,6 @@ INSERT INTO `bis_seed_wl` (`slot`, `faction`, `rank`, `item_name`) VALUES
 ( 6, 0, 1, 'Flarecore Leggings'),
 ( 6, 0, 2, 'Leggings of Torment'),
 ( 6, 0, 2, 'Skyshroud Leggings'),
-( 6, 1, 3, 'Knight-Captain''s Dreadweave Legguards'),   -- Alliance uniquement
-( 6, 2, 3, 'Legionnaire''s Dreadweave Legguards'),   -- Horde uniquement
 ( 6, 0, 3, 'Felcloth Pants'),
 ( 6, 0, 3, 'Deathmist Leggings'),
 ( 6, 0, 3, 'Shadoweave Pants'),
@@ -108,11 +98,7 @@ INSERT INTO `bis_seed_wl` (`slot`, `faction`, `rank`, `item_name`) VALUES
 ( 7, 0, 1, 'Maleki''s Footwraps'),
 ( 7, 0, 2, 'Omnicast Boots'),
 ( 7, 0, 2, 'Dragonrider Boots'),
-( 7, 1, 2, 'Knight-Lieutenant''s Dreadweave Walkers'),   -- Alliance uniquement
-( 7, 2, 2, 'Blood Guard''s Dreadweave Walkers'),   -- Horde uniquement
 ( 7, 0, 3, 'Deathmist Sandals'),
-( 7, 1, 3, 'Highlander''s Cloth Boots'),   -- Alliance uniquement
-( 7, 2, 3, 'Defiler''s Cloth Boots'),   -- Horde uniquement
 ( 7, 0, 3, 'Shadoweave Boots'),
 -- Poignets (8)
 ( 8, 0, 1, 'Flameweave Cuffs'),
@@ -125,8 +111,6 @@ INSERT INTO `bis_seed_wl` (`slot`, `faction`, `rank`, `item_name`) VALUES
 ( 9, 0, 2, 'Hands of Power'),
 ( 9, 0, 2, 'Gloves of Spell Mastery'),
 ( 9, 0, 2, 'Earth Warder''s Gloves'),
-( 9, 1, 2, 'Knight-Lieutenant''s Dreadweave Handwraps'),   -- Alliance uniquement
-( 9, 2, 2, 'Blood Guard''s Dreadweave Handwraps'),   -- Horde uniquement
 ( 9, 0, 3, 'Mana Shaping Handwraps'),
 ( 9, 0, 3, 'Dreamweave Gloves'),
 ( 9, 0, 3, 'Shadoweave Gloves'),
@@ -154,8 +138,6 @@ INSERT INTO `bis_seed_wl` (`slot`, `faction`, `rank`, `item_name`) VALUES
 (14, 0, 3, 'Heliotrope Cloak'),
 (14, 0, 3, 'Spritecaster Cape'),
 (14, 0, 3, 'Deep Woodlands Cloak'),
-(14, 1, 3, 'Stormpike Sage''s Cloak'),   -- Alliance uniquement
-(14, 2, 3, 'Frostwolf Advisor''s Cloak'),   -- Horde uniquement
 -- Main droite (15)
 (15, 0, 1, 'Blade of the New Moon'),
 (15, 0, 2, 'Witchblade'),
@@ -169,8 +151,6 @@ INSERT INTO `bis_seed_wl` (`slot`, `faction`, `rank`, `item_name`) VALUES
 (15, 0, 3, 'Staff of Jordan'),
 -- Main gauche (16)
 (16, 0, 1, 'Scepter of Interminable Focus'),
-(16, 0, 2, 'Tome of Shadow Force'),
-(16, 0, 2, 'Therazane''s Touch'),
 (16, 0, 3, 'Drakestone'),
 (16, 0, 3, 'Tome of the Lost'),
 (16, 0, 3, 'Spirit of Aquementas'),

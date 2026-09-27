@@ -46,8 +46,6 @@ INSERT INTO `bis_seed_mage` (`slot`, `faction`, `rank`, `item_name`) VALUES
 -- Tete (0)
 ( 0, 0, 1, 'Spellweaver''s Turban'),
 ( 0, 0, 2, 'Crimson Felt Hat'),
-( 0, 2, 2, 'Champion''s Silk Cowl'),   -- Horde uniquement
-( 0, 1, 2, 'Lieutenant Commander''s Silk Cowl'),   -- Alliance uniquement
 ( 0, 0, 3, 'Eternal Crown'),
 -- Cou (1)
 ( 1, 0, 1, 'Diana''s Pearl Necklace'),
@@ -55,35 +53,24 @@ INSERT INTO `bis_seed_mage` (`slot`, `faction`, `rank`, `item_name`) VALUES
 ( 1, 0, 2, 'Star of Mystaria'),
 -- Epaules (2)
 ( 2, 0, 1, 'Boreal Mantle'),
-( 2, 2, 2, 'Champion''s Silk Mantle'),   -- Horde uniquement
-( 2, 1, 2, 'Lieutenant Commander''s Silk Mantle'),   -- Alliance uniquement
 ( 2, 0, 3, 'Eternal Spaulders'),
 -- Torse (4)
 ( 4, 0, 1, 'Freezing Lich Robes'),
 ( 4, 0, 2, 'Robe of the Archmage'),
-( 4, 2, 2, 'Legionnaire''s Silk Tunic'),   -- Horde uniquement
-( 4, 1, 2, 'Knight-Captain''s Silk Tunic'),   -- Alliance uniquement
 ( 4, 0, 2, 'Robe of Everlasting Night'),
 -- Ceinture (5)
 ( 5, 0, 1, 'Ban''thok Sash'),
-( 5, 2, 2, 'Defiler''s Cloth Girdle'),   -- Horde uniquement
-( 5, 1, 2, 'Highlander''s Cloth Girdle'),   -- Alliance uniquement
 ( 5, 0, 2, 'Clutch of Andros'),
 ( 5, 0, 2, 'Thuzadin Sash'),
 -- Jambes (6)
 ( 6, 0, 1, 'Skyshroud Leggings'),
-( 6, 2, 2, 'Legionnaire''s Silk Legguards'),   -- Horde uniquement
-( 6, 1, 2, 'Knight-Captain''s Silk Legguards'),   -- Alliance uniquement
 ( 6, 0, 2, 'Frostweave Pants'),
 -- Pieds (7)
 ( 7, 0, 1, 'Omnicast Boots'),
 ( 7, 0, 1, 'Dragonrider Boots'),
-( 7, 2, 2, 'Blood Guard''s Silk Walkers'),   -- Horde uniquement
-( 7, 1, 2, 'Knight-Lieutenant''s Silk Walkers'),   -- Alliance uniquement
 ( 7, 0, 3, 'Master''s Boots'),
 -- Poignets (8)
 ( 8, 0, 1, 'Sublime Wristguards'),
-( 8, 0, 2, 'Dryad''s Wrist Bindings'),
 ( 8, 0, 2, 'Tearfall Bracers'),
 ( 8, 0, 2, 'Flameweave Cuffs'),
 ( 8, 0, 3, 'Master''s Bracers'),
@@ -109,21 +96,15 @@ INSERT INTO `bis_seed_mage` (`slot`, `faction`, `rank`, `item_name`) VALUES
 (14, 0, 3, 'Master''s Cloak'),
 -- Main droite (15)
 (15, 0, 1, 'Witchblade'),
-(15, 0, 2, 'Mindfang'),
-(15, 0, 2, 'Sageclaw'),
 (15, 0, 3, 'Bloodstrike Dagger'),
 (15, 0, 3, 'Lord Valthalak''s Staff of Command'),
 (15, 0, 3, 'Rod of the Ogre Magi'),
-(15, 0, 3, 'Ironbark Staff'),
 (15, 0, 3, 'Solstice Staff'),
 -- Main gauche (16)
 (16, 0, 1, 'Scepter of Interminable Focus'),
-(16, 0, 2, 'Tome of the Ice Lord'),
-(16, 0, 2, 'Therazane''s Touch'),
 (16, 0, 2, 'Spirit of Aquementas'),
 -- Distance (baguette)
 (17, 0, 1, 'Bonecreeper Stylus'),
-(17, 0, 2, 'Wand of Biting Cold'),
 (17, 0, 2, 'Icefury Wand'),
 (17, 0, 3, 'Lunar Wand');
 

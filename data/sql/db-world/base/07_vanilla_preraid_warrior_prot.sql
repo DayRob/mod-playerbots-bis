@@ -58,9 +58,6 @@ INSERT INTO `bis_seed_prot` (`slot`, `faction`, `rank`, `item_name`) VALUES
 ( 1, 0, 2, 'Beads of Ogre Might'),
 ( 1, 0, 2, 'Mark of Fordring'),
 ( 1, 0, 2, 'Pendant of Celerity'),
-( 1, 1, 3, 'Stormpike Soldier''s Pendant'),   -- Alliance uniquement
-( 1, 2, 3, 'Frostwolf Soldier''s Pendant'),   -- Horde uniquement (nom a confirmer par la verification 1)
-( 1, 0, 3, 'Master Sergeant''s Insignia'),
 -- Epaules (2)
 ( 2, 0, 1, 'Spaulders of Valor'),
 ( 2, 0, 2, 'Spaulders of Heroism'),
@@ -81,7 +78,6 @@ INSERT INTO `bis_seed_prot` (`slot`, `faction`, `rank`, `item_name`) VALUES
 ( 5, 0, 2, 'Omokk''s Girth Restrainer'),
 ( 5, 0, 2, 'Handcrafted Mastersmith Girdle'),
 ( 5, 0, 3, 'Belt of Heroism'),
-( 5, 1, 3, 'Highlander''s Plate Girdle'),   -- Alliance uniquement
 -- Jambes (6)
 ( 6, 0, 1, 'Eldritch Reinforced Legplates'),
 ( 6, 0, 2, 'Cloudkeeper Legplates'),
@@ -115,7 +111,6 @@ INSERT INTO `bis_seed_prot` (`slot`, `faction`, `rank`, `item_name`) VALUES
 -- Anneaux (10) - le module compare automatiquement avec l'emplacement 11
 (10, 0, 1, 'Band of the Ogre King'),
 (10, 0, 1, 'Band of Flesh'),
-(10, 0, 2, 'Don Julio''s Band'),
 (10, 0, 2, 'Myrmidon''s Signet'),
 (10, 0, 2, 'Blackstone Ring'),
 (10, 0, 2, 'Tarnished Elven Ring'),
@@ -143,11 +138,8 @@ INSERT INTO `bis_seed_prot` (`slot`, `faction`, `rank`, `item_name`) VALUES
 (15, 0, 1, 'Mirah''s Song'),
 (15, 0, 2, 'Blackguard'),
 (15, 0, 2, 'Quel''Serrar'),
-(15, 0, 2, 'Stormstrike Hammer'),
 (15, 0, 2, 'Mass of McGowan'),
 (15, 0, 2, 'Annihilator'),
-(15, 0, 2, 'Frostbite'),
-(15, 0, 2, 'The Lobotomizer'),
 (15, 0, 2, 'Heartseeker'),
 (15, 0, 3, 'Ironfoe'),
 (15, 0, 3, 'Timeworn Mace'),
@@ -159,11 +151,8 @@ INSERT INTO `bis_seed_prot` (`slot`, `faction`, `rank`, `item_name`) VALUES
 (15, 0, 3, 'Scarlet Kris'),
 (15, 0, 3, 'Bonescraper'),
 (15, 0, 3, 'Darrowspike'),
-(15, 1, 3, 'Electrified Dagger'),   -- Alliance uniquement
-(15, 2, 3, 'Glacial Blade'),   -- Horde uniquement
 -- Main gauche - bouclier (16)
 (16, 0, 1, 'Dreadguard''s Protector'),
-(16, 0, 2, 'The Immovable Object'),
 (16, 0, 2, 'Force Reactive Disk'),
 (16, 0, 2, 'Wall of the Dead'),
 (16, 0, 2, 'Draconian Deflector'),
@@ -172,7 +161,6 @@ INSERT INTO `bis_seed_prot` (`slot`, `faction`, `rank`, `item_name`) VALUES
 -- Distance (17)
 (17, 0, 1, 'Satyr''s Bow'),
 (17, 0, 2, 'Blackcrow'),
-(17, 0, 2, 'Bloodseeker'),
 (17, 0, 2, 'Gorewood Bow'),
 (17, 0, 3, 'Carapace Spine Crossbow');
 
