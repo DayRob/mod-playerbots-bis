@@ -286,11 +286,27 @@ un créneau qui n'a qu'un seul objet ne propose rien à déplier.
 | `03`, `05` | guides Wowhead écrits à la main | jusqu'à 5 par créneau |
 | `04` | export WoWSims | **un seul** — le format n'a pas de colonne `rank` |
 | `06` | guide Wowhead Démoniste | jusqu'à 11 par créneau |
+| `07` | guide Wowhead Guerrier Protection | jusqu'à 21 par créneau |
 
 Les onze combinaisons servies par `04` — guerrier Protection, voleur Combat, prêtre Ombre,
-les trois mages, les trois démonistes, druide Équilibre et Farouche — n'ont donc qu'une
-pièce par créneau tant qu'un fichier ne les enrichit pas. `06` traite le démoniste ; les
-autres restent à faire.
+les trois mages, les trois démonistes, druide Équilibre et Farouche — n'ont qu'une pièce par
+créneau tant qu'un fichier ne les enrichit pas. `06` traite le démoniste, `07` le guerrier
+Protection ; il reste le voleur Combat, le prêtre Ombre, les trois mages et les deux druides.
+
+### Ce qui est classé rang 1
+
+Le rang 1 doit rester **atteignable par un bot**. Un objet verrouillé derrière une
+réputation exaltée, un rang PvP ou la chaîne T0.5 est donc classé 2, même quand le guide le
+donne comme meilleur en absolu : un bot ne fera jamais Alterac Valley jusqu'à exalté, et le
+laisser en rang 1 rendrait son créneau éternellement incomplet dans la fenêtre d'état.
+
+Quand un guide fournit une liste « objectif réaliste avant le premier raid », c'est elle qui
+sert de rang 1.
+
+Autre aplatissement : certains guides trient les armes **par race** (spécialisation d'arme
+de l'Humain ou de l'Orc). La table n'a pas de dimension race — seulement classe / spé /
+faction — donc les armes sont rangées ensemble par priorité, et le module choisit selon ce
+que le bot peut porter.
 
 Ce n'est pas qu'un confort d'affichage : avec une seule ligne par créneau, un bot ne
 reconnaît qu'un objet comme étant sa BiS et ignore tout le reste.
