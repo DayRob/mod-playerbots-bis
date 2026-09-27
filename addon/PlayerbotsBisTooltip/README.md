@@ -1,11 +1,15 @@
 # Playerbots BiS Tooltip
 
-Addon 3.3.5a en deux morceaux, lus **directement depuis les tables du serveur** :
+Addon 3.3.5a en quatre morceaux, lus **directement depuis les tables du serveur** :
 
 - une **infobulle** qui ajoute sous un objet les classes et spés qui le listent
   en BiS ;
 - un **navigateur** (`/pbbis`) qui affiche une liste complète, créneau par
-  créneau, sans passer par un site externe.
+  créneau, sans passer par un site externe ;
+- un **relevé des bots** (`.playerbotsbis report`) qui montre, bot par bot, ce
+  qui manque à chacun ;
+- un **plan de donjons** (`/pbisplan`, `.playerbotsbis donjons`) qui dit quelle
+  instance faire et avec lesquels y aller.
 
 ```
 BiS - Guerrier Fureur - Vanilla Pre-Raid (rang 1)

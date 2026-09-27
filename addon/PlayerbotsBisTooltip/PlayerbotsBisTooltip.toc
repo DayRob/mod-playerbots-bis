@@ -1,11 +1,12 @@
 ## Interface: 30300
 ## Title: Playerbots BiS Tooltip
-## Notes: Infobulle BiS, navigateur des listes et etat des bots (/pbbis), d'apres les tables de mod-playerbots-bis.
+## Notes: Infobulle BiS, navigateur des listes, etat des bots et plan de donjons (/pbbis, /pbisplan), d'apres les tables de mod-playerbots-bis.
 ## Author: mod-playerbots-bis
-## Version: 1.2
+## Version: 1.3
 ## SavedVariables: PlayerbotsBisTooltipDB
 
 BisData.lua
 PlayerbotsBisTooltip.lua
 PlayerbotsBisBrowser.lua
 PlayerbotsBisRoster.lua
+PlayerbotsBisPlan.lua

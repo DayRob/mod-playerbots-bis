@@ -5,132 +5,36 @@
  */
 
 #include "BisReport.h"
+#include "BisBotScan.h"
 #include "BisPriorityMgr.h"
 #include "Chat.h"
 #include "ChatHelper.h"
 #include "Guild.h"
 #include "GuildMgr.h"
-#include "Item.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "Playerbots.h"
-#include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
 
+using namespace BisBotScan;
+
 namespace
 {
-    enum BisState : uint8
-    {
-        BIS_MISSING  = 0,
-        BIS_CARRIED  = 1,
-        BIS_EQUIPPED = 2,
-    };
-
-    char const* const CLASS_NAME[MAX_CLASSES] = {
-        "", "Guerrier", "Paladin", "Chasseur", "Voleur", "Pretre",
-        "Chevalier de la mort", "Chaman", "Mage", "Demoniste", "", "Druide",
-    };
-
-    // Spec 10 on the Druid is the module's Bear sentinel: Bear and Cat share
-    // talent tab 1, so the list separates them by a value the tab cannot produce.
-    char const* SpecName(uint8 cls, uint8 spec)
-    {
-        switch (cls)
-        {
-            case CLASS_WARRIOR:      return spec == 0 ? "Armes" : spec == 1 ? "Fureur" : "Protection";
-            case CLASS_PALADIN:      return spec == 0 ? "Sacre" : spec == 1 ? "Protection" : "Vindicte";
-            case CLASS_HUNTER:       return spec == 0 ? "Maitrise des betes" : spec == 1 ? "Precision" : "Survie";
-            case CLASS_ROGUE:        return spec == 0 ? "Assassinat" : spec == 1 ? "Combat" : "Finesse";
-            case CLASS_PRIEST:       return spec == 0 ? "Discipline" : spec == 1 ? "Sacre" : "Ombre";
-            case CLASS_DEATH_KNIGHT: return spec == 0 ? "Sang" : spec == 1 ? "Givre" : "Impie";
-            case CLASS_SHAMAN:       return spec == 0 ? "Elementaire" : spec == 1 ? "Amelioration" : "Restauration";
-            case CLASS_MAGE:         return spec == 0 ? "Arcanes" : spec == 1 ? "Feu" : "Givre";
-            case CLASS_WARLOCK:      return spec == 0 ? "Affliction" : spec == 1 ? "Demonologie" : "Destruction";
-            case CLASS_DRUID:
-                if (spec == BIS_SPEC_DRUID_BEAR)
-                    return "Farouche (ours)";
-                return spec == 0 ? "Equilibre" : spec == 1 ? "Farouche" : "Restauration";
-            default: return "?";
-        }
-    }
-
-    char const* ClassName(uint8 cls)
-    {
-        return (cls < MAX_CLASSES && CLASS_NAME[cls][0]) ? CLASS_NAME[cls] : "?";
-    }
-
-    // Equipped beats carried: an item found on the bot's body is reported as
-    // worn even though GetItemCount would also count it.
-    uint8 ResolveState(Player* bot, uint32 itemId)
-    {
-        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
-            if (Item* worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
-                if (worn->GetEntry() == itemId)
-                    return BIS_EQUIPPED;
-
-        return bot->GetItemCount(itemId, true) > 0 ? BIS_CARRIED : BIS_MISSING;
-    }
-
-    // The marker the companion window watches for.
-    //
-    // The stream travels as ordinary system messages, not as CHAT_MSG_ADDON.
-    // Addon messages built server side killed the 3.3.5 client outright
-    // (ERROR #134), while the summary lines printed by this very command arrive
-    // fine - so the stream now rides the path already proven to work here. The
-    // addon hides these lines with a CHAT_MSG_SYSTEM filter; without the addon
-    // they are merely visible, never fatal.
-    char const* const ADDON_PREFIX = "PBBISREP;";
-
-    // Fields are separated by ';', never '|'. The client runs chat text through
-    // its escape parser before an addon ever sees it, and '|' opens an escape
-    // sequence: "B|Cruvmarl" reads as the start of a colour code |c......, and a
-    // malformed one kills the client outright (ERROR #134). ChatHandler doubles
-    // '|' into '||' in system messages for exactly this reason.
-    char const FIELD_SEP = ';';
+    // The marker the roster window watches for. The dungeon plan uses its own,
+    // so one window never swallows the other's stream.
+    char const* const ROSTER_MARKER = "PBBISREP;";
 
     // A burst is delivered in one tick, so the stream is capped. Forty guild
     // bots is a hundred-odd messages; five hundred would be well past what is
     // reasonable to push at a client at once.
     constexpr size_t ADDON_MAX_BOTS = 150;
 
-    // Addon messages cap at 255 bytes including the prefix, so payloads stay
-    // well under that and a long item list travels in several pieces.
-    constexpr size_t ADDON_PAYLOAD_MAX = 200;
-
     void SendAddon(ChatHandler* handler, std::string const& payload)
     {
-        if (!handler)
-            return;
-
-        // No formatting: the payload must reach the client byte for byte, and a
-        // stray brace in a guild name would otherwise be read as a placeholder.
-        handler->SendSysMessage(std::string(ADDON_PREFIX) + payload);
-    }
-
-    // One target per slot: the best reachable pick, highest phase first and rank 1
-    // within it.
-    //
-    // Counting every rank-1 row instead counts the same slot once per phase - a
-    // head slot listed in pre-raid and again in Molten Core contributes two -
-    // so the denominator grows with the number of phases opened and 100% stops
-    // being reachable by construction. A warrior showed 35 "pieces" for
-    // seventeen slots.
-    std::map<uint8, BisItem> TargetsPerSlot(std::vector<BisItem> const& list)
-    {
-        std::map<uint8, BisItem> targets;
-        for (BisItem const& row : list)
-        {
-            auto it = targets.find(row.slot);
-            if (it == targets.end())
-                targets.emplace(row.slot, row);
-            else if (row.tierId > it->second.tierId ||
-                     (row.tierId == it->second.tierId && row.rank < it->second.rank))
-                it->second = row;
-        }
-        return targets;
+        SendMarked(handler, ROSTER_MARKER, payload);
     }
 
     struct BotTally
@@ -140,36 +44,6 @@ namespace
         uint32 missing  = 0;
         uint32 rows     = 0;
     };
-
-    // Bots the module applies to, optionally narrowed to one guild. Only bots in
-    // the world can be inspected: the answer comes from their live inventory.
-    std::vector<Player*> CollectBots(uint32 guildId, bool all)
-    {
-        std::vector<Player*> bots;
-        for (auto const& pair : ObjectAccessor::GetPlayers())
-        {
-            Player* bot = pair.second;
-            if (!bot || !bot->IsInWorld())
-                continue;
-
-            if (!sBisPriorityMgr->AppliesTo(bot))
-                continue;
-
-            if (!all && bot->GetGuildId() != guildId)
-                continue;
-
-            bots.push_back(bot);
-        }
-
-        std::sort(bots.begin(), bots.end(), [](Player* a, Player* b)
-        {
-            if (a->getClass() != b->getClass())
-                return a->getClass() < b->getClass();
-            return a->GetName() < b->GetName();
-        });
-
-        return bots;
-    }
 }
 
 bool BisReport::HandleReport(ChatHandler* handler, char const* args)
@@ -286,7 +160,7 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         std::string chunk;
         for (std::string const& item : addonItems)
         {
-            if (!chunk.empty() && chunk.size() + item.size() + 1 > ADDON_PAYLOAD_MAX)
+            if (!chunk.empty() && chunk.size() + item.size() + 1 > PAYLOAD_MAX)
             {
                 SendAddon(handler, std::string("I") + FIELD_SEP + bot->GetName() + FIELD_SEP + chunk);
                 chunk.clear();

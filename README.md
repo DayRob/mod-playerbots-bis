@@ -441,6 +441,87 @@ filtres d'un message se termine avant que le suivant soit traité — donc compa
 précédente suffit. Un ensemble de *tout* ce qui a été vu, lui, avalerait un second relevé
 dont l'en-tête serait identique au premier.
 
+## Savoir quel donjon faire, et avec qui
+
+Le relevé dit ce qui manque à chaque bot. Celui-ci dit **où aller le chercher**, et **avec
+lesquels y aller**.
+
+```
+.playerbotsbis donjons
+```
+
+`donjons all` couvre tous les bots au lieu de la seule guilde. Comme pour le relevé, les
+bots doivent être connectés.
+
+Rien n'est stocké : le module croise à la demande les pièces manquantes de chaque bot avec
+un index objet → instance construit une fois et gardé en mémoire. `.playerbotsbis reload`
+le jette, donc une table de butin modifiée est reprise sans redémarrage.
+
+### D'où vient l'information
+
+Le tooltip du client 3.3.5 **n'a jamais porté de source** : ni le boss, ni le donjon. C'est
+Wowhead qui reconstitue cela depuis sa propre base. La base monde, elle, sait tout, et
+c'est elle qu'on interroge — butin de créature, butin par table de référence, objets du
+décor — en remontant à la carte où la créature apparaît.
+
+Le filtre qui rend le résultat lisible est une simple jointure sur `instance_template` :
+cette table ne contient que les cartes instanciées, donc **un objet qui ne tombe qu'en
+monde ouvert disparaît de lui-même**, sans liste d'exclusion à maintenir.
+
+Trois choses restent hors de portée, et c'est assumé :
+
+- **Les récompenses de quête.** Une quête ne sait pas à quel donjon elle appartient. Un
+  `Œil de la bête` ne sera donc pas rattaché au Pic Rochenoire.
+- **L'artisanat et les vendeurs.** Pareil, et de toute façon ce n'est pas un run.
+- **Le nom des cartes.** Il vit dans les DBC du client. Le module lit d'abord
+  `playerbots_bis_map_name` (fichier `14`, optionnel, en français), sinon
+  `areatrigger_teleport` (anglais), sinon affiche `carte <id>`.
+
+La commande te dit combien de cibles sont ainsi restées hors plan.
+
+### La fenêtre
+
+`/pbisplan`, le bouton **Plan de donjons** de la fenêtre du relevé, ou **Maj+clic** sur le
+bouton de minicarte (gauche : ouvrir, droite : recalculer).
+
+```
+- Stratholme                              3 cible(s) / 5 piece(s) / 2 bot(s)
+   + Ahlo       Demoniste Affliction niv 59   dps              2 cible(s) / 3
+        > Coiffe du savant ecarlate                Balnazzar        2.0%
+          Burst of Knowledge              Ambassador Flamelash      4.0%
+   + Kweopewu   Druide Restauration niv 57    soigneur         1 cible(s) / 2
+     Grim       Guerrier Protection niv 60    tank             renfort
+```
+
+Clic sur une instance pour la replier, sur un bot pour voir ses pièces. Le `>` marque une
+**cible** — la pièce que sa liste retient pour ce créneau — par opposition à un repli.
+
+Le taux à droite est le **meilleur taux de drop** de la pièce dans cette instance. Il est
+rouge sous 3 %, jaune jusqu'à 10 %, vert au-delà : une cible à 0,9 % n'est pas une raison
+d'y aller, et ça doit se voir sans ouvrir une base de données.
+
+### Comment le groupe est choisi
+
+Les instances sont classées par **nombre de cibles**, pas de pièces : un bot à qui il manque
+trois replis du même créneau ne vaut pas un bot à qui il manquent trois cibles.
+
+Le groupe proposé compte **quatre bots** — tu es le cinquième. La cupidité pure enverrait
+volontiers quatre tissus à Stratholme, donc **une place est réservée au tank et une au
+soigneur** avant que le reste n'aille aux plus demandeurs.
+
+Quand aucun des bots concernés ne tient l'un de ces deux rôles, un **renfort** est tiré du
+reste de la liste : il n'y gagne rien, il est là pour que le run ait lieu. Il **prend** une
+place au lieu d'en ajouter une, et il doit être à moins de cinq niveaux de la moyenne du
+groupe — sans quoi il est laissé de côté plutôt que traîné hors de sa zone.
+
+Le bouton en haut bascule entre *groupe conseillé* et *tous les bots concernés*.
+
+### Le transport
+
+Même chemin que le relevé — messages système marqués, ici `PBBISPLN;` — pour les mêmes
+raisons. Le nom de la source voyage **dans** le champ d'une pièce, à côté de l'identifiant
+et du taux, donc les virgules et les deux-points en sont retirés en plus des `;`.
+
 ## Licence et crédits
 
 GNU GPL v2, comme AzerothCore et mod-playerbots.
