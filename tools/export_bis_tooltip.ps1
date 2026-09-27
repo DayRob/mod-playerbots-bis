@@ -6,8 +6,16 @@
     reellement, et une correction des tables se propage a l'infobulle par un
     simple reexport suivi d'un /reload.
 
-    Exemple :
-      .\export_bis_tooltip.ps1 -Out "C:\test\world of warcraft 3.3.5a hd\interface\addons\PlayerbotsBisTooltip\BisData.lua"
+    Le plus simple : donner -WowPath, le dossier qui contient Wow.exe. Le script
+    en deduit le chemin du BisData.lua de l'addon.
+
+      .\export_bis_tooltip.ps1 -WowPath "C:\Wow335"
+
+    Sans -WowPath ni -Out, le fichier du DEPOT est mis a jour ; install_addon.ps1
+    le recopiera ensuite vers le client.
+
+    Si PowerShell refuse de lancer le script ("execution de scripts desactivee") :
+      powershell -ExecutionPolicy Bypass -File .\tools\export_bis_tooltip.ps1 -WowPath "C:\Wow335"
 #>
 
 param(
@@ -15,8 +23,23 @@ param(
     [string] $User     = "acore",
     [string] $Password = "admin",
     [string] $Database = "acore_world",
+    [string] $WowPath  = "",
     [string] $Out      = (Join-Path $PSScriptRoot "..\addon\PlayerbotsBisTooltip\BisData.lua")
 )
+
+# -WowPath l'emporte, sauf si -Out a ete donne explicitement : taper les deux
+# veut dire qu'on sait ce qu'on fait.
+if ($WowPath -and -not $PSBoundParameters.ContainsKey('Out')) {
+    $addons = Join-Path $WowPath 'Interface\AddOns'
+    if (-not (Test-Path $addons)) {
+        throw "Dossier AddOns introuvable : $addons`n-WowPath doit pointer sur le dossier contenant Wow.exe."
+    }
+    $folder = Join-Path $addons 'PlayerbotsBisTooltip'
+    if (-not (Test-Path $folder)) {
+        throw "L'addon n'est pas installe : $folder`nLance d'abord .\tools\install_addon.ps1 -WowPath ""$WowPath""."
+    }
+    $Out = Join-Path $folder 'BisData.lua'
+}
 
 if (-not (Test-Path $MySql)) {
     throw "mysql.exe introuvable : $MySql - passe le bon chemin avec -MySql."

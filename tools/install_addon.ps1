@@ -19,6 +19,10 @@
 .EXAMPLE
     .\tools\install_addon.ps1 -WowPath "C:\Wow335"
 
+.EXAMPLE
+    Si PowerShell refuse de lancer le script ("execution de scripts desactivee") :
+    powershell -ExecutionPolicy Bypass -File .\tools\install_addon.ps1 -WowPath "C:\Wow335"
+
 .NOTES
     Un fichier NOUVEAU n'est jamais pris en compte par /reload : il faut
     quitter le client entierement et le relancer.
@@ -42,11 +46,11 @@ if (-not (Test-Path $addons)) {
 
 $target = Join-Path $addons 'PlayerbotsBisTooltip'
 
-# BisData.lua est GENERE depuis la base par export_bis_tooltip.ps1, il n'est pas
-# dans le depot. L'ecraser avec la version squelette du depot viderait les
-# infobulles, donc on le laisse tranquille s'il existe deja.
+# BisData.lua est GENERE depuis la base par export_bis_tooltip.ps1. L'ecraser
+# avec une version plus ANCIENNE viderait les infobulles ou les ferait mentir,
+# mais refuser de le copier tout court empecherait de propager un export frais
+# fait dans le depot. La date tranche : la version la plus recente gagne.
 $generated = 'BisData.lua'
-$keepGenerated = Test-Path (Join-Path $target $generated)
 
 Write-Host "Source : $source"
 Write-Host "Cible  : $target"
@@ -61,9 +65,12 @@ $copied = @()
 $skipped = @()
 
 foreach ($file in Get-ChildItem -Path $source -File) {
-    if ($keepGenerated -and $file.Name -eq $generated) {
-        $skipped += $file.Name
-        continue
+    if ($file.Name -eq $generated) {
+        $existing = Get-Item (Join-Path $target $generated) -ErrorAction SilentlyContinue
+        if ($existing -and $existing.LastWriteTime -ge $file.LastWriteTime) {
+            $skipped += $file.Name
+            continue
+        }
     }
 
     $dest = Join-Path $target $file.Name
@@ -80,8 +87,8 @@ foreach ($file in Get-ChildItem -Path $source -File) {
 $copied | Format-Table -AutoSize
 
 if ($skipped.Count -gt 0) {
-    Write-Host "Laisse en place (genere depuis la base) : $($skipped -join ', ')" -ForegroundColor DarkGray
-    Write-Host "Pour le regenerer : .\tools\export_bis_tooltip.ps1" -ForegroundColor DarkGray
+    Write-Host "Laisse en place, la copie du client est plus recente : $($skipped -join ', ')" -ForegroundColor DarkGray
+    Write-Host "Pour la regenerer : .\tools\export_bis_tooltip.ps1 -WowPath ""$WowPath""" -ForegroundColor DarkGray
     Write-Host ""
 }
 
