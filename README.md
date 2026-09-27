@@ -276,6 +276,27 @@ commande prend aussi en compte un changement de `PlayerbotsBis.Enable` ou de
 `PlayerbotsBis.MaxTier` : le module s'enregistre auprès du moteur dès le premier tick du
 monde, même désactivé, précisément pour pouvoir être basculé à chaud.
 
+## Épaisseur des listes selon la source
+
+Les listes ne viennent pas toutes du même endroit, et ça se voit dans la fenêtre d'état :
+un créneau qui n'a qu'un seul objet ne propose rien à déplier.
+
+| Fichier | Source | Rangs |
+|---|---|---|
+| `03`, `05` | guides Wowhead écrits à la main | jusqu'à 5 par créneau |
+| `04` | export WoWSims | **un seul** — le format n'a pas de colonne `rank` |
+| `06` | guide Wowhead Démoniste | jusqu'à 11 par créneau |
+
+Les onze combinaisons servies par `04` — guerrier Protection, voleur Combat, prêtre Ombre,
+les trois mages, les trois démonistes, druide Équilibre et Farouche — n'ont donc qu'une
+pièce par créneau tant qu'un fichier ne les enrichit pas. `06` traite le démoniste ; les
+autres restent à faire.
+
+Ce n'est pas qu'un confort d'affichage : avec une seule ligne par créneau, un bot ne
+reconnaît qu'un objet comme étant sa BiS et ignore tout le reste.
+
+**Ordre d'import** : `06` doit passer après `04`, sinon `04` écrase ses lignes.
+
 ## Savoir ce qui manque à chaque bot
 
 La spé n'est stockée nulle part : `AiFactory` la recalcule depuis les talents à chaque
