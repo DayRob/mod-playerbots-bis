@@ -535,6 +535,12 @@ bool BisDungeonPlan::HandlePlan(ChatHandler* handler, char const* args)
     uint32 analysed = 0;
     uint32 unlocatable = 0;
 
+    // Naming a few of them turns "88 targets are unlocatable" into something
+    // actionable: a list of vendor rewards reads very differently from a list of
+    // dungeon drops that should have been found.
+    constexpr size_t UNLOCATABLE_SAMPLE = 8;
+    std::vector<std::string> unlocatableNames;
+
     for (Player* bot : bots)
     {
         std::vector<BisItem> const list = sBisPriorityMgr->GetReachableList(bot);
@@ -564,7 +570,17 @@ bool BisDungeonPlan::HandlePlan(ChatHandler* handler, char const* args)
                 // Crafted, bought, quested or dropped in the open world: real
                 // pieces, just not ones a dungeon run will produce.
                 if (isTarget)
+                {
                     ++unlocatable;
+                    if (unlocatableNames.size() < UNLOCATABLE_SAMPLE)
+                        if (ItemTemplate const* proto = sObjectMgr->GetItemTemplate(row.itemId))
+                        {
+                            std::string const name = proto->Name1;
+                            if (std::find(unlocatableNames.begin(), unlocatableNames.end(), name)
+                                == unlocatableNames.end())
+                                unlocatableNames.push_back(name);
+                        }
+                }
                 continue;
             }
 
@@ -610,6 +626,40 @@ bool BisDungeonPlan::HandlePlan(ChatHandler* handler, char const* args)
         if (a.pieces != b.pieces)   return a.pieces > b.pieces;
         return a.mapId < b.mapId;
     });
+
+    // An instance where every piece on offer is a fallback is not a plan. It is
+    // how Naxxramas ends up at the top of the list for level 60 bots: its trash
+    // inherits world-drop loot tables, so a handful of rank-3 stand-ins turn up
+    // there, and sorting by piece count alone puts the whole raid above the
+    // dungeon that actually holds someone's best in slot.
+    uint32 fallbackOnly = 0;
+    for (Dungeon const& dungeon : plan)
+        if (!dungeon.targets)
+            ++fallbackOnly;
+
+    plan.erase(std::remove_if(plan.begin(), plan.end(),
+                              [](Dungeon const& d) { return d.targets == 0; }),
+               plan.end());
+
+    if (plan.empty())
+    {
+        handler->PSendSysMessage("Aucune instance ne contient de CIBLE pour ces bots.");
+        handler->PSendSysMessage("{} instance(s) ne proposaient que des replis - des rangs 2 ou 3 "
+                                 "ramasses au passage - et ne valent pas un run.", fallbackOnly);
+        if (unlocatable)
+        {
+            handler->PSendSysMessage("{} cible(s) manquante(s) ne tombent dans aucune instance.",
+                                     unlocatable);
+            std::string sample;
+            for (std::string const& name : unlocatableNames)
+                sample += (sample.empty() ? "" : ", ") + name;
+            if (!sample.empty())
+                handler->PSendSysMessage("Par exemple : {}.", sample);
+            handler->PSendSysMessage("Si ces pieces devraient tomber en donjon, lance "
+                                     "tools/diagnostic_plan_donjons.sql sur ta base monde.");
+        }
+        return true;
+    }
 
     if (plan.size() > MAX_DUNGEONS)
         plan.resize(MAX_DUNGEONS);
@@ -685,9 +735,19 @@ bool BisDungeonPlan::HandlePlan(ChatHandler* handler, char const* args)
     handler->PSendSysMessage("---");
     handler->PSendSysMessage("{} : {} bot(s) analyses, {} instance(s) utiles.",
                              scope, analysed, static_cast<uint32>(plan.size()));
+    if (fallbackOnly)
+        handler->PSendSysMessage("{} instance(s) ecartees : elles ne proposaient que des replis.",
+                                 fallbackOnly);
     if (unlocatable)
+    {
         handler->PSendSysMessage("{} cible(s) manquante(s) ne tombent dans aucune instance "
                                  "(artisanat, vendeur, quete ou drop monde).", unlocatable);
+        std::string sample;
+        for (std::string const& name : unlocatableNames)
+            sample += (sample.empty() ? "" : ", ") + name;
+        if (!sample.empty())
+            handler->PSendSysMessage("Par exemple : {}.", sample);
+    }
 
     return true;
 }

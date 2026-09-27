@@ -500,6 +500,24 @@ Le taux à droite est le **meilleur taux de drop** de la pièce dans cette insta
 rouge sous 3 %, jaune jusqu'à 10 %, vert au-delà : une cible à 0,9 % n'est pas une raison
 d'y aller, et ça doit se voir sans ouvrir une base de données.
 
+Un **`?`** à la place du taux n'est pas une erreur. AzerothCore écrit `0` dans la colonne
+`Chance` quand la ligne appartient à un **groupe de butin** et tient ses chances du groupe
+plutôt que d'elle-même. Afficher « 0,0 % » en rouge serait un mensonge ; le point
+d'interrogation dit ce qu'on sait.
+
+### Une instance sans cible n'est pas un plan
+
+Les instances où **toutes** les pièces sont des replis sont écartées, et le résumé dit
+combien. Sans ce filtre, Naxxramas remonte en tête pour des bots niveau 60 : sa piétaille
+hérite de tables de butin monde, donc quelques rangs 3 s'y trouvent, et un classement au
+nombre de pièces place le raid entier au-dessus du donjon qui contient réellement la BiS de
+quelqu'un.
+
+Quand il ne reste rien, la commande le dit, et **nomme quelques cibles introuvables** —
+une liste de récompenses de vendeur se lit très différemment d'une liste de drops de donjon
+qui auraient dû être trouvés. Dans ce second cas, `tools/diagnostic_plan_donjons.sql`
+rejoue l'index en SQL pur et désigne le maillon qui casse.
+
 ### Comment le groupe est choisi
 
 Les instances sont classées par **nombre de cibles**, pas de pièces : un bot à qui il manque

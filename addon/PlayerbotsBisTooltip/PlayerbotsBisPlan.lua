@@ -133,6 +133,11 @@ local function Rebuild()
                     if botOpen[key] then
                         table.sort(bot.items, function(a, b)
                             if a.target ~= b.target then return a.target end
+                            -- Unknown odds sort after known ones rather than
+                            -- above them: a 0 here means "the group decides",
+                            -- not "the best chance in the instance".
+                            local ka, kb = (a.chance or 0) > 0, (b.chance or 0) > 0
+                            if ka ~= kb then return ka end
                             if a.chance ~= b.chance then return a.chance > b.chance end
                             return (a.id or 0) < (b.id or 0)
                         end)
@@ -170,6 +175,8 @@ local function RowEnter(self)
             GameTooltip:AddLine(self.source, 1, 0.82, 0)
             if self.chance and self.chance > 0 then
                 GameTooltip:AddLine(string.format("%.1f%% de chance", self.chance), 0.6, 0.6, 0.6)
+            else
+                GameTooltip:AddLine("taux fixe par le groupe de butin", 0.6, 0.6, 0.6)
             end
         end
         GameTooltip:Show()
@@ -404,11 +411,21 @@ local function BuildWindow()
                     -- able to see that without opening a database. The cuts sit
                     -- where Classic loot tables actually sit: a boss piece runs
                     -- 10-20%, anything under 3% is a grind rather than a plan.
-                    local colour = "|cff1eff00"
-                    if item.chance < 3 then colour = "|cffff2020"
-                    elseif item.chance < 10 then colour = "|cffffcc00" end
-                    r.info:SetText(string.format("|cff808080%s|r %s%.1f%%|r",
-                        item.source or "", colour, item.chance or 0))
+                    --
+                    -- Zero is not "never drops". AzerothCore writes 0 in the
+                    -- chance column when the row belongs to a loot group and
+                    -- takes its odds from the group rather than from itself, so
+                    -- the honest display is a question mark, not a red 0.0%.
+                    local odds
+                    if not item.chance or item.chance <= 0 then
+                        odds = "|cff808080?|r"
+                    else
+                        local colour = "|cff1eff00"
+                        if item.chance < 3 then colour = "|cffff2020"
+                        elseif item.chance < 10 then colour = "|cffffcc00" end
+                        odds = string.format("%s%.1f%%|r", colour, item.chance)
+                    end
+                    r.info:SetText(string.format("|cff808080%s|r %s", item.source or "", odds))
 
                     r.itemId = item.id
                     r.source = item.source
