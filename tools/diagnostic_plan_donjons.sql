@@ -10,6 +10,15 @@
 
 SET NAMES utf8mb4;
 
+-- AzerothCore a renomme creature.id en creature.id1 quand les apparitions a
+-- entree aleatoire sont arrivees. Les deux schemas sont dans la nature, donc on
+-- demande plutot que de parier - c'est exactement ce que fait le module.
+SET @idcol := IF(EXISTS(SELECT 1 FROM `information_schema`.`COLUMNS`
+                        WHERE `TABLE_SCHEMA` = DATABASE()
+                          AND `TABLE_NAME` = 'creature'
+                          AND `COLUMN_NAME` = 'id1'), 'id1', 'id');
+SELECT CONCAT('colonne d''entree de creature : ', @idcol) AS detection;
+
 -- L'index du module, reconstruit a l'identique.
 DROP TEMPORARY TABLE IF EXISTS `diag_index`;
 CREATE TEMPORARY TABLE `diag_index` (
@@ -18,20 +27,22 @@ CREATE TEMPORARY TABLE `diag_index` (
     PRIMARY KEY (`item`, `map`)
 ) ENGINE=MEMORY;
 
-INSERT IGNORE INTO `diag_index` (`item`, `map`)
-SELECT DISTINCT l.`item`, sp.`map`
-FROM (
-      SELECT clt.`Item` AS `item`, clt.`Entry` AS `entry`
-        FROM `creature_loot_template` clt
-       WHERE clt.`Item` IN (SELECT DISTINCT `item_id` FROM `playerbots_bis_item`)
-      UNION ALL
-      SELECT rlt.`Item`, clt.`Entry`
-        FROM `reference_loot_template` rlt
-        JOIN `creature_loot_template` clt ON clt.`Reference` = rlt.`Entry`
-       WHERE rlt.`Item` IN (SELECT DISTINCT `item_id` FROM `playerbots_bis_item`)
-     ) l
-JOIN `creature` sp ON sp.`id1` = l.`entry`
-JOIN `instance_template` i ON i.`map` = sp.`map`;
+SET @sql := CONCAT(
+  'INSERT IGNORE INTO `diag_index` (`item`, `map`) ',
+  'SELECT DISTINCT l.`item`, sp.`map` ',
+  'FROM ( ',
+  '      SELECT clt.`Item` AS `item`, clt.`Entry` AS `entry` ',
+  '        FROM `creature_loot_template` clt ',
+  '       WHERE clt.`Item` IN (SELECT DISTINCT `item_id` FROM `playerbots_bis_item`) ',
+  '      UNION ALL ',
+  '      SELECT rlt.`Item`, clt.`Entry` ',
+  '        FROM `reference_loot_template` rlt ',
+  '        JOIN `creature_loot_template` clt ON clt.`Reference` = rlt.`Entry` ',
+  '       WHERE rlt.`Item` IN (SELECT DISTINCT `item_id` FROM `playerbots_bis_item`) ',
+  '     ) l ',
+  'JOIN `creature` sp ON sp.`', @idcol, '` = l.`entry` ',
+  'JOIN `instance_template` i ON i.`map` = sp.`map`');
+PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 
 -- ---------------------------------------------------------------------
 -- 1 - Les deux branches de la requete rapportent-elles quelque chose ?
@@ -40,18 +51,20 @@ JOIN `instance_template` i ON i.`map` = sp.`map`;
 -- butin herite d'une table de reference remonte, donc uniquement la pietaille,
 -- jamais les boss.
 -- ---------------------------------------------------------------------
-SELECT 'direct' AS branche, COUNT(*) AS lignes
-FROM `creature_loot_template` clt
-JOIN `creature` sp ON sp.`id1` = clt.`Entry`
-JOIN `instance_template` i ON i.`map` = sp.`map`
-WHERE clt.`Item` IN (SELECT DISTINCT `item_id` FROM `playerbots_bis_item`)
-UNION ALL
-SELECT 'par_reference', COUNT(*)
-FROM `reference_loot_template` rlt
-JOIN `creature_loot_template` clt ON clt.`Reference` = rlt.`Entry`
-JOIN `creature` sp ON sp.`id1` = clt.`Entry`
-JOIN `instance_template` i ON i.`map` = sp.`map`
-WHERE rlt.`Item` IN (SELECT DISTINCT `item_id` FROM `playerbots_bis_item`);
+SET @sql := CONCAT(
+  'SELECT ''direct'' AS branche, COUNT(*) AS lignes ',
+  'FROM `creature_loot_template` clt ',
+  'JOIN `creature` sp ON sp.`', @idcol, '` = clt.`Entry` ',
+  'JOIN `instance_template` i ON i.`map` = sp.`map` ',
+  'WHERE clt.`Item` IN (SELECT DISTINCT `item_id` FROM `playerbots_bis_item`) ',
+  'UNION ALL ',
+  'SELECT ''par_reference'', COUNT(*) ',
+  'FROM `reference_loot_template` rlt ',
+  'JOIN `creature_loot_template` clt ON clt.`Reference` = rlt.`Entry` ',
+  'JOIN `creature` sp ON sp.`', @idcol, '` = clt.`Entry` ',
+  'JOIN `instance_template` i ON i.`map` = sp.`map` ',
+  'WHERE rlt.`Item` IN (SELECT DISTINCT `item_id` FROM `playerbots_bis_item`)');
+PREPARE st FROM @sql; EXECUTE st; DEALLOCATE PREPARE st;
 
 -- ---------------------------------------------------------------------
 -- 2 - Couverture par palier : combien de pieces de rang 1 sont localisables ?
