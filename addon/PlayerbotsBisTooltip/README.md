@@ -18,8 +18,16 @@ Aussi BiS pour : Chasseur - Précision ; Druide - Farouche, Restauration
 ```
 
 L'addon ne tient aucune liste à lui. `BisData.lua` est généré depuis
-`playerbots_bis_item`, donc l'infobulle dit exactement ce que les bots pensent :
-pas de seconde copie qui dérive.
+`playerbots_bis_item`, donc l'infobulle dit exactement ce que les bots pensent.
+
+**Mais c'est un instantané, pas un flux.** Après chaque import de nouvelles
+données BiS, il faut relancer `export_bis_tooltip.ps1` — sinon l'infobulle
+continue d'annoncer l'ancienne liste pendant que les bots, eux, suivent déjà la
+nouvelle. La fenêtre du relevé (`.playerbotsbis report`), elle, vient en direct
+du serveur : **en cas de désaccord entre les deux, c'est elle qui a raison.**
+
+La date de génération est en tête de `BisData.lua` ; si elle est antérieure à
+ton dernier import, l'infobulle est périmée.
 
 ## Installation
 
