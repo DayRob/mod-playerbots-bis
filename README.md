@@ -311,20 +311,29 @@ Un **bouton de minicarte** l'ouvre (clic gauche) et relance le relevé (clic dro
 Clic sur un bot pour déplier, **Maj+clic** sur un objet pour le lier dans le chat,
 **Ctrl+clic** pour l'essayer.
 
-Déplié, un bot est présenté **créneau par créneau** : la cible du créneau, puis ses replis.
+Déplié, un bot est présenté **créneau par créneau**. Fermé, un créneau ne montre que sa
+cible — la pièce que la liste retient — et signale à droite le rang que le bot porte à la
+place, s'il y en a un :
 
 ```
 - Cruvmarl   Guerrier Fureur niv 60                      1/17
-   Main droite
-      rang 1  Faucheuse de Felstriker   manquant       Molten Core
-      rang 2  Main de Justice           equipe         Vanilla Pre-Raid
+   Doigt 1
+      rang 1  Anneau de sang            dans ses sacs   Vanilla Pre-Raid
+ + Main droite                                     rang 2 porte
+      rang 1  Faucheuse de Felstriker   manquant        Molten Core
 ```
 
-Un créneau à moitié couvert se lit d'un coup d'œil : la pièce visée manque, mais le bot
-porte le repli. Le bouton de vue tourne sur trois positions — *manquants seulement*
-(créneaux incomplets, cible et replis possédés), *avec les replis* (ajoute les replis que le
-bot n'a pas, pour voir ce qu'il reste à farmer), *tout afficher* (y compris les créneaux
-réglés).
+**Clic sur un créneau** pour l'ouvrir et voir tous ses rangs :
+
+```
+ - Main droite                                     rang 2 porte
+      rang 1  Faucheuse de Felstriker   manquant        Molten Core
+      rang 2  Main de Justice           equipe          Vanilla Pre-Raid
+      rang 3  Hachoir de Gorosh         manquant        Molten Core
+```
+
+Le bouton en haut bascule entre *manquants seulement* et *tout afficher*, qui ajoute les
+créneaux déjà réglés.
 
 ### Ce que compte le ratio
 

@@ -53,11 +53,12 @@ local function SlotName(index)
     return (key and _G[key]) or SLOT_FR[index] or ("creneau " .. tostring(index))
 end
 
--- 1 : slots incomplets, cible et replis possedes
--- 2 : slots incomplets, tous les replis
--- 3 : tout
-local VIEW_LABEL = { "Manquants seulement", "Avec les replis", "Tout afficher" }
+local VIEW_LABEL = { "Manquants seulement", "Tout afficher" }
 local view = 1
+
+-- Per slot, per bot: a slot shows only its target until you open it. Keyed by
+-- "bot:slot" so two bots can have different slots open at once.
+local slotOpen = {}
 
 local roster = { scope = "", when = "", bots = {}, byName = {} }
 local collapsed = {}       -- bot name -> true when its items are hidden
@@ -163,31 +164,41 @@ local function Rebuild()
 
                 local target = entries[1]
                 local done = target and target.state == STATE_EQUIPPED
-                if view < 3 and done then
+                if view == 1 and done then
                     entries = nil   -- slot settled, nothing to say about it
                 end
 
                 if entries then
-                    local rows = {}
+                    local key = bot.name .. ":" .. slot
+                    local open = slotOpen[key]
+
+                    -- A fallback the bot wears explains why the slot is not
+                    -- empty, so the closed header says so without unfolding.
+                    local wornRank
                     for _, item in ipairs(entries) do
-                        -- A fallback earns its line when the bot owns it, or when
-                        -- you asked to see the alternatives on offer.
-                        if item.target or view >= 2 or item.state ~= STATE_MISSING then
-                            table.insert(rows, item)
+                        if not item.target and item.state == STATE_EQUIPPED then
+                            wornRank = item.rank
+                            break
                         end
                     end
 
-                    if #rows > 0 then
-                        table.insert(display, { slot = true, bot = bot, label = SlotName(slot) })
-                        for _, item in ipairs(rows) do
+                    table.insert(display, {
+                        slot = true, bot = bot, label = SlotName(slot),
+                        key = key, open = open, count = #entries, wornRank = wornRank,
+                    })
+
+                    for _, item in ipairs(entries) do
+                        -- Closed, a slot shows the piece the list picks for it.
+                        -- Open, it shows every rank on offer.
+                        if open or item.target then
                             if not GetItemInfo(item.id) then
                                 pending[item.id] = true
                                 RequestItem(item.id)
                             end
                             table.insert(display, { item = item, bot = bot })
                         end
-                        shown = shown + 1
                     end
+                    shown = shown + 1
                 end
             end
 
@@ -221,6 +232,12 @@ end
 local function RowLeave() GameTooltip:Hide() end
 
 local function RowClick(self)
+    if self.slotKey then
+        slotOpen[self.slotKey] = not slotOpen[self.slotKey]
+        win.Refresh(true)
+        return
+    end
+
     if self.botName then
         collapsed[self.botName] = not collapsed[self.botName]
         win.Refresh(true)
@@ -274,7 +291,7 @@ local function BuildWindow()
     filterBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -66)
     filterBtn:SetScript("OnClick", function()
         view = view + 1
-        if view > 3 then view = 1 end
+        if view > 2 then view = 1 end
         f.Refresh(true)
     end)
 
@@ -340,8 +357,8 @@ local function BuildWindow()
     local hint = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     hint:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 28, 20)
     hint:SetJustifyH("LEFT")
-    hint:SetText("Clic sur un bot : deplier  -  Maj+clic sur un objet : lien  -  "
-                 .. "Actualiser avec .playerbotsbis report")
+    hint:SetText("Clic sur un bot ou un creneau : deplier  -  Maj+clic sur un objet : lien"
+                 .. "  -  Actualiser avec .playerbotsbis report")
 
     function f.Refresh(rebuild)
         if rebuild then Rebuild() end
@@ -369,7 +386,7 @@ local function BuildWindow()
         for i = 1, VISIBLE_ROWS do
             local e = display[i + offset]
             local r = rows[i]
-            r.botName, r.itemId = nil, nil
+            r.botName, r.itemId, r.slotKey = nil, nil, nil
 
             if not e then
                 r:Hide()
@@ -396,8 +413,19 @@ local function BuildWindow()
                 elseif e.slot then
                     r.bar:Hide()
                     r.icon:SetTexture(nil)
-                    r.text:SetText("   |cffffd100" .. e.label .. "|r")
-                    r.info:SetText("")
+                    local mark = ""
+                    if e.count > 1 then
+                        mark = e.open and "- " or "+ "
+                    end
+                    r.text:SetText("   " .. mark .. "|cffffd100" .. e.label .. "|r")
+                    if e.wornRank then
+                        r.info:SetText("|cff1eff00rang " .. e.wornRank .. " porte|r")
+                    elseif e.count > 1 and not e.open then
+                        r.info:SetText("|cff707070" .. e.count .. " rangs|r")
+                    else
+                        r.info:SetText("")
+                    end
+                    r.slotKey = e.key
                 elseif e.note then
                     r.bar:Hide()
                     r.icon:SetTexture(nil)
