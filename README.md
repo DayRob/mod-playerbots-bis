@@ -271,7 +271,9 @@ la logique d'origine. Attention en revanche aux listes **minces** : il suffit d'
 ligne atteignable pour que la spé soit considérée comme ayant une liste, et elle cédera
 alors le BiS des autres y compris sur les emplacements où elle ne revendique rien.
 
-Après édition des tables, `.playerbotsbis reload` les recharge sans redémarrer. La même
+Après édition des tables **ou du fichier de configuration**, `.playerbotsbis reload`
+recharge les deux sans redémarrer, et annonce le palier maximum obtenu — de quoi
+vérifier d'un coup d'œil que le serveur a bien lu le fichier que tu viens d'éditer. La même
 commande prend aussi en compte un changement de `PlayerbotsBis.Enable` ou de
 `PlayerbotsBis.MaxTier` : le module s'enregistre auprès du moteur dès le premier tick du
 monde, même désactivé, précisément pour pouvoir être basculé à chaud.

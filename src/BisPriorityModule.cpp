@@ -10,6 +10,7 @@
 #include "BisReport.h"
 #include "BisValueContext.h"
 #include "Chat.h"
+#include "Config.h"
 #include "DKAiObjectContext.h"
 #include "DruidAiObjectContext.h"
 #include "HunterAiObjectContext.h"
@@ -101,8 +102,11 @@ private:
     bool _registered = false;
 };
 
-// ".playerbotsbis reload" re-reads the conf file and both tables without a
-// server restart, so a tier or item row can be edited and tried immediately.
+// ".playerbotsbis reload" re-reads the module conf files FROM DISK and both
+// tables, so a tier row, an item row or a setting can be edited and tried
+// immediately. The conf part is not optional: sConfigMgr answers from what it
+// read at startup, so without an explicit reload the command would quietly
+// hand back the old settings while claiming to have reloaded them.
 class BisPriorityCommandScript : public CommandScript
 {
 public:
@@ -128,6 +132,14 @@ public:
 
     static bool HandleBisReloadCommand(ChatHandler* handler, char const* /*args*/)
     {
+        // Les tables viennent de la base, mais les reglages viennent de
+        // sConfigMgr, qui garde ce qu'il a lu sur le disque AU DEMARRAGE du
+        // serveur. Sans cette relecture, editer playerbots_bis.conf puis lancer
+        // cette commande ne changeait rien : LoadConfig() relisait la meme
+        // valeur en memoire, et la commande promettait un rechargement qu'elle
+        // ne faisait pas.
+        sConfigMgr->LoadModulesConfigs(true, false);
+
         sBisPriorityMgr->LoadConfig();
         sBisPriorityMgr->LoadTables();
 

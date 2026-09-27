@@ -108,6 +108,12 @@ PlayerbotsBis.NeedOnlyForBis = 0
 #    60 Vanilla P5 AQ40                                  180 WotLK P5 Ruby Sanctum
 #    70 Vanilla P6 Naxx40
 # 0 = pas de plafond, les bots visent le sommet de l'echelle.
+#
+# ATTENTION : jusqu'a la version qui affiche le palier au rechargement, editer
+# cette valeur puis lancer ".playerbotsbis reload" ne changeait RIEN - les
+# reglages venaient de la memoire du serveur, pas du disque. Il fallait
+# redemarrer. C'est corrige : la commande relit desormais ce fichier, et
+# annonce le palier obtenu pour que tu puisses le verifier.
 # Defaut : 0
 PlayerbotsBis.MaxTier = 0
 
