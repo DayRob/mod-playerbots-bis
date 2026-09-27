@@ -19,6 +19,7 @@
 #include "PriestAiObjectContext.h"
 #include "RogueAiObjectContext.h"
 #include "ScriptMgr.h"
+#include <string>
 #include "ShamanAiObjectContext.h"
 #include "WarlockAiObjectContext.h"
 #include "WarriorAiObjectContext.h"
@@ -139,6 +140,22 @@ public:
                                  static_cast<uint32>(sBisPriorityMgr->TierCount()),
                                  static_cast<uint32>(sBisPriorityMgr->ItemCount()),
                                  sBisPriorityMgr->IsEnabled() ? "yes" : "no");
+
+        // The ceiling decides everything the bots chase, and it is the one
+        // setting whose effect is invisible until something does not happen.
+        // Printing it also answers a question the file browser cannot: whether
+        // the conf file you just edited is the one the server actually reads.
+        uint16 const configured = sBisPriorityMgr->GetConfiguredMaxTier();
+        uint16 const effective = configured ? configured : sBisPriorityMgr->GetLadderTop();
+        std::string const name = sBisPriorityMgr->GetTierName(effective);
+
+        if (configured)
+            handler->PSendSysMessage("Palier maximum : {} - {}", configured,
+                                     name.empty() ? "palier inconnu" : name);
+        else
+            handler->PSendSysMessage("Palier maximum : aucun plafond, soit {} - {}", effective,
+                                     name.empty() ? "palier inconnu" : name);
+
         return true;
     }
 

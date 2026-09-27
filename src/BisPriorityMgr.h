@@ -8,6 +8,7 @@
 #define MOD_PLAYERBOTS_BIS_MGR_H
 
 #include "Define.h"
+#include <algorithm>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -119,6 +120,20 @@ public:
     // reachable tier, sorted by slot then rank. Empty when nothing is
     // maintained for its class/spec/faction within the cap.
     std::vector<BisItem> GetReachableList(Player* bot);
+
+    // The configured ceiling, straight from the conf file (0 = no cap), and the
+    // ceiling that actually applies once "no cap" is resolved to the ladder's
+    // own top. Printed by ".playerbotsbis reload" so the value the server ended
+    // up with can be read in game - which also settles WHICH conf file won,
+    // a question no amount of staring at the folder answers.
+    uint16 GetConfiguredMaxTier() const { return _maxTier; }
+    uint16 GetLadderTop() const
+    {
+        uint16 top = 0;
+        for (auto const& kv : _tiers)
+            top = std::max(top, kv.first);
+        return top;
+    }
 
     bool IsLoaded() const { return _loaded; }
     size_t TierCount() const { return _tiers.size(); }
