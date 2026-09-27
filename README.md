@@ -287,11 +287,16 @@ un créneau qui n'a qu'un seul objet ne propose rien à déplier.
 | `04` | export WoWSims | **un seul** — le format n'a pas de colonne `rank` |
 | `06` | guide Wowhead Démoniste | jusqu'à 11 par créneau |
 | `07` | guide Wowhead Guerrier Protection | jusqu'à 21 par créneau |
+| `08` | guide Wowhead Voleur | jusqu'à 4 par créneau |
 
 Les onze combinaisons servies par `04` — guerrier Protection, voleur Combat, prêtre Ombre,
 les trois mages, les trois démonistes, druide Équilibre et Farouche — n'ont qu'une pièce par
 créneau tant qu'un fichier ne les enrichit pas. `06` traite le démoniste, `07` le guerrier
-Protection ; il reste le voleur Combat, le prêtre Ombre, les trois mages et les deux druides.
+Protection, `08` le voleur Combat ; il reste le prêtre Ombre, les trois mages et les deux
+druides.
+
+`08` ne touche qu'à la spé Combat : `03` donne déjà des listes à plusieurs rangs au voleur
+Assassinat et Finesse, seule Combat était écrasée par `04`.
 
 ### Ce qui est classé rang 1
 
