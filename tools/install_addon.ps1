@@ -49,8 +49,27 @@ $target = Join-Path $addons 'PlayerbotsBisTooltip'
 # BisData.lua est GENERE depuis la base par export_bis_tooltip.ps1. L'ecraser
 # avec une version plus ANCIENNE viderait les infobulles ou les ferait mentir,
 # mais refuser de le copier tout court empecherait de propager un export frais
-# fait dans le depot. La date tranche : la version la plus recente gagne.
+# fait dans le depot. La version la plus recente gagne donc.
+#
+# La date de la GENERATION decide, pas celle du fichier : git horodate les
+# fichiers au moment du clone, si bien qu'un depot fraichement recupere porte
+# un substitut "plus recent" que l'export reel du client. Comparer les dates du
+# systeme de fichiers aurait donc remplace de vraies donnees par le substitut,
+# ce qui est exactement l'accident que cette regle doit empecher.
 $generated = 'BisData.lua'
+
+# Lit l'horodatage inscrit en tete d'un BisData.lua genere. Renvoie $null pour
+# le substitut du depot, qui n'en porte pas.
+function Get-BisDataStamp([string] $path) {
+    if (-not (Test-Path $path)) { return $null }
+    foreach ($line in (Get-Content -Path $path -TotalCount 10)) {
+        if ($line -match '^--\s*Source\s*:.*?(\d{4}-\d{2}-\d{2} \d{2}:\d{2})') {
+            return [datetime]::ParseExact($Matches[1], 'yyyy-MM-dd HH:mm',
+                                          [Globalization.CultureInfo]::InvariantCulture)
+        }
+    }
+    return $null
+}
 
 Write-Host "Source : $source"
 Write-Host "Cible  : $target"
@@ -66,10 +85,20 @@ $skipped = @()
 
 foreach ($file in Get-ChildItem -Path $source -File) {
     if ($file.Name -eq $generated) {
-        $existing = Get-Item (Join-Path $target $generated) -ErrorAction SilentlyContinue
-        if ($existing -and $existing.LastWriteTime -ge $file.LastWriteTime) {
-            $skipped += $file.Name
-            continue
+        $destPath = Join-Path $target $generated
+        if (Test-Path $destPath) {
+            $srcStamp  = Get-BisDataStamp $file.FullName
+            $destStamp = Get-BisDataStamp $destPath
+
+            # Source non generee : jamais au-dessus de donnees reelles.
+            if (-not $srcStamp) {
+                $skipped += $file.Name
+                continue
+            }
+            if ($destStamp -and $destStamp -ge $srcStamp) {
+                $skipped += $file.Name
+                continue
+            }
         }
     }
 
@@ -87,7 +116,7 @@ foreach ($file in Get-ChildItem -Path $source -File) {
 $copied | Format-Table -AutoSize
 
 if ($skipped.Count -gt 0) {
-    Write-Host "Laisse en place, la copie du client est plus recente : $($skipped -join ', ')" -ForegroundColor DarkGray
+    Write-Host "Laisse en place, la copie du client est plus recente ou plus complete : $($skipped -join ', ')" -ForegroundColor DarkGray
     Write-Host "Pour la regenerer : .\tools\export_bis_tooltip.ps1 -WowPath ""$WowPath""" -ForegroundColor DarkGray
     Write-Host ""
 }
