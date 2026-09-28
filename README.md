@@ -366,6 +366,17 @@ Et la comparaison se fait au **niveau d'objet**, pas au score de stats. C'est un
 mesure fruste, mais elle ne peut ni prendre une régression pour une amélioration,
 ni se laisser tromper par des poids calés sur une autre spécialisation.
 
+Le bot le dit, sous `AnnounceOwnBis` :
+
+```
+[Trinor] chuchote : [Épaulières de l'arcaniste] - je le prends : réservé à ma
+classe, et je n'ai pas encore mon BiS à cet emplacement
+```
+
+Ces revendications-là n'ont **aucune liste derrière elles**. Sans un mot, un bot
+qui fait NEED sur un objet absent de toutes les tables ressemble à un bug plutôt
+qu'à la règle qu'il applique.
+
 ## Savoir ce qui manque à chaque bot
 
 La spé n'est stockée nulle part : `AiFactory` la recalcule depuis les talents à chaque

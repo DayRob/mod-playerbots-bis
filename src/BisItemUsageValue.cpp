@@ -123,7 +123,22 @@ namespace
                     uint32 const wornLevel = worn ? worn->GetTemplate()->ItemLevel : 0;
 
                     if (proto->ItemLevel >= wornLevel)
+                    {
+                        // Said out loud, because this claim has no list behind
+                        // it: without a word, a bot rolling NEED on a piece
+                        // absent from every table looks like a bug rather than
+                        // the rule it is.
+                        if (sBisPriorityMgr->AnnounceOwnBis())
+                        {
+                            std::ostringstream out;
+                            out << ChatHelper::FormatItem(proto)
+                                << " - je le prends : reserve a ma classe, et je n'ai pas encore"
+                                   " mon BiS a cet emplacement";
+                            botAI->TellMaster(out.str());
+                        }
+
                         return worn ? ITEM_USAGE_REPLACE : ITEM_USAGE_EQUIP;
+                    }
                 }
             }
 
