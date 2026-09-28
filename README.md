@@ -377,6 +377,40 @@ Ces revendications-là n'ont **aucune liste derrière elles**. Sans un mot, un b
 qui fait NEED sur un objet absent de toutes les tables ressemble à un bug plutôt
 qu'à la règle qu'il applique.
 
+## Mettre la pièce, pas seulement la gagner
+
+Remplacer les valeurs `item usage` et `item upgrade` décide de ce qu'un bot
+**roule**. Pas de ce qu'il **porte**. Pour les armes, `EquipAction` tranche
+lui-même :
+
+```cpp
+bool canDualWieldOrTG = (canDualWield || isTwoHander);
+
+if (isWeapon && canDualWieldOrTG)
+{
+    StatsWeightCalculator calculator(bot);
+    ...
+    else { /* No improvement, do nothing */ return; }
+}
+```
+
+Être à deux mains suffit à entrer dans cette branche, et à partir de là **seul
+le score de stats de playerbots a voix au chapitre** — il pèse une arme à deux
+mains contre la somme des deux mains, et l'échelle n'est jamais consultée.
+
+Le symptôme est spectaculaire : un chaman annonce une hache à deux mains comme
+son BiS, roule dessus, la gagne — et la laisse dans ses sacs indéfiniment.
+
+`BisEquipUpgradesAction` remplace `equip upgrades packet action`, qui vit dans
+le **même** `WorldPacketActionContext` que `loot roll` : l'override déjà en
+place pour le vote atteint donc aussi l'équipement. Elle lance l'originale sans
+la modifier, puis fait une passe à elle sur les sacs pour les pièces que
+l'échelle réclame et que l'originale a laissées de côté.
+
+Contrairement à la revendication au moment du butin, **un niveau manquant
+disqualifie ici** : le cœur refuse l'équipement, donc forcer ne ferait que
+dépenser un paquet par tick jusqu'à ce que le bot grandisse.
+
 ## Savoir ce qui manque à chaque bot
 
 La spé n'est stockée nulle part : `AiFactory` la recalcule depuis les talents à chaque
