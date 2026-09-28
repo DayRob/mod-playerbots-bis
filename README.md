@@ -342,6 +342,30 @@ reconnaît qu'un objet comme étant sa BiS et ignore tout le reste.
 
 **Ordre d'import** : `06` doit passer après `04`, sinon `04` écrase ses lignes.
 
+## Les pièces réservées à une classe
+
+mod-playerbots ne revendique que ce que son calcul de stats juge **1,1 fois
+meilleur** que la pièce portée. Ce calcul est grossier, et la conséquence est
+visible en raid : un mage passe sur un objet marqué « Classes : Mage » tout en
+gardant un vert de quête au même créneau. Comme personne d'autre ne peut le
+porter, la pièce est perdue.
+
+`PlayerbotsBis.ClaimClassRestricted` corrige ce cas précis. Quand l'objet n'est
+sur **aucune** liste mais que son infobulle nomme la classe du bot **et aucune
+autre**, le bot le revendique — à deux conditions.
+
+**La lecture est stricte.** `Classes : Mage` compte ; `Classes : Prêtre, Chaman,
+Mage, Démoniste, Druide` non. Accepter tout objet simplement autorisé à la classe
+couvrirait presque tout le tissu, et quarante bots feraient NEED sur tout — la
+ruée que `NeedOnlyForBis` existe justement pour éviter.
+
+**Un créneau réglé n'est jamais dérangé.** Si le bot y porte déjà une pièce que
+les listes nomment, rien ne se passe : la couverture BiS ne peut pas reculer.
+
+Et la comparaison se fait au **niveau d'objet**, pas au score de stats. C'est une
+mesure fruste, mais elle ne peut ni prendre une régression pour une amélioration,
+ni se laisser tromper par des poids calés sur une autre spécialisation.
+
 ## Savoir ce qui manque à chaque bot
 
 La spé n'est stockée nulle part : `AiFactory` la recalcule depuis les talents à chaque

@@ -107,6 +107,10 @@ public:
     bool ClaimBelowRequiredLevel() const { return _claimBelowRequiredLevel; }
     bool NeedOnlyForBis() const { return _needOnlyForBis; }
 
+    // A piece no list names, but whose tooltip names this class and no other,
+    // is claimed when the slot is not already settled by a listed piece.
+    bool ClaimClassRestricted() const { return _claimClassRestricted; }
+
     // Highest tier this bot may pursue: the configured cap, optionally narrowed
     // by the bot's mod-individual-progression state.
     uint16 GetEffectiveTierCap(Player* bot);
@@ -191,6 +195,7 @@ private:
     bool _announceMasterLoot = true;
     bool _claimBelowRequiredLevel = true;
     bool _needOnlyForBis = false;
+    bool _claimClassRestricted = true;
     uint16 _maxTier = 0;
     bool _useIndividualProgression = false;
     uint32 _progressionCacheSeconds = 300;

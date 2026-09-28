@@ -16,6 +16,26 @@
 
 namespace
 {
+    // True when the tooltip names this class AND NO OTHER - "Classes : Mage",
+    // not "Classes : Pretre, Chaman, Mage, Demoniste, Druide".
+    //
+    // The narrow reading is deliberate. Accepting any item that merely allows
+    // the class would cover nearly every cloth drop, and forty bots would then
+    // NEED on everything - the exact stampede NeedOnlyForBis exists to stop. An
+    // item reserved to one class is unambiguous: it was itemised for this bot,
+    // and nobody else in the raid can wear it.
+    bool IsReservedForClass(ItemTemplate const* proto, uint8 cls)
+    {
+        int32 const allowed = proto->AllowableClass;
+        if (allowed <= 0)
+            return false;  // no restriction at all
+
+        return uint32(allowed) == (1u << (cls - 1));
+    }
+}
+
+namespace
+{
     // The BiS layer, applied on top of whatever playerbots already decided.
     //
     // Three branches, in order:
@@ -76,6 +96,35 @@ namespace
                 uint8 const dstSlot = botAI->FindEquipSlot(proto, NULL_SLOT, true);
                 if (dstSlot != NULL_SLOT && sBisPriorityMgr->GetWornPriorityPaired(bot, dstSlot))
                     return ITEM_USAGE_NONE;
+            }
+
+            // ── Branch 3b: the piece is reserved to this class ─────────────
+            //
+            // Playerbots only claims what its stat score rates 1.1 times better
+            // than the worn item, and that score is crude. So a bot would pass
+            // on a drop whose tooltip reads "Classes : Mage" while wearing a
+            // quest green in the same slot - and with nobody else in the raid
+            // able to wear it, the piece rots.
+            //
+            // Two conditions keep this from becoming a free-for-all. The slot
+            // must NOT already hold a listed piece: a settled slot is never
+            // disturbed by something no list names. And the drop must be worth
+            // at least as much by ITEM LEVEL, which is the blunt measure the
+            // stat score is not - it cannot rate a downgrade as an upgrade, and
+            // it cannot be fooled by weights tuned for another spec.
+            if (botAI && sBisPriorityMgr->ClaimClassRestricted() &&
+                IsReservedForClass(proto, bot->getClass()) &&
+                bot->BotCanUseItem(proto) == EQUIP_ERR_OK)
+            {
+                uint8 const dstSlot = botAI->FindEquipSlot(proto, NULL_SLOT, true);
+                if (dstSlot != NULL_SLOT && !sBisPriorityMgr->GetWornPriorityPaired(bot, dstSlot))
+                {
+                    Item* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, dstSlot);
+                    uint32 const wornLevel = worn ? worn->GetTemplate()->ItemLevel : 0;
+
+                    if (proto->ItemLevel >= wornLevel)
+                        return worn ? ITEM_USAGE_REPLACE : ITEM_USAGE_EQUIP;
+                }
             }
 
             return base;
