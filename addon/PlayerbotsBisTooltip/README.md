@@ -12,17 +12,22 @@ Addon 3.3.5a en quatre morceaux, lus **directement depuis les tables du serveur*
   instance faire et avec lesquels y aller.
 
 ```
-BiS P2 BWL     Guerrier Fureur/Prot   Voleur Combat
-BiS P1 MC/Ony  Guerrier Prot/Fureur   Voleur Assass/Combat/Finesse
-BiS Pre-Raid   Guerrier Armes/Prot    Voleur Combat/Assass/Finesse
+BiS P2 BWL     Guerrier Fureur (2)/Prot (2)   Voleur Combat (1)
+BiS P1 MC/Ony  Guerrier Prot (1)/Fureur (3)   Voleur Assass (1)/Combat (2)
+BiS Pre-Raid   Guerrier Armes (1)/Prot (1)    Voleur Combat (1)/Assass (3)
 ```
 
 **Une ligne par palier**, pas une par combinaison : une pièce que seize
-classe/spé/palier revendiquent tenait seize lignes, elle en tient trois. Le nom
-de classe porte sa couleur de classe, la spé la couleur de son rang — vert rang
-1, jaune rang 2, gris rang 3 — donc le palier et le rang se lisent sans lire.
-`/pbbis detail` rend l'ancien affichage, une ligne par classe, spé et palier,
-avec le numéro de rang écrit.
+classe/spé/palier revendiquent tenait seize lignes, elle en tient trois.
+
+Le rang suit la spé entre parenthèses **et** la colore — vert 1, jaune 2, gris
+3. La couleur sert à balayer, le chiffre à trancher : une ligne dont toutes les
+spés partagent un rang est une ligne d'une seule couleur, sans rien à quoi la
+comparer. Le nom de classe est toujours écrit, dans sa couleur de classe, même
+quand la ligne ne porte que la tienne : `Prot` tout seul ne dit pas Prot de
+quoi.
+
+`/pbbis detail` rend l'ancien affichage, une ligne par classe, spé et palier.
 
 L'addon ne tient aucune liste à lui. `BisData.lua` est généré depuis
 `playerbots_bis_item`, donc l'infobulle dit exactement ce que les bots pensent.

@@ -169,7 +169,6 @@ local function Gather(itemId)
     local myClass = PlayerClassId()
     local tiers, tierOrder = {}, {}
     local otherSpecs, otherOrder = {}, {}
-    local mineClasses, mineClassCount = {}, 0
 
     for i = 1, #rows, 4 do
         local class, spec, tier, rank = rows[i], rows[i + 1], rows[i + 2], rows[i + 3]
@@ -193,11 +192,6 @@ local function Gather(itemId)
                 -- ranks); the better rank is the one worth showing.
                 if not specs[spec] or rank < specs[spec] then
                     specs[spec] = rank
-                end
-
-                if not mineClasses[class] then
-                    mineClasses[class] = true
-                    mineClassCount = mineClassCount + 1
                 end
             else
                 if not otherSpecs[class] then
@@ -223,7 +217,6 @@ local function Gather(itemId)
         tierOrder = tierOrder,
         otherSpecs = otherSpecs,
         otherOrder = otherOrder,
-        classCount = mineClassCount,
     }
 end
 
@@ -238,9 +231,13 @@ local function SpecBlock(class, specs)
         return a.spec < b.spec
     end)
 
+    -- The rank is written as well as coloured. Colour alone fails exactly when
+    -- it matters: a line whose specs share one rank is a line of one colour,
+    -- with nothing to compare it against.
     local names = {}
     for _, row in ipairs(sorted) do
-        table.insert(names, Tint(RANK_HEX[row.rank] or RANK_HEX[3], ShortSpec(class, row.spec)))
+        table.insert(names, Tint(RANK_HEX[row.rank] or RANK_HEX[3],
+            ShortSpec(class, row.spec) .. " (" .. row.rank .. ")"))
     end
     return table.concat(names, "/")
 end
@@ -248,19 +245,17 @@ end
 -- One line per tier. "BiS" stays at the head of every line so the block is
 -- still recognisable without a header line eating a row of its own.
 local function AddCompactLines(tooltip, data)
-    local withClass = data.classCount > 1
-
     for _, tier in ipairs(data.tierOrder) do
         local entry = data.tiers[tier]
         table.sort(entry.order)
 
+        -- The class is always named, even when the line carries only yours:
+        -- "Prot" alone does not say Prot of what, and the colour that was
+        -- supposed to say it is the one thing a colour-blind eye loses first.
         local parts = {}
         for _, class in ipairs(entry.order) do
-            local block = SpecBlock(class, entry.classes[class])
-            if withClass then
-                block = Tint(CLASS_COLOR[class] or "ffffff", ShortClass(class)) .. " " .. block
-            end
-            table.insert(parts, block)
+            table.insert(parts, Tint(CLASS_COLOR[class] or "ffffff", ShortClass(class))
+                .. " " .. SpecBlock(class, entry.classes[class]))
         end
 
         -- Three spaces between classes, a slash inside one: the eye needs a
@@ -437,8 +432,8 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
               .. (db.allClasses and "toutes" or "ta classe") .. ")")
         Print("/pbbis detail - bascule compact / detaille (actuel : "
               .. (db.compact and "compact" or "detaille") .. ")")
-        Print("En compact, la spe est coloree par son rang : |cff1eff00rang 1|r, "
-              .. "|cffffe650rang 2|r, |cff999999rang 3|r.")
+        Print("En compact, le rang suit la spe entre parentheses et la colore : "
+              .. "|cff1eff00(1)|r, |cffffe650(2)|r, |cff999999(3)|r.")
         Print("/pbbis maxtier <n> - masque les paliers superieurs a n (actuel : "
               .. (db.maxTier == 0 and "aucun plafond" or db.maxTier) .. ")")
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
