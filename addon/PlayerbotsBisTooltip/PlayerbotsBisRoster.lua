@@ -53,8 +53,12 @@ local function SlotName(index)
     return (key and _G[key]) or SLOT_FR[index] or ("creneau " .. tostring(index))
 end
 
-local VIEW_LABEL = { "Manquants seulement", "Tout afficher" }
-local view = 1
+-- Three views, cycled by the button, which always reads the view it is in.
+-- "Equipes seulement" answers the question the other two cannot: what has this
+-- bot actually secured so far.
+local VIEW_MISSING, VIEW_DONE, VIEW_ALL = 1, 2, 3
+local VIEW_LABEL = { "Manquants seulement", "Equipes seulement", "Tout afficher" }
+local view = VIEW_MISSING
 
 -- Per slot, per bot: a slot shows only its target until you open it. Keyed by
 -- "bot:slot" so two bots can have different slots open at once.
@@ -162,10 +166,15 @@ local function Rebuild()
                     return a.tier > b.tier
                 end)
 
+                -- A slot counts as settled when the piece the list picks for
+                -- it is the one worn. A rank 2 on the back is not "equipe" for
+                -- this purpose: the slot still has something to gain.
                 local target = entries[1]
                 local done = target and target.state == STATE_EQUIPPED
-                if view == 1 and done then
+                if view == VIEW_MISSING and done then
                     entries = nil   -- slot settled, nothing to say about it
+                elseif view == VIEW_DONE and not done then
+                    entries = nil   -- slot still open, not what this view shows
                 end
 
                 if entries then
@@ -206,6 +215,8 @@ local function Rebuild()
                 local text
                 if #bot.items == 0 then
                     text = "aucune piece recue pour ce bot"
+                elseif view == VIEW_DONE then
+                    text = "aucun creneau termine pour l'instant"
                 else
                     text = "tous les creneaux sont equipes"
                 end
@@ -291,7 +302,7 @@ local function BuildWindow()
     filterBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -66)
     filterBtn:SetScript("OnClick", function()
         view = view + 1
-        if view > 2 then view = 1 end
+        if view > VIEW_ALL then view = VIEW_MISSING end
         f.Refresh(true)
     end)
 

@@ -83,6 +83,24 @@ objets déjà en cache côté client, et un objet jamais croisé n'y est pas. Le
 navigateur les demande au serveur et remplit les lignes dès que les noms
 arrivent — quelques secondes la première fois, instantané ensuite.
 
+## Le relevé des bots
+
+`.playerbotsbis report` en jeu remplit la fenêtre (`/pbbis roster`, ou le second
+bouton de minicarte). Un bot par ligne, dépliable créneau par créneau.
+
+Le bouton de gauche fait tourner trois vues, et affiche toujours celle où il
+est :
+
+| Vue | Ce qu'elle montre |
+|---|---|
+| **Manquants seulement** | les créneaux où le rang 1 n'est pas porté — le travail qui reste |
+| **Équipés seulement** | les créneaux réglés — ce que le bot a déjà sécurisé |
+| **Tout afficher** | les deux |
+
+Un créneau compte comme réglé quand **la pièce que la liste choisit pour lui est
+celle qui est portée**. Un rang 2 au dos, ou un rang 1 qui dort dans les sacs,
+reste dans les manquants : le créneau a encore quelque chose à gagner.
+
 ## Commandes
 
 | Commande | Effet |
