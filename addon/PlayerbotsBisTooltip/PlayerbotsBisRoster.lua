@@ -58,6 +58,8 @@ end
 -- bot actually secured so far.
 local VIEW_MISSING, VIEW_DONE, VIEW_ALL = 1, 2, 3
 local VIEW_LABEL = { "Manquants seulement", "Equipes seulement", "Tout afficher" }
+local VIEW_SHORT = { "Manquants", "Equipes", "Tout" }
+local VIEW_WIDTH = { 92, 82, 58 }
 local view = VIEW_MISSING
 
 -- Per slot, per bot: a slot shows only its target until you open it. Keyed by
@@ -296,20 +298,38 @@ local function BuildWindow()
     head:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -46)
     head:SetJustifyH("LEFT")
 
-    local filterBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    filterBtn:SetWidth(170)
-    filterBtn:SetHeight(20)
-    filterBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -66)
-    filterBtn:SetScript("OnClick", function()
-        view = view + 1
-        if view > VIEW_ALL then view = VIEW_MISSING end
-        f.Refresh(true)
-    end)
+    -- Trois boutons plutot qu'un seul qui tourne entre trois etats : un bouton
+    -- qui affiche "Manquants seulement" ne dit pas qu'une autre vue existe, et
+    -- encore moins qu'il y en a deux. Celui de la vue courante est desactive -
+    -- c'est la facon dont le client marque "tu es ici".
+    local viewBtns = {}
+    for i = 1, 3 do
+        local b = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+        b:SetWidth(VIEW_WIDTH[i])
+        b:SetHeight(20)
+        if i == 1 then
+            b:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -66)
+        else
+            b:SetPoint("LEFT", viewBtns[i - 1], "RIGHT", 4, 0)
+        end
+        b:SetText(VIEW_SHORT[i])
+        b:SetScript("OnClick", function()
+            view = i
+            f.Refresh(true)
+        end)
+        b:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(VIEW_LABEL[i])
+            GameTooltip:Show()
+        end)
+        b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        viewBtns[i] = b
+    end
 
     local expandBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     expandBtn:SetWidth(120)
     expandBtn:SetHeight(20)
-    expandBtn:SetPoint("LEFT", filterBtn, "RIGHT", 8, 0)
+    expandBtn:SetPoint("LEFT", viewBtns[3], "RIGHT", 8, 0)
     expandBtn:SetText("Tout deplier")
     expandBtn:SetScript("OnClick", function()
         local anyOpen = false
@@ -391,7 +411,9 @@ local function BuildWindow()
     function f.Refresh(rebuild)
         if rebuild then Rebuild() end
 
-        filterBtn:SetText(VIEW_LABEL[view])
+        for i = 1, 3 do
+            if i == view then viewBtns[i]:Disable() else viewBtns[i]:Enable() end
+        end
 
         local bots, eq, tot = 0, 0, 0
         for _, bot in ipairs(roster.bots) do

@@ -93,14 +93,15 @@ arrivent — quelques secondes la première fois, instantané ensuite.
 `.playerbotsbis report` en jeu remplit la fenêtre (`/pbbis roster`, ou le second
 bouton de minicarte). Un bot par ligne, dépliable créneau par créneau.
 
-Le bouton de gauche fait tourner trois vues, et affiche toujours celle où il
-est :
+Trois boutons en haut à gauche, côte à côte. Celui de la vue courante est grisé
+— c'est ainsi que le client dit « tu es ici ». Survole-les pour le libellé
+complet.
 
 | Vue | Ce qu'elle montre |
 |---|---|
-| **Manquants seulement** | les créneaux où le rang 1 n'est pas porté — le travail qui reste |
-| **Équipés seulement** | les créneaux réglés — ce que le bot a déjà sécurisé |
-| **Tout afficher** | les deux |
+| **Manquants** | les créneaux où le rang 1 n'est pas porté — le travail qui reste |
+| **Équipés** | les créneaux réglés — ce que le bot a déjà sécurisé |
+| **Tout** | les deux |
 
 Un créneau compte comme réglé quand **la pièce que la liste choisit pour lui est
 celle qui est portée**. Un rang 2 au dos, ou un rang 1 qui dort dans les sacs,
