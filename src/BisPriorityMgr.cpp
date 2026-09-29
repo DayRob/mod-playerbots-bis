@@ -450,6 +450,74 @@ uint32 BisPriorityMgr::GetWornPriorityPaired(Player* bot, uint8 slot, uint8* out
     return worn;
 }
 
+namespace
+{
+    // True when the tooltip names this class AND NO OTHER - "Classes : Mage",
+    // not "Classes : Pretre, Chaman, Mage, Demoniste, Druide".
+    //
+    // The narrow reading is deliberate. Accepting any item that merely allows
+    // the class would cover nearly every cloth drop, and forty bots would then
+    // claim everything - the exact stampede NeedOnlyForBis exists to stop. An
+    // item reserved to one class is unambiguous: it was itemised for this bot,
+    // and nobody else in the raid can wear it.
+    bool IsReservedForClass(ItemTemplate const* proto, uint8 cls)
+    {
+        int32 const allowed = proto->AllowableClass;
+        if (allowed <= 0)
+            return false;  // no restriction at all
+
+        return uint32(allowed) == (1u << (cls - 1));
+    }
+}
+
+bool BisPriorityMgr::ClaimsClassRestricted(PlayerbotAI* botAI, Player* bot, uint32 itemId, uint8* outSlot)
+{
+    if (!botAI || !bot || !_claimClassRestricted || !AppliesTo(bot))
+        return false;
+
+    ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemId);
+    if (!proto)
+        return false;
+
+    if (proto->Class != ITEM_CLASS_WEAPON && proto->Class != ITEM_CLASS_ARMOR)
+        return false;
+
+    // A piece the lists DO name is branch 1's business, never this one.
+    if (GetItemPriority(bot, itemId))
+        return false;
+
+    if (!IsReservedForClass(proto, bot->getClass()))
+        return false;
+
+    // Unlike a listed best in slot, a missing level disqualifies here. The
+    // claim exists to fill an empty slot now; holding a piece for a level the
+    // bot has not reached, on nobody's authority but item level, would just
+    // park loot in a bag.
+    if (bot->BotCanUseItem(proto) != EQUIP_ERR_OK)
+        return false;
+
+    uint8 const dstSlot = botAI->FindEquipSlot(proto, NULL_SLOT, true);
+    if (dstSlot == NULL_SLOT)
+        return false;
+
+    // A slot already settled by a listed piece is never disturbed by something
+    // no list names.
+    if (GetWornPriorityPaired(bot, dstSlot))
+        return false;
+
+    // Item level is the blunt measure the stat score is not: it cannot rate a
+    // downgrade as an upgrade, and it cannot be fooled by weights tuned for
+    // another spec.
+    Item* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, dstSlot);
+    if (worn && proto->ItemLevel < worn->GetTemplate()->ItemLevel)
+        return false;
+
+    if (outSlot)
+        *outSlot = dstSlot;
+
+    return true;
+}
+
 bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId, bool* outTooLowLevel)
 {
     if (outTooLowLevel)

@@ -43,7 +43,14 @@ bool BisLootRollAction::Execute(Event event)
     // destroy it, which would leave the copied pointers dangling mid-loop.
     // CountRollVote takes a guid, so a vote cast for a roll that has just gone
     // is simply not found.
+    //
+    // Two outcomes, because two different things are being said. "downgrade" is
+    // a refusal - the bot wanted it only by stat score, and the config decides
+    // whether a refusal greeds or passes. "claim" is the module asking for the
+    // piece: it always greeds, whatever LootGreedRollLevel says, because a
+    // claim that ends in a PASS is a claim the bot announced and then abandoned.
     std::vector<ObjectGuid> downgrade;
+    std::vector<ObjectGuid> claim;
 
     for (Roll* roll : group->GetRolls())
     {
@@ -86,17 +93,32 @@ bool BisLootRollAction::Execute(Event event)
         if (sBisPriorityMgr->WantsAsUpgrade(bot, roll->itemid))
             continue;
 
+        // Reserved to this class, for a slot no list has settled: the bot rolls
+        // for it, but with GREED. NEED would put it level with a bot whose list
+        // actually names the piece, and the whole point of the ladder is that
+        // the list wins. Since the item is class-restricted, nobody outside the
+        // class can NEED it either, so greeding still reaches it whenever no
+        // list claims it.
+        if (sBisPriorityMgr->ClaimsClassRestricted(botAI, bot, roll->itemid))
+        {
+            claim.push_back(roll->itemGUID);
+            continue;
+        }
+
         downgrade.push_back(roll->itemGUID);
     }
 
-    // AiPlayerbot.LootGreedRollLevel still has the last word: at 0 the bot is
-    // not allowed to greed at all and passes instead.
+    // AiPlayerbot.LootGreedRollLevel still has the last word on a refusal: at 0
+    // the bot is not allowed to greed at all and passes instead.
     RollVote const vote = sPlayerbotAIConfig.lootGreedRollLevel ? GREED : PASS;
     for (ObjectGuid const& guid : downgrade)
         group->CountRollVote(bot->GetGUID(), guid, vote);
 
+    for (ObjectGuid const& guid : claim)
+        group->CountRollVote(bot->GetGUID(), guid, GREED);
+
     // Everything we did not touch is still unvoted, and the base pass skips the
     // rolls we just answered.
     bool const voted = LootRollAction::Execute(event);
-    return voted || !downgrade.empty();
+    return voted || !downgrade.empty() || !claim.empty();
 }

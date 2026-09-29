@@ -15,6 +15,7 @@
 #include <vector>
 
 class Player;
+class PlayerbotAI;
 
 // Sentinel spec used for Druid Feral Tank, which shares talent tab 1 with Cat.
 // Resolved at runtime from the bot's tank strategy.
@@ -102,6 +103,19 @@ public:
     // never change.
     bool WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId = nullptr,
                         bool* outTooLowLevel = nullptr);
+
+    // The other claim: an item NO list names, whose tooltip names this class
+    // and no other, for a slot the lists have not settled and at an item level
+    // at least equal to what is worn.
+    //
+    // It lives here rather than inside the usage value because two callers need
+    // the same answer: the verdict that makes the bot want the piece, and the
+    // vote it then casts for it. Split across two files, they drifted - the bot
+    // announced the claim and passed on the roll.
+    //
+    // outSlot receives the slot the piece would go to.
+    bool ClaimsClassRestricted(PlayerbotAI* botAI, Player* bot, uint32 itemId,
+                               uint8* outSlot = nullptr);
 
     bool AnnounceMasterLoot() const { return _announceMasterLoot; }
     bool ClaimBelowRequiredLevel() const { return _claimBelowRequiredLevel; }
