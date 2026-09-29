@@ -106,6 +106,37 @@ Un créneau compte comme réglé quand **la pièce que la liste choisit pour lui
 celle qui est portée**. Un rang 2 au dos, ou un rang 1 qui dort dans les sacs,
 reste dans les manquants : le créneau a encore quelque chose à gagner.
 
+## Les compositions de raid
+
+Les invitations remplissent les sous-groupes dans l'ordre d'arrivée : sans rien
+faire, la composition change à chaque raid. Ces trois commandes la figent.
+
+```
+/pbbis compo save mc       (une fois, le raid étant rangé comme tu veux)
+/pbbis compo apply mc      (après chaque vague d'invitations)
+```
+
+`apply` répare la répartition membre par membre : un déplacement quand le groupe
+visé a une place libre, un échange sinon. Sur un raid de 40 entièrement mélangé
+il faut une vingtaine d'ordres, soit une dizaine de secondes.
+
+Les membres absents de la composition sont laissés où ils sont, et ceux de la
+composition qui ne sont pas dans le raid sont ignorés — tu peux donc enregistrer
+une composition de 40 et l'appliquer à un raid de 25.
+
+Il faut être **chef de raid ou assistant** : le serveur refuse les déplacements
+autrement. La commande le vérifie avant de commencer plutôt que de laisser des
+ordres partir dans le vide.
+
+Un point de mécanique explique la cadence : le serveur ne renvoie la liste
+mise à jour qu'après un aller-retour, donc `GetRaidRosterInfo` ment juste après
+un déplacement. La commande fait **un** mouvement, attend, relit, recommence.
+Enchaîner les ordres sur des données périmées produirait des échanges qui se
+défont entre eux.
+
+`/pbbis compo` seul liste ce qui est enregistré, `/pbbis compo clear <nom>`
+oublie une composition, `/pbbis compo stop` interrompt une application en cours.
+
 ## Commandes
 
 | Commande | Effet |
@@ -115,6 +146,7 @@ reste dans les manquants : le créneau a encore quelque chose à gagner.
 | `/pbbis minimap` | affiche ou masque le bouton de minicarte |
 | `/pbbis all` | bascule entre ta seule classe et toutes les classes |
 | `/pbbis detail` | bascule entre l'affichage compact et l'affichage détaillé |
+| `/pbbis compo` | enregistre et réapplique une répartition de raid |
 | `/pbbis maxtier <n>` | masque les paliers au-dessus de `n` (`0` = aucun plafond) |
 
 Par défaut seules les spés de **ta** classe sont affichées par palier, les
