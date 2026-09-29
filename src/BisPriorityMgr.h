@@ -117,6 +117,14 @@ public:
     bool ClaimsClassRestricted(PlayerbotAI* botAI, Player* bot, uint32 itemId,
                                uint8* outSlot = nullptr);
 
+    // Why AppliesTo() turned this character down, as a line fit to show the
+    // player - or nullptr when there is nothing to explain, either because the
+    // module does follow it or because it is a real player and never could be.
+    //
+    // A bot that vanishes from the report without a word is indistinguishable
+    // from a bug. This is the sentence that tells the two apart.
+    char const* WhyNotFollowed(Player* bot);
+
     bool AnnounceMasterLoot() const { return _announceMasterLoot; }
     bool ClaimBelowRequiredLevel() const { return _claimBelowRequiredLevel; }
     bool NeedOnlyForBis() const { return _needOnlyForBis; }

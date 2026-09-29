@@ -138,7 +138,11 @@ namespace BisBotScan
 
     // Bots the module applies to, optionally narrowed to one guild. Only bots in
     // the world can be inspected: the answer comes from their live inventory.
-    inline std::vector<Player*> CollectBots(uint32 guildId, bool all)
+    // skipped, when given, receives one line per character that IS a bot, IS in
+    // scope, and was nonetheless left out - with the reason. Without it a bot
+    // simply disappears from the report, which looks exactly like a bug.
+    inline std::vector<Player*> CollectBots(uint32 guildId, bool all,
+                                            std::vector<std::string>* skipped = nullptr)
     {
         std::vector<Player*> bots;
         for (auto const& pair : ObjectAccessor::GetPlayers())
@@ -147,14 +151,27 @@ namespace BisBotScan
             if (!bot || !bot->IsInWorld())
                 continue;
 
-            if (!sBisPriorityMgr->AppliesTo(bot))
-                continue;
+            bool const inScope = all || bot->GetGuildId() == guildId;
 
-            if (!all && bot->GetGuildId() != guildId)
+            if (!sBisPriorityMgr->AppliesTo(bot))
+            {
+                // Scope is checked AFTER the verdict here, so that a guild bot
+                // the module refuses is still named: the player asked about his
+                // guild, and that is where he expects the answer.
+                if (skipped && inScope)
+                    if (char const* why = sBisPriorityMgr->WhyNotFollowed(bot))
+                        skipped->push_back(bot->GetName() + " - " + why);
+                continue;
+            }
+
+            if (!inScope)
                 continue;
 
             bots.push_back(bot);
         }
+
+        if (skipped)
+            std::sort(skipped->begin(), skipped->end());
 
         std::sort(bots.begin(), bots.end(), [](Player* a, Player* b)
         {

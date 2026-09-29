@@ -470,6 +470,37 @@ namespace
     }
 }
 
+char const* BisPriorityMgr::WhyNotFollowed(Player* bot)
+{
+    if (!bot)
+        return nullptr;
+
+    if (!_enabled)
+        return "module desactive";
+
+    if (!_loaded)
+        return "tables non chargees";
+
+    // A real player is not a bot that went missing, so there is nothing to
+    // report about it.
+    if (!GET_PLAYERBOT_AI(bot))
+        return nullptr;
+
+    // IsRandomBot is not "was created as a random bot": it also requires the
+    // random manager to still hold the bot in currentBots. One that left that
+    // set falls through to the alt-bot category, which is off by default - and
+    // that is the case this message exists to name.
+    if (sRandomPlayerbotMgr.IsRandomBot(bot))
+        return _applyToRandomBots ? nullptr : "randombot, PlayerbotsBis.ApplyToRandomBots = 0";
+
+    if (sRandomPlayerbotMgr.IsAddclassBot(bot))
+        return _applyToAddClassBots ? nullptr : "bot addclass, PlayerbotsBis.ApplyToAddClassBots = 0";
+
+    return _applyToAltBots ? nullptr
+                           : "hors du lot randombot (alt, ou sorti de currentBots), "
+                             "PlayerbotsBis.ApplyToAltBots = 0";
+}
+
 bool BisPriorityMgr::ClaimsClassRestricted(PlayerbotAI* botAI, Player* bot, uint32 itemId, uint8* outSlot)
 {
     if (!botAI || !bot || !_claimClassRestricted || !AppliesTo(bot))

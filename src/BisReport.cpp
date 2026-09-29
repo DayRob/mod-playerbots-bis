@@ -71,7 +71,8 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         guildId = viewer->GetGuildId();
     }
 
-    std::vector<Player*> const bots = CollectBots(guildId, all);
+    std::vector<std::string> skipped;
+    std::vector<Player*> const bots = CollectBots(guildId, all, &skipped);
     if (bots.empty())
     {
         handler->PSendSysMessage("Aucun bot concerne. Les bots doivent etre connectes pour etre analyses.");
@@ -182,6 +183,18 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         handler->PSendSysMessage("Fenetre limitee aux {} premiers bots ; le reste est ci-dessus.",
                                  uint32(ADDON_MAX_BOTS));
     handler->PSendSysMessage("{} : {} bot(s) analyses, {} sans liste.", scope, analysed, noList);
+
+    // Named, not merely counted: "un bot manque" sends the player looking for a
+    // bug, while the reason points at the one line of configuration to change.
+    if (!skipped.empty())
+    {
+        constexpr size_t SKIPPED_MAX = 10;
+        handler->PSendSysMessage("{} bot(s) ignore(s) :", uint32(skipped.size()));
+        for (size_t i = 0; i < skipped.size() && i < SKIPPED_MAX; ++i)
+            handler->PSendSysMessage("  {}", skipped[i]);
+        if (skipped.size() > SKIPPED_MAX)
+            handler->PSendSysMessage("  ... et {} autre(s).", uint32(skipped.size() - SKIPPED_MAX));
+    }
 
     return true;
 }
