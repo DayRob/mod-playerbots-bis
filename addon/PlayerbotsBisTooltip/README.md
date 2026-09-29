@@ -12,10 +12,17 @@ Addon 3.3.5a en quatre morceaux, lus **directement depuis les tables du serveur*
   instance faire et avec lesquels y aller.
 
 ```
-BiS - Guerrier Fureur - Vanilla Pre-Raid (rang 1)
-BiS - Voleur Combat - Vanilla Pre-Raid (rang 1)
-Aussi BiS pour : Chasseur - Précision ; Druide - Farouche, Restauration
+BiS P2 BWL     Guerrier Fureur/Prot   Voleur Combat
+BiS P1 MC/Ony  Guerrier Prot/Fureur   Voleur Assass/Combat/Finesse
+BiS Pre-Raid   Guerrier Armes/Prot    Voleur Combat/Assass/Finesse
 ```
+
+**Une ligne par palier**, pas une par combinaison : une pièce que seize
+classe/spé/palier revendiquent tenait seize lignes, elle en tient trois. Le nom
+de classe porte sa couleur de classe, la spé la couleur de son rang — vert rang
+1, jaune rang 2, gris rang 3 — donc le palier et le rang se lisent sans lire.
+`/pbbis detail` rend l'ancien affichage, une ligne par classe, spé et palier,
+avec le numéro de rang écrit.
 
 L'addon ne tient aucune liste à lui. `BisData.lua` est généré depuis
 `playerbots_bis_item`, donc l'infobulle dit exactement ce que les bots pensent.
@@ -84,13 +91,14 @@ arrivent — quelques secondes la première fois, instantané ensuite.
 | `/pbbis info` | nombre d'objets chargés et réglages courants |
 | `/pbbis minimap` | affiche ou masque le bouton de minicarte |
 | `/pbbis all` | bascule entre ta seule classe et toutes les classes |
+| `/pbbis detail` | bascule entre l'affichage compact et l'affichage détaillé |
 | `/pbbis maxtier <n>` | masque les paliers au-dessus de `n` (`0` = aucun plafond) |
 
-Par défaut seules les lignes de **ta** classe sont détaillées, les autres
-apparaissant en résumé — sinon une pièce partagée par huit spés produit huit
-lignes d'infobulle. Le résumé **nomme les spés** : `Druide` tout seul ne répond
-pas à la seule question qui se pose devant une pièce d'une autre classe.
-`/pbbis all` donne en plus le palier et le rang de chacune.
+Par défaut seules les spés de **ta** classe sont affichées par palier, les
+autres classes tenant dans une ligne grise en dessous. Ce résumé **nomme les
+spés** : `Druide` tout seul ne répond pas à la seule question qui se pose devant
+une pièce d'une autre classe. `/pbbis all` remonte tout le monde dans les lignes
+de palier, avec le rang de chacun ; en compact, cela reste une ligne par palier.
 
 Règle `maxtier` sur la même valeur que `PlayerbotsBis.MaxTier` pour voir ce que
 tes bots voient : au-delà de leur plafond, un objet leur est invisible.

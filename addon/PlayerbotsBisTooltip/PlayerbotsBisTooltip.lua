@@ -49,9 +49,58 @@ local RANK_COLOR = {
     [3] = { 0.6, 0.6, 0.6 },
 }
 
+-- Same three ranks as hex, for the inline escapes the compact display uses. A
+-- line that carries several classes cannot be coloured by AddLine's r,g,b.
+-- Values copied from PlayerbotsBisBrowser: one rank, one colour, everywhere.
+local RANK_HEX = {
+    [1] = "1eff00",
+    [2] = "ffe650",
+    [3] = "999999",
+}
+
+-- The client's own class colours: recognising "Voleur" by its yellow costs no
+-- reading at all, which is the whole point of the compact layout.
+local CLASS_COLOR = {
+    [1] = "c79c6e", [2] = "f58cba", [3] = "abd473", [4] = "fff569",
+    [5] = "ffffff", [6] = "c41f3b", [7] = "0070de", [8] = "69ccf0",
+    [9] = "9482c9", [11] = "ff7d0a",
+}
+
+-- Only the class whose full name is long enough to hurt on a shared line.
+local CLASS_SHORT = {
+    [6] = "DK",
+}
+
+-- Spec names trimmed to what still reads as that spec. Anything not listed
+-- falls back to the full name, so a new spec never shows as a number.
+local SPEC_SHORT = {
+    [1] = { [2] = "Prot" },
+    [2] = { [1] = "Prot" },
+    [3] = { [0] = "Betes" },
+    [4] = { [0] = "Assass" },
+    [5] = { [0] = "Disci" },
+    [7] = { [0] = "Elem", [1] = "Amelio", [2] = "Resto" },
+    [9] = { [0] = "Afflic", [1] = "Demono", [2] = "Destru" },
+    [11] = { [0] = "Equil", [2] = "Resto", [10] = "Ours" },
+}
+
+-- Tier ids are fixed by 01_playerbots_bis_tier.sql, so the short tags can be
+-- keyed on them. TierShort() falls back to the server's own name for anything
+-- added later.
+local TIER_SHORT = {
+    [10] = "Pre-Raid",       [20] = "P1 MC/Ony",      [30] = "P2 BWL",
+    [40] = "P3 ZG",          [50] = "P4 AQ20",        [60] = "P5 AQ40",
+    [70] = "P6 Naxx",
+    [80] = "TBC Pre-Raid",   [90] = "TBC P1 Kara",    [100] = "TBC P2 SSC/TK",
+    [110] = "TBC P3 Hyjal/BT", [120] = "TBC P4 Sunwell",
+    [130] = "WotLK Pre-Raid", [140] = "WotLK P1 Naxx", [150] = "WotLK P2 Ulduar",
+    [160] = "WotLK P3 EdC",  [170] = "WotLK P4 ICC",  [180] = "WotLK P5 CR",
+}
+
 local defaults = {
     allClasses = false,  -- false: only your own class, plus a one-line summary
     maxTier = 0,         -- 0: no ceiling. Mirror PlayerbotsBis.MaxTier to match the bots.
+    compact = true,      -- one line per tier instead of one per class/spec/tier
 }
 
 local db
@@ -73,6 +122,28 @@ local function TierName(tier)
     return (PlayerbotsBisTooltipTiers and PlayerbotsBisTooltipTiers[tier]) or ("palier " .. tostring(tier))
 end
 
+local function TierShort(tier)
+    if TIER_SHORT[tier] then
+        return TIER_SHORT[tier]
+    end
+    -- "Vanilla Phase 2 - Blackwing Lair" is the default wording; dropping the
+    -- expansion keeps an unknown tier readable instead of merely shorter.
+    return (string.gsub(TierName(tier), "^Vanilla ", ""))
+end
+
+local function ShortSpec(class, spec)
+    local short = SPEC_SHORT[class]
+    return (short and short[spec]) or SpecName(class, spec)
+end
+
+local function ShortClass(class)
+    return CLASS_SHORT[class] or ClassName(class)
+end
+
+local function Tint(hex, text)
+    return "|cff" .. hex .. text .. "|r"
+end
+
 local playerClassId
 
 local function PlayerClassId()
@@ -85,21 +156,49 @@ end
 
 -- Entries are stored flat, four numbers per row (class, spec, tier, rank), which
 -- keeps a file of several thousand items small enough to parse at login.
-local function BuildLines(itemId)
+--
+-- Gather() turns those rows into tier -> class -> spec -> best rank. Both
+-- displays read that same tree: the compact one walks it a tier at a time, the
+-- detailed one flattens it back out.
+local function Gather(itemId)
     local rows = PlayerbotsBisTooltipItems and PlayerbotsBisTooltipItems[itemId]
     if not rows then
         return nil
     end
 
-    local mine = {}
-    local otherSpecs, otherOrder = {}, {}
     local myClass = PlayerClassId()
+    local tiers, tierOrder = {}, {}
+    local otherSpecs, otherOrder = {}, {}
+    local mineClasses, mineClassCount = {}, 0
 
     for i = 1, #rows, 4 do
         local class, spec, tier, rank = rows[i], rows[i + 1], rows[i + 2], rows[i + 3]
         if db.maxTier == 0 or tier <= db.maxTier then
             if db.allClasses or class == myClass then
-                table.insert(mine, { class = class, spec = spec, tier = tier, rank = rank })
+                local entry = tiers[tier]
+                if not entry then
+                    entry = { classes = {}, order = {} }
+                    tiers[tier] = entry
+                    table.insert(tierOrder, tier)
+                end
+
+                local specs = entry.classes[class]
+                if not specs then
+                    specs = {}
+                    entry.classes[class] = specs
+                    table.insert(entry.order, class)
+                end
+
+                -- The same spec can appear twice for one tier (two lists, two
+                -- ranks); the better rank is the one worth showing.
+                if not specs[spec] or rank < specs[spec] then
+                    specs[spec] = rank
+                end
+
+                if not mineClasses[class] then
+                    mineClasses[class] = true
+                    mineClassCount = mineClassCount + 1
+                end
             else
                 if not otherSpecs[class] then
                     otherSpecs[class] = {}
@@ -110,56 +209,131 @@ local function BuildLines(itemId)
         end
     end
 
-    -- The summary names the specs too. One line per item either way, and
-    -- "Druide" alone does not answer the only question worth asking about
-    -- another class's BiS: which of its specs.
-    local others = {}
-    table.sort(otherOrder)
-    for _, class in ipairs(otherOrder) do
-        local specs = {}
-        for spec in pairs(otherSpecs[class]) do table.insert(specs, spec) end
-        table.sort(specs)
-
-        local names = {}
-        for _, spec in ipairs(specs) do table.insert(names, SpecName(class, spec)) end
-        -- "Classe - spe, spe ; Classe - spe" rather than parentheses: the druid
-        -- bear sentinel is already named "Farouche (ours)", and nesting that
-        -- inside another pair of brackets reads badly.
-        table.insert(others, ClassName(class) .. " - " .. table.concat(names, ", "))
-    end
-
-    if #mine == 0 and #others == 0 then
+    if #tierOrder == 0 and #otherOrder == 0 then
         return nil
     end
 
     -- Best tier first: what the current phase says matters more than what an
     -- older one did.
-    table.sort(mine, function(a, b)
+    table.sort(tierOrder, function(a, b) return a > b end)
+    table.sort(otherOrder)
+
+    return {
+        tiers = tiers,
+        tierOrder = tierOrder,
+        otherSpecs = otherSpecs,
+        otherOrder = otherOrder,
+        classCount = mineClassCount,
+    }
+end
+
+-- "Fureur/Prot", ranks coloured, best rank first.
+local function SpecBlock(class, specs)
+    local sorted = {}
+    for spec, rank in pairs(specs) do
+        table.insert(sorted, { spec = spec, rank = rank })
+    end
+    table.sort(sorted, function(a, b)
+        if a.rank ~= b.rank then return a.rank < b.rank end
+        return a.spec < b.spec
+    end)
+
+    local names = {}
+    for _, row in ipairs(sorted) do
+        table.insert(names, Tint(RANK_HEX[row.rank] or RANK_HEX[3], ShortSpec(class, row.spec)))
+    end
+    return table.concat(names, "/")
+end
+
+-- One line per tier. "BiS" stays at the head of every line so the block is
+-- still recognisable without a header line eating a row of its own.
+local function AddCompactLines(tooltip, data)
+    local withClass = data.classCount > 1
+
+    for _, tier in ipairs(data.tierOrder) do
+        local entry = data.tiers[tier]
+        table.sort(entry.order)
+
+        local parts = {}
+        for _, class in ipairs(entry.order) do
+            local block = SpecBlock(class, entry.classes[class])
+            if withClass then
+                block = Tint(CLASS_COLOR[class] or "ffffff", ShortClass(class)) .. " " .. block
+            end
+            table.insert(parts, block)
+        end
+
+        -- Three spaces between classes, a slash inside one: the eye needs a
+        -- wider gap between "Voleur Combat" and "Guerrier Fureur" than between
+        -- two specs of the same class.
+        tooltip:AddLine(Tint("ffd100", "BiS " .. TierShort(tier)) .. "  " .. table.concat(parts, "   "),
+            1, 1, 1, true)
+    end
+end
+
+-- Classes filtered out by /pbbis all, in one grey line. Same layout as above
+-- minus the ranks, which are not tracked for classes you do not play.
+local function AddOthersLine(tooltip, data)
+    if #data.otherOrder == 0 then
+        return
+    end
+
+    local parts = {}
+    for _, class in ipairs(data.otherOrder) do
+        local specs = {}
+        for spec in pairs(data.otherSpecs[class]) do table.insert(specs, spec) end
+        table.sort(specs)
+
+        local names = {}
+        for _, spec in ipairs(specs) do table.insert(names, ShortSpec(class, spec)) end
+        table.insert(parts, Tint(CLASS_COLOR[class] or "ffffff", ShortClass(class))
+            .. " " .. table.concat(names, "/"))
+    end
+
+    tooltip:AddLine(Tint("808080", "Aussi BiS :") .. " " .. table.concat(parts, "   "),
+        0.5, 0.5, 0.5, true)
+end
+
+-- The pre-1.4 layout, kept behind /pbbis detail: one line per combination, with
+-- the tier spelled out. Verbose, but it is the one that shows every rank number.
+local function AddDetailedLines(tooltip, data)
+    local flat = {}
+    for _, tier in ipairs(data.tierOrder) do
+        local entry = data.tiers[tier]
+        for _, class in ipairs(entry.order) do
+            for spec, rank in pairs(entry.classes[class]) do
+                table.insert(flat, { class = class, spec = spec, tier = tier, rank = rank })
+            end
+        end
+    end
+
+    table.sort(flat, function(a, b)
         if a.tier ~= b.tier then return a.tier > b.tier end
         if a.rank ~= b.rank then return a.rank < b.rank end
         if a.class ~= b.class then return a.class < b.class end
         return a.spec < b.spec
     end)
 
-    return mine, others
-end
-
-local function AddTooltipLines(tooltip, itemId)
-    local mine, others = BuildLines(itemId)
-    if not mine then
-        return
-    end
-
-    for _, row in ipairs(mine) do
+    for _, row in ipairs(flat) do
         local color = RANK_COLOR[row.rank] or RANK_COLOR[3]
         tooltip:AddLine(string.format("BiS - %s %s - %s (rang %d)",
             ClassName(row.class), SpecName(row.class, row.spec), TierName(row.tier), row.rank),
             color[1], color[2], color[3])
     end
+end
 
-    if others and #others > 0 then
-        tooltip:AddLine("Aussi BiS pour : " .. table.concat(others, " ; "), 0.5, 0.5, 0.5, true)
+local function AddTooltipLines(tooltip, itemId)
+    local data = Gather(itemId)
+    if not data then
+        return
     end
+
+    if db.compact then
+        AddCompactLines(tooltip, data)
+    else
+        AddDetailedLines(tooltip, data)
+    end
+    AddOthersLine(tooltip, data)
 
     tooltip:Show()  -- the frame must be resized around the lines we just added
 end
@@ -210,6 +384,10 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         db.allClasses = not db.allClasses
         Print(db.allClasses and "toutes les classes affichees."
                              or "seulement ta classe, les autres en resume.")
+    elseif cmd == "detail" or cmd == "compact" then
+        db.compact = not db.compact
+        Print(db.compact and "infobulle compacte : une ligne par palier."
+                          or "infobulle detaillee : une ligne par classe, spe et palier.")
     elseif cmd == "maxtier" then
         local n = tonumber(arg)
         if n and n >= 0 then
@@ -257,6 +435,10 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         Print("/pbbis - ouvre le navigateur des listes (aussi /pbbislist)")
         Print("/pbbis all - bascule entre ta classe seule et toutes les classes (actuel : "
               .. (db.allClasses and "toutes" or "ta classe") .. ")")
+        Print("/pbbis detail - bascule compact / detaille (actuel : "
+              .. (db.compact and "compact" or "detaille") .. ")")
+        Print("En compact, la spe est coloree par son rang : |cff1eff00rang 1|r, "
+              .. "|cffffe650rang 2|r, |cff999999rang 3|r.")
         Print("/pbbis maxtier <n> - masque les paliers superieurs a n (actuel : "
               .. (db.maxTier == 0 and "aucun plafond" or db.maxTier) .. ")")
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")

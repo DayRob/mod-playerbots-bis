@@ -2,7 +2,7 @@
 ## Title: Playerbots BiS Tooltip
 ## Notes: Infobulle BiS, navigateur des listes, etat des bots et plan de donjons (/pbbis, /pbisplan), d'apres les tables de mod-playerbots-bis.
 ## Author: mod-playerbots-bis
-## Version: 1.3
+## Version: 1.4
 ## SavedVariables: PlayerbotsBisTooltipDB
 
 BisData.lua
