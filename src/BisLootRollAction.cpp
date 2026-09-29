@@ -17,10 +17,26 @@
 
 bool BisLootRollAction::Execute(Event event)
 {
+    // Two independent jobs, either of which can be off:
+    //   - NeedOnlyForBis  : take the NEED away from what is not best in slot
+    //   - ForceNeedForBis : make sure what IS best in slot actually gets one
+    //
+    // The second exists because playerbots rewrites its own verdict afterwards:
+    //
+    //     if (vote == NEED)
+    //         if (lootNeedRollLevel == 0 ...) vote = PASS;
+    //         else if (lootNeedRollLevel == 1) vote = GREED;
+    //
+    // and that setting ships at 1. Out of the box a bot therefore never needs
+    // anything, whatever the ladder says, and a best in slot competes with the
+    // whole raid's greed rolls on a coin toss.
+    bool const needOnly  = sBisPriorityMgr->NeedOnlyForBis();
+    bool const forceNeed = sBisPriorityMgr->ForceNeedForBis();
+
     // Every early exit hands the roll straight back to playerbots, so the
     // feature being off - or the bot not being ours to govern - costs one
     // comparison and changes nothing.
-    if (!sBisPriorityMgr->NeedOnlyForBis() || !sBisPriorityMgr->AppliesTo(bot))
+    if ((!needOnly && !forceNeed) || !sBisPriorityMgr->AppliesTo(bot))
         return LootRollAction::Execute(event);
 
     // A spec with no reachable list would never recognise a best in slot, so
@@ -51,6 +67,7 @@ bool BisLootRollAction::Execute(Event event)
     // claim that ends in a PASS is a claim the bot announced and then abandoned.
     std::vector<ObjectGuid> downgrade;
     std::vector<ObjectGuid> claim;
+    std::vector<ObjectGuid> need;
 
     for (Roll* roll : group->GetRolls())
     {
@@ -89,8 +106,23 @@ bool BisLootRollAction::Execute(Event event)
         if (usage != ITEM_USAGE_EQUIP && usage != ITEM_USAGE_REPLACE && usage != ITEM_USAGE_BAD_EQUIP)
             continue;
 
-        // A genuine best in slot keeps its NEED.
+        // A genuine best in slot. Cast the NEED here rather than leaving it to
+        // playerbots, which would turn it into a GREED or a PASS depending on
+        // LootNeedRollLevel.
         if (sBisPriorityMgr->WantsAsUpgrade(bot, roll->itemid))
+        {
+            // Unless the bot already holds one. A second copy of the piece it
+            // is about to equip is worth nothing to it, and needing on it would
+            // take the roll from a bot that has none - which is the opposite of
+            // what the ladder is for.
+            if (forceNeed && !bot->GetItemCount(proto->ItemId, true))
+                need.push_back(roll->itemGUID);
+
+            continue;
+        }
+
+        // Everything below is the refusal half, which NeedOnlyForBis owns.
+        if (!needOnly)
             continue;
 
         // Reserved to this class, for a slot no list has settled: the bot rolls
@@ -117,8 +149,11 @@ bool BisLootRollAction::Execute(Event event)
     for (ObjectGuid const& guid : claim)
         group->CountRollVote(bot->GetGUID(), guid, GREED);
 
+    for (ObjectGuid const& guid : need)
+        group->CountRollVote(bot->GetGUID(), guid, NEED);
+
     // Everything we did not touch is still unvoted, and the base pass skips the
     // rolls we just answered.
     bool const voted = LootRollAction::Execute(event);
-    return voted || !downgrade.empty() || !claim.empty();
+    return voted || !downgrade.empty() || !claim.empty() || !need.empty();
 }

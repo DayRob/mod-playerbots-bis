@@ -98,6 +98,32 @@ PlayerbotsBis.ClaimBelowRequiredLevel = 1
 # Defaut : 0 (desactive)
 PlayerbotsBis.NeedOnlyForBis = 0
 
+# Le bot vote BESOIN lui-meme sur son BiS, au lieu de laisser mod-playerbots
+# decider.
+#
+# Pourquoi cette option existe : mod-playerbots reecrit son propre verdict
+# juste avant de voter (LootRollAction.cpp).
+#
+#     if (vote == NEED)
+#         if (lootNeedRollLevel == 0 ...) vote = PASS;
+#         else if (lootNeedRollLevel == 1) vote = GREED;
+#
+# Et AiPlayerbot.LootNeedRollLevel vaut 1 PAR DEFAUT. Tel quel, un bot ne vote
+# donc jamais Besoin, quoi que disent les listes : son BiS part en Cupidite au
+# milieu des cupidites de tout le raid, et le hasard tranche. L'echelle entiere
+# est annulee par un reglage qui n'a rien a voir avec elle.
+#
+# Avec 1, ce module emet le Besoin directement pour une piece que les listes
+# nomment, sans passer par cette reecriture. Tu peux obtenir le meme resultat
+# en mettant AiPlayerbot.LootNeedRollLevel = 2 dans playerbots.conf - mais ce
+# reglage-la rend aussi le Besoin a tout ce que le calcul de stats juge bon,
+# ce que NeedOnlyForBis cherche justement a eviter.
+#
+# Un bot qui possede DEJA l'objet ne vote pas : un second exemplaire ne lui
+# sert a rien, et prendrait le jet a un bot qui n'en a aucun.
+# Defaut : 1 (active)
+PlayerbotsBis.ForceNeedForBis = 1
+
 # Un objet qu'AUCUNE liste ne nomme, mais dont l'infobulle nomme la classe du
 # bot ET AUCUNE AUTRE, est revendique quand le creneau n'est pas deja regle.
 #

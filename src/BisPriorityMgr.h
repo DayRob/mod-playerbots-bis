@@ -129,6 +129,11 @@ public:
     bool ClaimBelowRequiredLevel() const { return _claimBelowRequiredLevel; }
     bool NeedOnlyForBis() const { return _needOnlyForBis; }
 
+    // Cast the NEED for a genuine best in slot from this module, instead of
+    // letting playerbots decide - it rewrites every NEED into a GREED or a PASS
+    // according to AiPlayerbot.LootNeedRollLevel, which ships at "greed".
+    bool ForceNeedForBis() const { return _forceNeedForBis; }
+
     // A piece no list names, but whose tooltip names this class and no other,
     // is claimed when the slot is not already settled by a listed piece.
     bool ClaimClassRestricted() const { return _claimClassRestricted; }
@@ -216,6 +221,7 @@ private:
     bool _announceOwnBis = true;
     bool _announceMasterLoot = true;
     bool _claimBelowRequiredLevel = true;
+    bool _forceNeedForBis = true;
     bool _needOnlyForBis = false;
     bool _claimClassRestricted = true;
     uint16 _maxTier = 0;
