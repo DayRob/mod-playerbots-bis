@@ -19,7 +19,7 @@
 #include <vector>
 
 // Shared ground between the two windows the module feeds: the BiS roster
-// (BisReport) and the dungeon plan (BisDungeonPlan).
+// (BisReport).
 //
 // Both ask the same three questions - which bots am I looking at, what does this
 // bot's list pick for each slot, and does it own the piece - so the answers live

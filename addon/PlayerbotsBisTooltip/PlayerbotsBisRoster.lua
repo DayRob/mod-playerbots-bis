@@ -343,23 +343,6 @@ local function BuildWindow()
         f.Refresh(true)
     end)
 
-    -- The plan window lives in its own file, so this only ever asks for it: if
-    -- PlayerbotsBisPlan.lua is missing the button simply does nothing visible,
-    -- rather than throwing on every click.
-    local planBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    planBtn:SetWidth(140)
-    planBtn:SetHeight(20)
-    planBtn:SetPoint("LEFT", expandBtn, "RIGHT", 8, 0)
-    planBtn:SetText("Plan de donjons")
-    planBtn:SetScript("OnClick", function()
-        if PlayerbotsBisPlan_Request and PlayerbotsBisPlan_Request() then return end
-        if PlayerbotsBisPlan_Toggle then
-            PlayerbotsBisPlan_Toggle()
-        else
-            Print("tape |cffffd100.playerbotsbis donjons|r pour obtenir le plan.")
-        end
-    end)
-
     local scroll = CreateFrame("ScrollFrame", "PlayerbotsBisRosterScroll", f, "FauxScrollFrameTemplate")
     scroll:SetWidth(530)
     scroll:SetHeight(VISIBLE_ROWS * ROW_HEIGHT)
@@ -678,19 +661,6 @@ local function BuildMinimapButton()
     btn:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
 
     btn:SetScript("OnClick", function(_, button)
-        if IsShiftKeyDown() then
-            -- Shift reaches the other window: right asks the server for a fresh
-            -- plan, left just opens what is already there.
-            if button == "RightButton" then
-                if not (PlayerbotsBisPlan_Request and PlayerbotsBisPlan_Request()) then
-                    Print("tape |cffffd100.playerbotsbis donjons|r pour le plan.")
-                end
-            elseif PlayerbotsBisPlan_Toggle then
-                PlayerbotsBisPlan_Toggle()
-            end
-            return
-        end
-
         if button == "RightButton" then
             if not RequestReport() then
                 Print("tape |cffffd100.playerbotsbis report|r pour actualiser.")
@@ -716,8 +686,6 @@ local function BuildMinimapButton()
         else
             GameTooltip:AddLine("Aucun releve encore", 0.6, 0.6, 0.6)
         end
-        GameTooltip:AddLine("Maj+clic gauche : plan de donjons", 1, 1, 1)
-        GameTooltip:AddLine("Maj+clic droit : recalculer le plan", 1, 1, 1)
         GameTooltip:AddLine("Glisser : deplacer autour de la minicarte", 0.6, 0.6, 0.6)
         GameTooltip:Show()
     end)

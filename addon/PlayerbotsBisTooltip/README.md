@@ -8,8 +8,8 @@ Addon 3.3.5a en quatre morceaux, lus **directement depuis les tables du serveur*
   créneau, sans passer par un site externe ;
 - un **relevé des bots** (`.playerbotsbis report`) qui montre, bot par bot, ce
   qui manque à chacun ;
-- un **plan de donjons** (`/pbisplan`, `.playerbotsbis donjons`) qui dit quelle
-  instance faire et avec lesquels y aller.
+- des **compositions de raid** (`/pbbis compo`) qui figent la répartition en
+  sous-groupes d'un raid à l'autre.
 
 ```
 BiS P2 BWL     Guerrier Fureur (2)/Prot (2)   Voleur Combat (1)

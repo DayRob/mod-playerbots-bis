@@ -5,7 +5,6 @@
  */
 
 #include "BisActionContext.h"
-#include "BisDungeonPlan.h"
 #include "BisPriorityMgr.h"
 #include "BisReport.h"
 #include "BisValueContext.h"
@@ -120,7 +119,6 @@ public:
             {"reload",  HandleBisReloadCommand,  SEC_GAMEMASTER, Console::Yes},
             {"report",  HandleBisReportCommand,  SEC_GAMEMASTER, Console::No},
             {"missing", HandleBisMissingCommand, SEC_GAMEMASTER, Console::No},
-            {"donjons", HandleBisDungeonsCommand, SEC_GAMEMASTER, Console::No},
         };
 
         static ChatCommandTable commandTable = {
@@ -142,11 +140,6 @@ public:
 
         sBisPriorityMgr->LoadConfig();
         sBisPriorityMgr->LoadTables();
-
-        // The dungeon index is keyed by the item ids the lists name, so an
-        // edited list makes it stale. Dropping it here means the next plan
-        // rebuilds from the new rows - and from any loot table edited alongside.
-        BisDungeonPlan::Invalidate();
 
         handler->PSendSysMessage("mod-playerbots-bis: reloaded {} tiers, {} item rows (enabled: {})",
                                  static_cast<uint32>(sBisPriorityMgr->TierCount()),
@@ -181,13 +174,6 @@ public:
     static bool HandleBisMissingCommand(ChatHandler* handler, char const* args)
     {
         return BisReport::HandleMissing(handler, args);
-    }
-
-    // Where to go and with whom. Needs a player for the same reason as the
-    // report: the default scope is the caller's guild.
-    static bool HandleBisDungeonsCommand(ChatHandler* handler, char const* args)
-    {
-        return BisDungeonPlan::HandlePlan(handler, args);
     }
 };
 
