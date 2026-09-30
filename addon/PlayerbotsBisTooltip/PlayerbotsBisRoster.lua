@@ -56,6 +56,10 @@ end
 -- Three views, cycled by the button, which always reads the view it is in.
 -- "Equipes seulement" answers the question the other two cannot: what has this
 -- bot actually secured so far.
+-- Nombre de pieces montrees quand un creneau est deplie. La cible et la piece
+-- portee s'ajoutent par-dessus si elles tombent au-dela.
+local OPEN_MAX = 4
+
 local VIEW_MISSING, VIEW_DONE, VIEW_ALL = 1, 2, 3
 local VIEW_LABEL = { "Manquants seulement", "Equipes seulement", "Tout afficher" }
 local VIEW_SHORT = { "Manquants", "Equipes", "Tout" }
@@ -260,16 +264,45 @@ local function Rebuild()
                         key = key, open = open, count = #entries, wornRank = wornRank,
                     })
 
-                    for _, item in ipairs(entries) do
-                        -- Closed, a slot shows the piece the list picks for it.
-                        -- Open, it shows every rank on offer.
-                        if open or item == target then
-                            if not GetItemInfo(item.id) then
-                                pending[item.id] = true
-                                RequestItem(item.id)
+                    -- Replie : la piece que la liste retient. Deplie : les
+                    -- premieres, pas les dix.
+                    --
+                    -- Un creneau de guerrier en compte dix, dont huit replis
+                    -- pre-raid de rang 2 - des pieces qu'il ne prendra jamais
+                    -- maintenant que la phase 1 est ouverte. Les faire defiler
+                    -- pousse hors de l'ecran les creneaux qui, eux, ont quelque
+                    -- chose a dire.
+                    --
+                    -- Deux lignes passent OUTRE le plafond, parce que ce sont
+                    -- celles qui repondent a la question posee : la cible, et ce
+                    -- que le bot porte en ce moment.
+                    local hidden = 0
+                    if open then
+                        local shown = 0
+                        for _, item in ipairs(entries) do
+                            local keep = item == target or item.state == STATE_EQUIPPED
+                            if shown < OPEN_MAX or keep then
+                                if not GetItemInfo(item.id) then
+                                    pending[item.id] = true
+                                    RequestItem(item.id)
+                                end
+                                table.insert(display, { item = item, bot = bot })
+                                shown = shown + 1
+                            else
+                                hidden = hidden + 1
                             end
-                            table.insert(display, { item = item, bot = bot })
                         end
+                    elseif target then
+                        if not GetItemInfo(target.id) then
+                            pending[target.id] = true
+                            RequestItem(target.id)
+                        end
+                        table.insert(display, { item = target, bot = bot })
+                    end
+
+                    if hidden > 0 then
+                        table.insert(display, { note = true, bot = bot,
+                            text = "... et " .. hidden .. " repli(s) de rang inferieur" })
                     end
                     shown = shown + 1
                 end
