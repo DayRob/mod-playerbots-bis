@@ -140,11 +140,12 @@ si bien qu'un créneau couvert par le pré-raid **et** par Molten Core portait d
 « rang 1 ». Or dès que Molten Core est atteignable, le rang 1 pré-raid n'est plus
 un premier choix, c'est un repli.
 
-Déplié, un créneau ne montre que ses **quatre premières** pièces, puis compte le
-reste : `... et 6 repli(s) de rang inferieur`. Un créneau de guerrier en aligne
-dix, dont huit replis pré-raid de rang 2 — des pièces qu'il ne prendra jamais une
-fois la phase 1 ouverte, et qui poussent hors de l'écran les créneaux qui, eux,
-ont quelque chose à dire.
+Déplié, un créneau ne montre que ses **quatre premières** pièces. Un créneau de
+guerrier en aligne dix, dont huit replis pré-raid de rang 2 — des pièces qu'il ne
+prendra jamais une fois la phase 1 ouverte, et qui poussent hors de l'écran les
+créneaux qui, eux, ont quelque chose à dire. Le reste disparaît sans un mot : le
+compte total figure déjà sur l'en-tête du créneau replié, et une ligne pour
+annoncer qu'on en a caché coûterait ce que le plafond fait économiser.
 
 Deux lignes passent **outre** ce plafond, parce que ce sont celles qui répondent
 à la question posée : la cible, et la pièce portée en ce moment. La liste

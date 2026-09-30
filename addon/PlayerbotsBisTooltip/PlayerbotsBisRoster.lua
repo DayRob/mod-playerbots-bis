@@ -276,7 +276,11 @@ local function Rebuild()
                     -- Deux lignes passent OUTRE le plafond, parce que ce sont
                     -- celles qui repondent a la question posee : la cible, et ce
                     -- que le bot porte en ce moment.
-                    local hidden = 0
+                    --
+                    -- Le reste disparait sans un mot. Le compte total figure
+                    -- deja sur l'en-tete du creneau quand il est replie, et une
+                    -- ligne pour dire qu'on a cache des replis coute exactement
+                    -- ce que le plafond fait economiser.
                     if open then
                         local shown = 0
                         for _, item in ipairs(entries) do
@@ -288,8 +292,6 @@ local function Rebuild()
                                 end
                                 table.insert(display, { item = item, bot = bot })
                                 shown = shown + 1
-                            else
-                                hidden = hidden + 1
                             end
                         end
                     elseif target then
@@ -298,11 +300,6 @@ local function Rebuild()
                             RequestItem(target.id)
                         end
                         table.insert(display, { item = target, bot = bot })
-                    end
-
-                    if hidden > 0 then
-                        table.insert(display, { note = true, bot = bot,
-                            text = "... et " .. hidden .. " repli(s) de rang inferieur" })
                     end
                     shown = shown + 1
                 end
