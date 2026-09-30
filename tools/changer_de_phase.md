@@ -61,11 +61,21 @@ Pas 0 : la comparaison est `size() < config`, donc 0 veut dire "aucune".
 
 ## 3. Importer les listes du nouveau palier
 
-```sql
-USE acore_world;
-source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/18_bwl_wowsims.sql
-source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/19_mc_wowsims.sql
+Depuis PowerShell, pas depuis un client MySQL deja ouvert :
+
+```powershell
+$mysql = "C:\Program Files\MySQL\MySQL Server 9.7\bin\mysql.exe"
+$base  = "C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base"
+& $mysql -u acore -padmin --table acore_world -e "source $base/18_bwl_wowsims.sql"
+& $mysql -u acore -padmin --table acore_world -e "source $base/19_mc_wowsims.sql"
 ```
+
+`USE` et `source` sont des commandes du CLIENT MySQL : collees telles quelles
+dans PowerShell, elles donnent `Le terme USE n'est pas reconnu`. La forme
+ci-dessus les fait executer par le client, depuis le shell.
+
+Les barres obliques NORMALES dans `$base` ne sont pas un detail : `source` est
+lu par le client MySQL, qui prend mal les antislashs.
 
 Ces deux fichiers sont **generes** depuis les sets du simulateur WoWSims Classic
 par `tools/convert_wowsims_gear.py`. Ils remplacent, pour les spes qu'ils
@@ -88,9 +98,8 @@ Ce qu'ils ne font PAS :
 
 ## 4. Nettoyer les listes du nouveau palier
 
-```sql
-USE acore_world;
-source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/17_purge_pvp_reputation.sql
+```powershell
+& $mysql -u acore -padmin --table acore_world -e "source $base/17_purge_pvp_reputation.sql"
 ```
 
 Le palier 30 n'a **aucun fichier curé** : ses 24 combinaisons classe/spe
