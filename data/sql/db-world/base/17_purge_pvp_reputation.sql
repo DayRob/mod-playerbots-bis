@@ -3,7 +3,7 @@
 -- Pourquoi ce fichier existe
 -- --------------------------
 -- La regle du projet depuis le debut : pas de PvP, pas de reputation. Les
--- fichiers curés (03 a 16) la respectent - ils sont ecrits a la main a partir
+-- fichiers cures (03 a 16) la respectent - ils sont ecrits a la main a partir
 -- des guides. Le fichier 02, lui, ne la respecte pas : c'est la conversion de
 -- la table d'origine playerbots_bis_gear, ses rangs ne viennent d'aucun guide,
 -- et il place par exemple les epaulieres PvP du demoniste en RANG 1 au palier
