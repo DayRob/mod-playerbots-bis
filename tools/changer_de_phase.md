@@ -82,9 +82,13 @@ spe.
 ## 4. Regenerer les donnees de l'addon
 
 ```powershell
-.\tools\export_bis_tooltip.ps1 -WowPath "C:\test\world of warcraft 3.3.5a hd"
+powershell -ExecutionPolicy Bypass -File .\tools\export_bis_tooltip.ps1 -WowPath "C:\test\world of warcraft 3.3.5a hd"
 powershell -ExecutionPolicy Bypass -File .\tools\install_addon.ps1 -WowPath "C:\test\world of warcraft 3.3.5a hd"
 ```
+
+Les deux passent par `-ExecutionPolicy Bypass` : la politique par defaut de
+Windows refuse d'executer un script telecharge, et l'appel direct echoue sur
+`UnauthorizedAccess`.
 
 L'infobulle lit un export fige : sans ca elle continue d'annoncer les anciennes
 listes pendant que les bots suivent les nouvelles. La fenetre du releve, elle,

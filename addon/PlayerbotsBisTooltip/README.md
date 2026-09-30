@@ -70,8 +70,12 @@ ton dernier import, l'infobulle est périmée.
 2. Générer les données :
 
 ```powershell
-.\tools\export_bis_tooltip.ps1 -Out "C:\chemin\vers\wow\interface\addons\PlayerbotsBisTooltip\BisData.lua"
+powershell -ExecutionPolicy Bypass -File .\tools\export_bis_tooltip.ps1 -WowPath "C:\chemin\vers\wow"
 ```
+
+`-ExecutionPolicy Bypass` n'est pas decoratif : la politique par defaut de
+Windows refuse d'executer un script non signe, et l'appel direct echoue sur
+`UnauthorizedAccess`.
 
 3. Relancer le client et cocher **« Charger les addons obsolètes »**
 
