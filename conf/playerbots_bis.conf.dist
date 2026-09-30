@@ -26,6 +26,18 @@ PlayerbotsBis.ApplyToRandomBots = 1
 PlayerbotsBis.ApplyToAddClassBots = 0
 PlayerbotsBis.ApplyToAltBots = 0
 
+# Note sur les categories : IsRandomBot() de mod-playerbots ne dit pas "a ete
+# cree comme randombot", il dit "le gestionnaire l'a en main" :
+#
+#     if (!IsInRandomAccountList(...)) return false;
+#     return currentBots.contains(bot);
+#
+# Un bot mis en ligne a la main (".playerbots bot add <nom>") rejoint le monde
+# EN DEHORS de cette rotation. Le module le rattrape quand meme : s'il est sur un
+# compte de randombot, il compte comme randombot, apres le test addclass pour ne
+# pas avaler cette categorie. Sans ce rattrapage il tombait dans "alt", desactive
+# par defaut, et disparaissait du releve sans un mot.
+
 # Un objet qui est le BiS d'une AUTRE classe/spe est laisse a qui il revient :
 # le bot PASS dessus au lieu de le rouler comme une simple amelioration.
 # A 0, il applique la logique d'origine sur ces objets-la.

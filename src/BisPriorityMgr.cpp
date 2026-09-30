@@ -182,6 +182,18 @@ uint8 BisPriorityMgr::ResolveSpec(Player* bot)
     return spec;
 }
 
+namespace
+{
+    bool IsOnRandomBotAccount(Player* bot)
+    {
+        WorldSession const* const session = bot->GetSession();
+        if (!session)
+            return false;
+
+        return sPlayerbotAIConfig.IsInRandomAccountList(session->GetAccountId());
+    }
+}
+
 bool BisPriorityMgr::AppliesTo(Player* bot)
 {
     if (!_enabled || !_loaded || !bot)
@@ -199,6 +211,22 @@ bool BisPriorityMgr::AppliesTo(Player* bot)
 
     if (sRandomPlayerbotMgr.IsAddclassBot(bot))
         return _applyToAddClassBots;
+
+    // A bot sitting on a random-bot ACCOUNT that the rotation is not currently
+    // holding. IsRandomBot is not "was created as a random bot":
+    //
+    //     if (!IsInRandomAccountList(...)) return false;
+    //     return currentBots.contains(bot);
+    //
+    // currentBots is the manager's rotation. A bot brought online by hand with
+    // ".playerbots bot add" joins the world outside it, so that test says no
+    // although nothing about the character is an alt - and it would silently
+    // fall into the alt category, which is off by default.
+    //
+    // Checked AFTER the addclass test on purpose: addclass accounts belong to
+    // the same pool, so putting this first would swallow that category whole.
+    if (IsOnRandomBotAccount(bot))
+        return _applyToRandomBots;
 
     return _applyToAltBots;
 }
@@ -497,9 +525,12 @@ char const* BisPriorityMgr::WhyNotFollowed(Player* bot)
     if (sRandomPlayerbotMgr.IsAddclassBot(bot))
         return _applyToAddClassBots ? nullptr : "bot addclass, PlayerbotsBis.ApplyToAddClassBots = 0";
 
+    if (IsOnRandomBotAccount(bot))
+        return _applyToRandomBots ? nullptr
+                                  : "randombot hors rotation, PlayerbotsBis.ApplyToRandomBots = 0";
+
     return _applyToAltBots ? nullptr
-                           : "hors du lot randombot (alt, ou sorti de currentBots), "
-                             "PlayerbotsBis.ApplyToAltBots = 0";
+                           : "ni randombot ni addclass (alt), PlayerbotsBis.ApplyToAltBots = 0";
 }
 
 bool BisPriorityMgr::ClaimsClassRestricted(PlayerbotAI* botAI, Player* bot, uint32 itemId, uint8* outSlot)
