@@ -67,6 +67,13 @@ local view = VIEW_MISSING
 local slotOpen = {}
 
 local roster = { scope = "", when = "", bots = {}, byName = {} }
+
+-- itemId -> { {name=, cls=}, ... } : qui porte quoi, listes ou non. Rempli par
+-- les lignes "G" du releve, et lu par l'infobulle.
+-- Ne couvre que les pieces des listes : ce sont les seules que le releve
+-- transporte. Une piece hors liste ne peut donc pas etre tracee, et c'est
+-- assumee - c'est aussi la seule que personne ne convoite.
+local wearers = {}
 local collapsed = {}       -- bot name -> true when its items are hidden
 local display = {}
 local pending = {}
@@ -99,6 +106,10 @@ end
 local function ResetRoster(count, scope)
     roster = { scope = scope or "", when = date("%H:%M:%S"), bots = {}, byName = {}, expected = count }
     pending = {}
+
+    -- Vide aussi : sans ca un bot qui a change de piece resterait indique comme
+    -- porteur de l'ancienne, pour toujours.
+    wearers = {}
 end
 
 local function AddBot(name, cls, spec, level, equipped, total, carried, missing)
@@ -114,16 +125,43 @@ local function AddBot(name, cls, spec, level, equipped, total, carried, missing)
     end
 end
 
+-- Lue par l'infobulle. Renvoie la liste des porteurs et l'heure du releve, pour
+-- que l'appelant puisse dire de quand date l'information.
+function PlayerbotsBisRoster_Wearers(itemId)
+    return wearers[itemId], roster.when
+end
+
 local function AddItems(name, packed)
     local bot = roster.byName[name]
     if not bot then return end
 
     for id, state, tier, slot, rank, target in
             string.gmatch(packed, "(%d+):(%d+):(%d+):(%d+):(%d+):(%d+)") do
+        id, state = tonumber(id), tonumber(state)
+
         table.insert(bot.items, {
-            id = tonumber(id), state = tonumber(state), tier = tonumber(tier),
+            id = id, state = state, tier = tonumber(tier),
             slot = tonumber(slot), rank = tonumber(rank), target = target == "1",
         })
+
+        -- La meme piece peut figurer sur plusieurs paliers de la liste d'un bot,
+        -- donc une garde sur le nom, sinon il apparait deux fois.
+        if state == STATE_EQUIPPED then
+            local list = wearers[id]
+            if not list then
+                list = {}
+                wearers[id] = list
+            end
+
+            local already = false
+            for _, w in ipairs(list) do
+                if w.name == name then already = true break end
+            end
+
+            if not already then
+                table.insert(list, { name = name, cls = bot.cls })
+            end
+        end
     end
 end
 

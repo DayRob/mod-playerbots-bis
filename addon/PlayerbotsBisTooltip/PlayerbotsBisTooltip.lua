@@ -317,18 +317,61 @@ local function AddDetailedLines(tooltip, data)
     end
 end
 
-local function AddTooltipLines(tooltip, itemId)
-    local data = Gather(itemId)
-    if not data then
+-- Qui porte cette piece en ce moment, d'apres le dernier .playerbotsbis report.
+-- Le nom porte sa couleur de classe, comme partout ailleurs.
+--
+-- La donnee est un instantane, pas un flux : l'heure du releve est donc dite, et
+-- c'est la seule chose qui empeche la ligne de mentir sans prevenir.
+local function AddWearersLine(tooltip, itemId)
+    if not PlayerbotsBisRoster_Wearers then
         return
     end
 
-    if db.compact then
-        AddCompactLines(tooltip, data)
-    else
-        AddDetailedLines(tooltip, data)
+    local list, when = PlayerbotsBisRoster_Wearers(itemId)
+    if not list or #list == 0 then
+        return
     end
-    AddOthersLine(tooltip, data)
+
+    local sorted = {}
+    for _, w in ipairs(list) do table.insert(sorted, w) end
+    table.sort(sorted, function(a, b) return a.name < b.name end)
+
+    -- Au-dela, la ligne devient un mur : le nombre dit l'essentiel.
+    local SHOWN_MAX = 8
+
+    local names = {}
+    for i = 1, math.min(#sorted, SHOWN_MAX) do
+        local w = sorted[i]
+        table.insert(names, Tint(CLASS_COLOR[w.cls] or "ffffff", w.name))
+    end
+
+    local text = Tint("40d040", "Porte par " .. #sorted .. " bot(s) :") .. " " .. table.concat(names, ", ")
+    if #sorted > SHOWN_MAX then
+        text = text .. Tint("808080", " et " .. (#sorted - SHOWN_MAX) .. " autre(s)")
+    end
+    if when and when ~= "" then
+        text = text .. Tint("606060", "  (releve " .. when .. ")")
+    end
+
+    tooltip:AddLine(text, 1, 1, 1, true)
+end
+
+local function AddTooltipLines(tooltip, itemId)
+    local data = Gather(itemId)
+
+    if data then
+        if db.compact then
+            AddCompactLines(tooltip, data)
+        else
+            AddDetailedLines(tooltip, data)
+        end
+        AddOthersLine(tooltip, data)
+    end
+
+    -- Hors du test ci-dessus : la plupart de ce que portent quarante bots n'est
+    -- sur aucune liste, et c'est justement pour ces pieces-la que la question
+    -- "qui l'a deja ?" se pose.
+    AddWearersLine(tooltip, itemId)
 
     tooltip:Show()  -- the frame must be resized around the lines we just added
 end

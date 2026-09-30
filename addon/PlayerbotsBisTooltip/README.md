@@ -29,6 +29,29 @@ quoi.
 
 `/pbbis detail` rend l'ancien affichage, une ligne par classe, spé et palier.
 
+### Qui la porte déjà
+
+Sous les lignes de palier, une ligne verte nomme les bots qui ont la pièce
+**équipée en ce moment** :
+
+```
+Porte par 3 bot(s) : Helgiw, Kweopewu, Pichma  (relevé 01:54:05)
+```
+
+Les noms portent leur couleur de classe. Au-delà de huit, le compte prend le
+relais : `… et 5 autre(s)`.
+
+Deux limites, et l'heure du relevé est là pour la première :
+
+- **C'est un instantané**, celui du dernier `.playerbotsbis report`. Rien ne le
+  rafraîchit tout seul — relance la commande après un raid.
+- **Seules les pièces des listes** sont suivies : ce sont les seules que le
+  relevé transporte. Une pièce hors liste n'apparaîtra jamais, ce qui est sans
+  conséquence puisque personne ne se la dispute.
+
+Une pièce dans les **sacs** d'un bot ne compte pas : la ligne dit qui la
+**porte**, pas qui la possède.
+
 L'addon ne tient aucune liste à lui. `BisData.lua` est généré depuis
 `playerbots_bis_item`, donc l'infobulle dit exactement ce que les bots pensent.
 
