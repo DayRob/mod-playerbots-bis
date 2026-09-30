@@ -512,6 +512,45 @@ filtres d'un message se termine avant que le suivant soit traité — donc compa
 précédente suffit. Un ensemble de *tout* ce qui a été vu, lui, avalerait un second relevé
 dont l'en-tête serait identique au premier.
 
+## Libérer les verrous d'instance des bots
+
+```
+.playerbotsbis libere              (les bots de ton groupe ou de ton raid)
+.playerbotsbis libere guilde       (tous les bots de ta guilde, avant de grouper)
+.playerbotsbis libere moi          (toi compris — plus aucun verrou nulle part)
+.playerbotsbis libere guilde 409   (une seule carte : 409 = Cœur du Magma)
+```
+
+Le cœur choisit la copie d'un téléport dans cet ordre
+(`InstanceSaveMgr::PlayerGetDestinationInstanceId`) :
+
+```cpp
+if (ipb && ipb->perm) return ipb->save->GetInstanceId();  // 1. verrou PERMANENT du bot
+if (Group* g = player->GetGroup())
+{
+    if (verrou du chef) return celui-la;                   // 2. le verrou du CHEF
+    return 0;                                              // 3. une copie neuve
+}
+```
+
+Un bot qui a tué un boss quelque part porte un verrou **permanent**, et l'étape 1
+l'y renvoie quoi que fasse son groupe. C'est tout le bug : le raid est sur la même
+carte, aux mêmes coordonnées, dans deux copies parallèles — visible sur la
+minicarte, introuvable à l'écran.
+
+`.instance unbind` ne peut pas le régler en masse : elle s'applique à **une**
+cible sélectionnée. Et supprimer les lignes de `character_instance` ne change
+rien tant que le serveur n'a pas redémarré, puisqu'il garde ses verrous en
+mémoire. Cette commande passe par ce gestionnaire, donc l'effet est immédiat.
+
+**Ton propre verrou n'est jamais touché** sans le mot `moi` : c'est la
+progression de ton raid, et l'effacer en plein clear remet le premier boss
+debout.
+
+Un bot qui se trouve **dans** l'instance ne peut pas être libéré — le cœur s'y
+refuse, et la commande le compte à part pour que tu le saches plutôt que de
+rapporter « 0 verrou ». Sors-le d'abord (`.summon <nom>` depuis l'extérieur).
+
 ## Licence et crédits
 
 GNU GPL v2, comme AzerothCore et mod-playerbots.

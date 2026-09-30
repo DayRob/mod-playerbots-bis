@@ -7,6 +7,7 @@
 #include "BisActionContext.h"
 #include "BisPriorityMgr.h"
 #include "BisReport.h"
+#include "BisUnbind.h"
 #include "BisValueContext.h"
 #include "Chat.h"
 #include "Config.h"
@@ -119,6 +120,7 @@ public:
             {"reload",  HandleBisReloadCommand,  SEC_GAMEMASTER, Console::Yes},
             {"report",  HandleBisReportCommand,  SEC_GAMEMASTER, Console::No},
             {"missing", HandleBisMissingCommand, SEC_GAMEMASTER, Console::No},
+            {"libere",  HandleBisUnbindCommand,  SEC_GAMEMASTER, Console::No},
         };
 
         static ChatCommandTable commandTable = {
@@ -174,6 +176,13 @@ public:
     static bool HandleBisMissingCommand(ChatHandler* handler, char const* args)
     {
         return BisReport::HandleMissing(handler, args);
+    }
+
+    // Frees the BOTS' instance locks so they follow their leader's copy. Never
+    // the caller's: his lock is the raid's progress.
+    static bool HandleBisUnbindCommand(ChatHandler* handler, char const* args)
+    {
+        return BisUnbind::HandleUnbind(handler, args);
     }
 };
 

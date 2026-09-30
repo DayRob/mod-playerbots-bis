@@ -61,38 +61,69 @@ En jeu, sans SQL : clique le bot dans le cadre de raid, puis
 
 Elle s'applique a ta cible et affiche `map: 409, inst: N, perm: yes/no`.
 
-## 0 ter. Liberer les verrous permanents
+## 0 ter. Liberer les verrous des bots
 
-**Sans arreter le serveur**, pour chaque bot fantome, toi **dehors** :
+Une commande du module, a chaud, sans SQL et sans redemarrage :
 
 ```
-.summon <nom du bot>
-.instance unbind all
+.playerbotsbis libere
 ```
 
-Le `.summon` le sort de sa copie - obligatoire, la commande saute la carte ou
-la cible se trouve. Puis selectionne-le dans le cadre de raid et libere-le.
+Elle libere les verrous d'instance de tous les bots de **ton groupe ou de ton
+raid**, et ne touche jamais le tien - ton verrou, c'est ta progression.
 
-A partir d'une dizaine de bots, le redemarrage va plus vite que les clics. La
-requete du 0 bis te donne le numero de la copie fautive ; worldserver **arrete**,
-supprime les verrous de cette seule copie - ta progression et ceux qui sont deja
-avec toi ne sont pas touches :
+Avant d'avoir forme le raid, quand personne n'est encore groupe :
+
+```
+.playerbotsbis libere guilde
+```
+
+Ajoute `moi` pour te liberer toi aussi - c'est le "ID illimite" en une seule
+commande, puisque plus personne n'a de verrou et que la prochaine entree cree
+une copie neuve :
+
+```
+.playerbotsbis libere moi
+.playerbotsbis libere guilde moi 409
+```
+
+Ce n'est jamais le defaut : ton verrou, c'est la progression du raid, et
+l'effacer en plein clear remet Ragnaros debout.
+
+Pour ne liberer qu'une instance, ajoute son numero de carte (409 = Coeur du
+Magma, 469 = Repaire de l'Aile noire, 309 = Zul'Gurub) :
+
+```
+.playerbotsbis libere 409
+.playerbotsbis libere guilde 409
+```
+
+Elle passe par `InstanceSaveMgr`, le gestionnaire du coeur, donc l'effet est
+immediat - contrairement a un DELETE dans `character_instance`, qui ne change
+rien tant que le serveur n'a pas redemarre puisqu'il garde ses verrous en
+memoire.
+
+**Un bot qui se trouve DANS l'instance ne peut pas etre libere** : le coeur s'y
+refuse, et la commande le compte a part pour que tu le saches. Sors-le d'abord
+(`.summon <nom>` depuis l'exterieur), puis relance.
+
+### A la main, pour un seul bot
+
+Clique-le dans le cadre de raid pour le selectionner, sors de l'instance, et
+lance `.instance unbind all`. La commande du coeur s'applique a ta cible.
+
+### Tout remettre a zero, y compris toi
+
+Worldserver **arrete** - sinon il garde ses verrous en memoire et ta suppression
+ne change rien jusqu'au redemarrage :
 
 ```powershell
-& "C:\Program Files\MySQL\MySQL Server 9.7\bin\mysql.exe" -u acore -padmin acore_characters -e "DELETE FROM character_instance WHERE instance = 1;"
+& "C:\Program Files\MySQL\MySQL Server 9.7\bin\mysql.exe" -u acore -padmin acore_characters -e "DELETE ci FROM character_instance ci JOIN instance i ON i.id = ci.instance WHERE i.map = 409;"
 ```
 
 Et ca se repare tout seul ensuite : des que le premier boss tombe avec les 40
 dedans, les 40 verrous deviennent permanents **sur la meme copie**, et l'etape 1
 suffit pour le reste de la semaine.
-
-**Pour tout remettre a zero** (nouveau MC complet), worldserver **arrete** -
-sinon il garde ses verrous en memoire et ta suppression ne change rien jusqu'au
-redemarrage :
-
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 9.7\bin\mysql.exe" -u acore -padmin acore_characters -e "DELETE ci FROM character_instance ci JOIN instance i ON i.id = ci.instance WHERE i.map = 409;"
-```
 
 ## 1. Connecter les 40 bots de guilde
 
@@ -160,6 +191,35 @@ et fabrique une copie par bot.
 Si un bot reste fantome - visible dans le raid et sur la minicarte, absent a
 l'ecran - c'est qu'il a un verrou permanent ailleurs. Applique-lui la
 reparation du 0 ter.
+
+## Refaire l'instance en boucle
+
+Liberer les verrous ne suffit pas si tu enchaines : le coeur compte aussi les
+instances **differentes** entrees dans l'heure.
+
+```cpp
+// PlayerStorage.cpp:7162
+bool Player::CheckInstanceCount(uint32 instanceId) const
+{
+    if (_instanceResetTimes.size() < sWorld->getIntConfig(CONFIG_MAX_INSTANCES_PER_HOUR))
+        return true;
+    return _instanceResetTimes.find(instanceId) != _instanceResetTimes.end();
+}
+```
+
+Au-dela, c'est "You have entered too many instances recently". Dans
+`worldserver.conf` :
+
+```
+AccountInstancesPerHour = 100
+```
+
+**Ne mets pas 0.** La comparaison est `size() < config` : a 0 elle est fausse des
+la premiere instance, donc 0 ne veut pas dire "illimite", il veut dire "aucune".
+Mets un grand nombre.
+
+Le compte est par personnage et par heure glissante, donc avec 40 bots qui
+entrent chacun, c'est le premier mur que tu rencontres en rejouant MC d'affilee.
 
 ## Pieges
 
