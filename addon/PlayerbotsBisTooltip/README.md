@@ -108,6 +108,14 @@ rang.
   lignes BiS de l'autre moitié de l'addon.
 - **Maj+clic** : insère le lien dans le chat. **Ctrl+clic** : cabine d'essayage.
 - Le bouton **Tous les rangs / Rang 1 seul** réduit la liste au choix principal.
+- Le menu **Phase** liste **toutes** les phases de l'échelle, et marque `(vide)`
+  celles où la spé sélectionnée n'a aucune pièce. Une phase absente de la liste
+  ressemblait à une panne de l'addon ; c'est en réalité une liste qui n'a pas
+  encore été écrite. Un guerrier Armes, par exemple, n'a rien du palier 30 au
+  palier 70 : sa liste saute de Molten Core à TBC.
+- Choisir une phase vide est respecté — la fenêtre explique pourquoi elle est
+  vide au lieu de te renvoyer ailleurs. Changer de classe ou de spé rend la main
+  au choix automatique, qui ne retombe que sur une phase remplie.
 
 Certains objets apparaissent d'abord en `Chargement...` sous une section
 **En attente du serveur**. C'est normal : `GetItemInfo` ne répond que pour les

@@ -135,13 +135,45 @@ local function SpecsOf(class)
     return out
 end
 
-local function TiersOf(class, spec)
+-- Les phases qui ont REELLEMENT des lignes pour cette spe. Sert au choix
+-- automatique : ouvrir la fenetre sur une phase vide n'apprend rien.
+local function FilledTiersOf(class, spec)
     local out = {}
     if index and index[class] and index[class][spec] then
         for t in pairs(index[class][spec]) do table.insert(out, t) end
     end
     table.sort(out)
     return out
+end
+
+-- TOUTES les phases de l'echelle, vides comprises.
+--
+-- Une phase sans liste disparaissait purement et simplement du menu, et rien ne
+-- distinguait "cette spe n'a pas de liste ici" de "l'addon est casse". Un
+-- guerrier Armes saute de Molten Core a TBC : il n'a aucune ligne du palier 30
+-- au palier 70, et le menu le montrait en ne les affichant pas.
+local function AllTiers()
+    local out = {}
+    if PlayerbotsBisTooltipTiers then
+        for t in pairs(PlayerbotsBisTooltipTiers) do table.insert(out, t) end
+    end
+
+    if #out == 0 then            -- export sans table de paliers : on se rabat
+        local seen = {}
+        for _, byClass in pairs(index or {}) do
+            for _, bySpec in pairs(byClass) do
+                for t in pairs(bySpec) do seen[t] = true end
+            end
+        end
+        for t in pairs(seen) do table.insert(out, t) end
+    end
+
+    table.sort(out)
+    return out
+end
+
+local function TierIsEmpty(class, spec, tier)
+    return not (index and index[class] and index[class][spec] and index[class][spec][tier])
 end
 
 -- The phase you are reading is the thing you least want moved under you, so it
@@ -179,12 +211,17 @@ local function EnsureSelection()
         sel.spec = specs[1]
     end
 
-    local tiers = TiersOf(sel.class, sel.spec)
-    if #tiers == 0 then return false end
-    if not sel.tier or not index[sel.class][sel.spec][sel.tier] then
-        sel.tier = NearestTier(tiers, sel.tier)
+    -- Le choix automatique ne tombe que sur une phase remplie. Un choix
+    -- EXPLICITE, lui, est respecte meme s'il est vide : c'est une reponse a une
+    -- question posee, et la vider en douce serait mentir.
+    local filled = FilledTiersOf(sel.class, sel.spec)
+    if not sel.tier then
+        sel.tier = NearestTier(filled, nil)
+    elseif TierIsEmpty(sel.class, sel.spec, sel.tier) and not sel.tierChosen then
+        sel.tier = NearestTier(filled, sel.tier)
     end
-    return true
+
+    return sel.tier ~= nil
 end
 
 --------------------------------------------------------------------------------
@@ -229,7 +266,19 @@ local function Rebuild()
     pending = {}
     if not EnsureSelection() then return end
 
-    local entries = index[sel.class][sel.spec][sel.tier] or {}
+    local entries = (index[sel.class] and index[sel.class][sel.spec]
+                     and index[sel.class][sel.spec][sel.tier]) or {}
+
+    if #entries == 0 then
+        table.insert(display, { note = true,
+            text = "Aucune piece pour cette spe a cette phase." })
+        table.insert(display, { note = true,
+            text = "La liste n'a pas encore ete ecrite - les bots de cette spe" })
+        table.insert(display, { note = true,
+            text = "gardent donc leur cible de la phase precedente." })
+        return
+    end
+
     local groups, unknown = {}, {}
 
     for _, e in ipairs(entries) do
@@ -388,17 +437,23 @@ local function BuildWindow()
         local classDD = MakeDropdown("PlayerbotsBisBrowserClassDrop", 6, 120, "Classe",
             function() return classes end,
             ClassName,
-            function(v) sel.class, sel.spec = v, nil end)
+            function(v) sel.class, sel.spec, sel.tierChosen = v, nil, false end)
 
         local specDD = MakeDropdown("PlayerbotsBisBrowserSpecDrop", 186, 120, "Spe",
             function() return SpecsOf(sel.class) end,
             function(v) return SpecName(sel.class, v) end,
-            function(v) sel.spec = v end)
+            function(v) sel.spec = v sel.tierChosen = false end)
 
         local tierDD = MakeDropdown("PlayerbotsBisBrowserTierDrop", 366, 190, "Phase",
-            function() return TiersOf(sel.class, sel.spec) end,
-            TierName,
-            function(v) sel.tier = v end)
+            AllTiers,
+            function(t)
+                local name = TierName(t)
+                if TierIsEmpty(sel.class, sel.spec, t) then
+                    return name .. " |cff808080(vide)|r"
+                end
+                return name
+            end,
+            function(v) sel.tier = v sel.tierChosen = true end)
 
         setClassText = function(t) Label(classDD, t) end
         setSpecText  = function(t) Label(specDD, t) end
@@ -432,18 +487,21 @@ local function BuildWindow()
         classBtn:SetScript("OnClick", function(_, button)
             sel.class = Cycle(classes, sel.class, button == "RightButton" and -1 or 1)
             sel.spec = nil
+            sel.tierChosen = false
             f.Refresh(true)
         end)
 
         specBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         specBtn:SetScript("OnClick", function(_, button)
             sel.spec = Cycle(SpecsOf(sel.class), sel.spec, button == "RightButton" and -1 or 1)
+            sel.tierChosen = false
             f.Refresh(true)
         end)
 
         tierBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         tierBtn:SetScript("OnClick", function(_, button)
-            sel.tier = Cycle(TiersOf(sel.class, sel.spec), sel.tier, button == "RightButton" and -1 or 1)
+            sel.tier = Cycle(AllTiers(), sel.tier, button == "RightButton" and -1 or 1)
+            sel.tierChosen = true
             f.Refresh(true)
         end)
 
@@ -518,7 +576,7 @@ local function BuildWindow()
 
         local items = 0
         for _, e in ipairs(display) do
-            if not e.header then items = items + 1 end
+            if not e.header and not e.note then items = items + 1 end
         end
         summary:SetText(items .. " objets")
 
@@ -535,6 +593,11 @@ local function BuildWindow()
                     r.icon:SetTexture(nil)
                     r.text:SetText("|cffffd100" .. e.label .. "|r")
                     r.info:SetText("|cff808080" .. e.count .. "|r")
+                    r.itemId = nil
+                elseif e.note then
+                    r.icon:SetTexture(nil)
+                    r.text:SetText("|cff808080" .. e.text .. "|r")
+                    r.info:SetText("")
                     r.itemId = nil
                 elseif e.loading then
                     r.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
