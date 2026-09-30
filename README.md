@@ -543,6 +543,12 @@ cible sélectionnée. Et supprimer les lignes de `character_instance` ne change
 rien tant que le serveur n'a pas redémarré, puisqu'il garde ses verrous en
 mémoire. Cette commande passe par ce gestionnaire, donc l'effet est immédiat.
 
+La commande atteint **tous** les bots de la portée, y compris ceux que l'échelle
+BiS ne gouverne pas — un bot `addclass`, un alt, un que le gestionnaire aléatoire
+a laissé tomber. Que le module choisisse ou non son équipement ne dit rien de
+l'endroit où le cœur l'envoie en le téléportant, et un bot non libéré casse le
+raid tout autant. Seul un vrai joueur est épargné.
+
 **Ton propre verrou n'est jamais touché** sans le mot `moi` : c'est la
 progression de ton raid, et l'effacer en plein clear remet le premier boss
 debout.

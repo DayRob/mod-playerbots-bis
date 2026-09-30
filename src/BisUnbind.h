@@ -31,9 +31,13 @@ class ChatHandler;
 // so it takes effect at once.
 namespace BisUnbind
 {
-    // args: optional "guilde" to widen from the caller's group to his guild, and
-    // an optional map id to narrow to one instance. The caller is never touched:
-    // his own lock is his raid's progress.
+    // args: optional "guilde" to widen from the caller's group to his guild,
+    // "moi" to include the caller, and a map id to narrow to one instance.
+    //
+    // Reaches EVERY bot in scope, including those the BiS ladder does not govern
+    // - an addclass bot, an alt, one the random manager has dropped. Whether the
+    // module picks that bot's gear says nothing about where the core sends it on
+    // a teleport, and an unfreed bot breaks the raid all the same.
     bool HandleUnbind(ChatHandler* handler, char const* args);
 }
 

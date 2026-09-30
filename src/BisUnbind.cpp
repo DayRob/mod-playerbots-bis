@@ -5,11 +5,10 @@
  */
 
 #include "BisUnbind.h"
-#include "BisBotScan.h"
-#include "BisPriorityMgr.h"
 #include "Chat.h"
 #include "Group.h"
 #include "InstanceSaveMgr.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 #include "Playerbots.h"
 #include <cstdlib>
@@ -17,10 +16,21 @@
 #include <string>
 #include <vector>
 
-using namespace BisBotScan;
-
 namespace
 {
+    // Deliberately NOT BisPriorityMgr::AppliesTo. That test says whether the
+    // ladder governs a bot's gear, which has nothing to do with where the core
+    // sends it on a teleport. A bot the module ignores - an addclass bot, an alt,
+    // one the random manager has dropped from currentBots - still lands in its
+    // own copy of the instance and still breaks the raid.
+    //
+    // Being a bot at all is the only thing that matters here: a real player's
+    // lock is his own business and is never touched.
+    bool IsBot(Player* player)
+    {
+        return player && player->IsInWorld() && GET_PLAYERBOT_AI(player) != nullptr;
+    }
+
     // Mirrors cs_instance.cpp, including the detail that makes it correct:
     // PlayerUnbindInstance mutates the very map being walked, so the iterator is
     // restarted after every removal instead of advanced.
@@ -93,13 +103,19 @@ bool BisUnbind::HandleUnbind(ChatHandler* handler, char const* args)
     std::vector<Player*> targets;
     if (guildScope)
     {
-        if (!viewer->GetGuildId())
+        uint32 const guildId = viewer->GetGuildId();
+        if (!guildId)
         {
             handler->PSendSysMessage("Tu n'es dans aucune guilde.");
             return true;
         }
 
-        targets = CollectBots(viewer->GetGuildId(), false);
+        for (auto const& pair : ObjectAccessor::GetPlayers())
+        {
+            Player* const bot = pair.second;
+            if (bot != viewer && IsBot(bot) && bot->GetGuildId() == guildId)
+                targets.push_back(bot);
+        }
     }
     else
     {
@@ -114,7 +130,7 @@ bool BisUnbind::HandleUnbind(ChatHandler* handler, char const* args)
         for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
         {
             Player* const member = ref->GetSource();
-            if (member && member != viewer && member->IsInWorld() && sBisPriorityMgr->AppliesTo(member))
+            if (member != viewer && IsBot(member))
                 targets.push_back(member);
         }
     }
