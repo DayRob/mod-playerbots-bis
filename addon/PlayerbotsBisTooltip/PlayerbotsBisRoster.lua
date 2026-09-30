@@ -200,16 +200,40 @@ local function Rebuild()
             local shown = 0
             for _, slot in ipairs(order) do
                 local entries = bySlot[slot]
+
+                -- Ordre de l'ECHELLE, pas du rang brut. Le module calcule
+                -- priorite = palier * 1000 + (255 - rang), donc le palier
+                -- l'emporte toujours : un rang 2 de Molten Core passe devant un
+                -- rang 1 pre-raid, et c'est ce que le bot fait vraiment.
+                -- Trier par rang d'abord, comme avant, montrait l'inverse.
                 table.sort(entries, function(a, b)
-                    if a.target ~= b.target then return a.target end
+                    if a.tier ~= b.tier then return a.tier > b.tier end
                     if a.rank ~= b.rank then return a.rank < b.rank end
-                    return a.tier > b.tier
+                    return a.id < b.id
                 end)
+
+                -- Un rang unique par CRENEAU, renumerote apres ce tri. Les rangs
+                -- bruts viennent chacun de leur palier, donc un creneau couvert
+                -- par deux paliers affichait deux "rang 1" - et celui du palier
+                -- inferieur n'est plus un premier choix depuis que l'autre est
+                -- atteignable, c'est un repli.
+                for i, item in ipairs(entries) do
+                    item.pos = i
+                end
 
                 -- A slot counts as settled when the piece the list picks for
                 -- it is the one worn. A rank 2 on the back is not "equipe" for
                 -- this purpose: the slot still has something to gain.
-                local target = entries[1]
+                --
+                -- La cible reste celle que le SERVEUR a marquee : le tri
+                -- ci-dessus la ramene en tete, mais s'y fier serait rederiver
+                -- une decision qu'on recoit deja.
+                local target
+                for _, item in ipairs(entries) do
+                    if item.target then target = item break end
+                end
+                target = target or entries[1]
+
                 local done = target and target.state == STATE_EQUIPPED
                 if view == VIEW_MISSING and done then
                     entries = nil   -- slot settled, nothing to say about it
@@ -226,7 +250,7 @@ local function Rebuild()
                     local wornRank
                     for _, item in ipairs(entries) do
                         if not item.target and item.state == STATE_EQUIPPED then
-                            wornRank = item.rank
+                            wornRank = item.pos
                             break
                         end
                     end
@@ -239,7 +263,7 @@ local function Rebuild()
                     for _, item in ipairs(entries) do
                         -- Closed, a slot shows the piece the list picks for it.
                         -- Open, it shows every rank on offer.
-                        if open or item.target then
+                        if open or item == target then
                             if not GetItemInfo(item.id) then
                                 pending[item.id] = true
                                 RequestItem(item.id)
@@ -511,7 +535,7 @@ local function BuildWindow()
                     -- The target carries the slot; a fallback is dimmed so the
                     -- eye lands on the piece the list actually picks.
                     local rank = string.format("%srang %d|r ",
-                        item.target and "|cffffffff" or "|cff707070", item.rank or 1)
+                        item.target and "|cffffffff" or "|cff707070", item.pos or item.rank or 1)
 
                     if name then
                         local hex = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality or 1]

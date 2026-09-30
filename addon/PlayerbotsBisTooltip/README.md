@@ -130,6 +130,27 @@ Un créneau compte comme réglé quand **la pièce que la liste choisit pour lui
 celle qui est portée**. Un rang 2 au dos, ou un rang 1 qui dort dans les sacs,
 reste dans les manquants : le créneau a encore quelque chose à gagner.
 
+### Le rang affiché est celui du créneau, pas celui du palier
+
+Déplié, un créneau numérote ses pièces **1, 2, 3…** dans l'ordre où le bot les
+préfère réellement — et il n'y a donc qu'un seul rang 1 par créneau.
+
+Ce n'est pas le rang brut des tables : celui-là vaut à l'intérieur d'un palier,
+si bien qu'un créneau couvert par le pré-raid **et** par Molten Core portait deux
+« rang 1 ». Or dès que Molten Core est atteignable, le rang 1 pré-raid n'est plus
+un premier choix, c'est un repli.
+
+L'ordre suit la priorité que le module calcule :
+
+```
+priorité = palier × 1000 + (255 − rang)
+```
+
+Le palier l'emporte donc toujours : un **rang 2 de Molten Core passe devant un
+rang 1 pré-raid**, parce que c'est ce que le bot fait. Le palier d'origine reste
+écrit à droite de chaque ligne, et l'infobulle, elle, continue d'afficher le rang
+brut par palier.
+
 ## Les compositions de raid
 
 Les invitations remplissent les sous-groupes dans l'ordre d'arrivée : sans rien
