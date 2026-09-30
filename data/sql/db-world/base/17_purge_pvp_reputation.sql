@@ -7,7 +7,7 @@
 -- des guides. Le fichier 02, lui, ne la respecte pas : c'est la conversion de
 -- la table d'origine playerbots_bis_gear, ses rangs ne viennent d'aucun guide,
 -- et il place par exemple les epaulieres PvP du demoniste en RANG 1 au palier
--- 20. Tant qu'une spe n'a pas son fichier curé, c'est lui qui la gouverne.
+-- 20. Tant qu'une spe n'a pas son fichier cure, c'est lui qui la gouverne.
 --
 -- Ce que ce fichier supprime, et sur quelle preuve
 -- ------------------------------------------------
