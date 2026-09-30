@@ -74,10 +74,15 @@ A l'invite `mysql>` :
 USE acore_world;
 source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/18_bwl_wowsims.sql
 source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/19_mc_wowsims.sql
+source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/20_bwl_specs_partagees.sql
 source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/17_purge_pvp_reputation.sql
 ```
 
 Puis `exit`.
+
+**L'ordre compte** : 18, 19 et 20 ecrivent, 17 nettoie derriere. Le 17 est le
+seul a savoir reconnaitre le PvP et la reputation dans la base monde ; le passer
+avant les autres laisserait ces objets dans les listes fraichement posees.
 
 **`USE` et `source` sont des commandes du client, pas du shell.** Collees dans
 PowerShell elles repondent `Le terme USE n'est pas reconnu`. Et `source` n'existe
@@ -103,6 +108,16 @@ couvrent, les listes issues de la conversion d'origine.
 Le palier 30 y gagne quatre spes curees la ou il n'en avait aucune - guerrier
 Armes et Fureur, chaman Elementaire et Amelioration, druide Equilibre. Le palier
 20 en gagne neuf : chasseur x3, chaman x2, demoniste x3, druide Equilibre.
+
+`20_bwl_specs_partagees.sql` comble ce que WoWSims ne publie pas au palier 30 :
+voleur Assassinat et Subtilite reprennent le set Combat, pretre Discipline
+reprend celui de Sacre. En Vanilla ces spes visent le meme equipement, et
+WoWSims lui-meme ne publie qu'un set de voleur par phase. Le fichier ne copie
+que vers une spe entierement vide a ce palier : une liste ecrite a la main n'est
+jamais ecrasee, et le rejeu est sans effet.
+
+Apres ces quatre fichiers, le palier 30 doit afficher 28 lignes de couverture -
+9 classes x 3 spes, plus l'ours druide (11/10). Le palier 20 aussi.
 
 Ce qu'ils ne font PAS :
 
