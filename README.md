@@ -561,7 +561,7 @@ rapporter « 0 verrou ». Sors-le d'abord (`.summon <nom>` depuis l'extérieur).
 
 GNU GPL v2, comme AzerothCore et mod-playerbots.
 
-Les listes pré-raid du fichier `04` proviennent de
+Les listes des fichiers `04`, `18` et `19` proviennent de
 [**WoWSims Classic**](https://github.com/wowsims/classic), sous licence MIT. Le projet
 demande un lien visible vers l'original dans tout travail qui réutilise ses données —
 le voici, et il figure aussi en tête du fichier SQL concerné.

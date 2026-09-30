@@ -59,7 +59,34 @@ AccountInstancesPerHour = 100
 
 Pas 0 : la comparaison est `size() < config`, donc 0 veut dire "aucune".
 
-## 3. Nettoyer les listes du nouveau palier
+## 3. Importer les listes du nouveau palier
+
+```sql
+USE acore_world;
+source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/18_bwl_wowsims.sql
+source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/19_mc_wowsims.sql
+```
+
+Ces deux fichiers sont **generes** depuis les sets du simulateur WoWSims Classic
+par `tools/convert_wowsims_gear.py`. Ils remplacent, pour les spes qu'ils
+couvrent, les listes issues de la conversion d'origine.
+
+Le palier 30 y gagne quatre spes curees la ou il n'en avait aucune - guerrier
+Armes et Fureur, chaman Elementaire et Amelioration, druide Equilibre. Le palier
+20 en gagne neuf : chasseur x3, chaman x2, demoniste x3, druide Equilibre.
+
+Ce qu'ils ne font PAS :
+
+- ils n'ecrasent jamais une liste ecrite a la main depuis un guide Wowhead
+  (guerrier Armes/Fureur et mage au palier 20, par exemple) : un set de
+  simulateur ne donne qu'un objet par emplacement, un guide classe des
+  alternatives ;
+- ils refusent de remplacer une spe quand le set tombe sous douze creneaux -
+  c'est alors le set de raid de la classe, pas une liste d'equipement ;
+- ils ne couvrent aucun soigneur : WoWSims Classic ne simule pas le soin, et
+  ses repertoires correspondants sont vides.
+
+## 4. Nettoyer les listes du nouveau palier
 
 ```sql
 USE acore_world;
@@ -79,7 +106,7 @@ Il affiche ce qu'il va supprimer AVANT de le faire. Lis cette premiere table.
 celui de la conversion. Pour de vraies listes BWL il faut les guides, spe par
 spe.
 
-## 4. Regenerer les donnees de l'addon
+## 5. Regenerer les donnees de l'addon
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\export_bis_tooltip.ps1 -WowPath "C:\test\world of warcraft 3.3.5a hd"
@@ -94,7 +121,7 @@ L'infobulle lit un export fige : sans ca elle continue d'annoncer les anciennes
 listes pendant que les bots suivent les nouvelles. La fenetre du releve, elle,
 vient en direct du serveur - en cas de desaccord, c'est elle qui a raison.
 
-## 5. Au redemarrage
+## 6. Au redemarrage
 
 ```
 .playerbotsbis reload
@@ -110,7 +137,7 @@ qu'il dit bien 30.
 Les lignes doivent maintenant citer `Vanilla Phase 2 - Blackwing Lair`. Si un
 bot est ignore, la commande dit lequel et pourquoi.
 
-## 6. Avant le premier raid BWL
+## 7. Avant le premier raid BWL
 
 ```
 .playerbotsbis libere moi
