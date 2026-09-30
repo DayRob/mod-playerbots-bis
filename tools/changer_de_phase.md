@@ -74,7 +74,7 @@ A l'invite `mysql>` :
 USE acore_world;
 source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/18_bwl_wowsims.sql
 source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/19_mc_wowsims.sql
-source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/20_bwl_specs_partagees.sql
+source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/20_specs_partagees.sql
 source C:/Azerothcore/modules/mod-playerbots-bis/data/sql/db-world/base/17_purge_pvp_reputation.sql
 ```
 
@@ -109,12 +109,18 @@ Le palier 30 y gagne quatre spes curees la ou il n'en avait aucune - guerrier
 Armes et Fureur, chaman Elementaire et Amelioration, druide Equilibre. Le palier
 20 en gagne neuf : chasseur x3, chaman x2, demoniste x3, druide Equilibre.
 
-`20_bwl_specs_partagees.sql` comble ce que WoWSims ne publie pas au palier 30 :
-voleur Assassinat et Subtilite reprennent le set Combat, pretre Discipline
-reprend celui de Sacre. En Vanilla ces spes visent le meme equipement, et
-WoWSims lui-meme ne publie qu'un set de voleur par phase. Le fichier ne copie
-que vers une spe entierement vide a ce palier : une liste ecrite a la main n'est
-jamais ecrasee, et le rejeu est sans effet.
+`20_specs_partagees.sql` aligne les spes qui visent le meme equipement, a tous
+les paliers : voleur Assassinat et Subtilite portent la liste de Combat, pretre
+Discipline celle de Sacre. En Vanilla les trois arbres de voleur cherchent le
+meme stuff DPS - WoWSims ne publie d'ailleurs qu'un set de voleur par phase,
+comme pour le chasseur et le mage - et Discipline soigne avec l'equipement de
+Sacre.
+
+Ce fichier REMPLACE : sur un palier ou la spe source a une liste, celle de la
+cible est effacee puis recopiee, ce qui garantit qu'elles sont identiques. Un
+palier ou la source n'a rien n'est pas touche. Pour redonner plus tard sa propre
+liste a une spe, retire sa ligne de la table `bis_copie_spec` en tete du
+fichier, sinon le passage suivant l'ecrasera.
 
 Apres ces quatre fichiers, le palier 30 doit afficher 28 lignes de couverture -
 9 classes x 3 spes, plus l'ours druide (11/10). Le palier 20 aussi.
