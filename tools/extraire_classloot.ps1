@@ -43,6 +43,17 @@ foreach ($ligne in [System.IO.File]::ReadLines($fData)) {
 
 # --- 2. Les sources -----------------------------------------------------
 # ["RaidLoot.<Instance>.<Difficulte>.<Boss>"]="id,id,id"
+#
+# LA DIFFICULTE EST INDISPENSABLE, pas decorative. Naxxramas et Onyxia's Lair
+# existent en deux versions qui portent le MEME nom : celle d'origine a 40
+# joueurs et celle de WotLK a 10 et 25. Le code de l'addon les separe sur ce
+# seul champ - 0 pour la version d'origine, 1 et 2 pour les modes de WotLK :
+#
+#     if difficulty ~= "0" then
+#         l_instance = l_instance..": ".._G["RAID_DIFFICULTY"..difficulty]
+#
+# La jeter rangerait des objets de niveau 213 dans le palier Naxxramas 40.
+#
 # Une valeur commencant par "m," est une redirection de LibPeriodicTable vers
 # un autre ensemble : elle ne porte aucun identifiant. L'ensemble vise est
 # lui-meme declare ailleurs, donc l'ignorer ne perd rien.
@@ -51,11 +62,12 @@ $redirections = 0
 
 foreach ($ligne in [System.IO.File]::ReadLines($fPT3)) {
     if ($ligne -notmatch '\["RaidLoot\.([^.]+)\.(\d+)\.([^"]*)"\]\s*=\s*"([^"]*)"') { continue }
-    $instance = $Matches[1]
-    $charge   = $Matches[4]
+    $instance   = $Matches[1]
+    $difficulte = [int]$Matches[2]
+    $charge     = $Matches[4]
     if ($charge.StartsWith("m,")) { $redirections++; continue }
     foreach ($m in [regex]::Matches($charge, '\d+')) {
-        $sources.Add([pscustomobject]@{ Id = [int]$m.Value; Instance = $instance })
+        $sources.Add([pscustomobject]@{ Id = [int]$m.Value; Instance = $instance; Difficulte = $difficulte })
     }
 }
 
@@ -86,9 +98,10 @@ $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine("")
 [void]$sb.AppendLine("DROP TABLE IF EXISTS ``cl_source``;")
 [void]$sb.AppendLine("CREATE TABLE ``cl_source`` (")
-[void]$sb.AppendLine("    ``item_id``  INT UNSIGNED NOT NULL,")
-[void]$sb.AppendLine("    ``instance`` VARCHAR(64) NOT NULL,")
-[void]$sb.AppendLine("    PRIMARY KEY (``item_id``, ``instance``)")
+[void]$sb.AppendLine("    ``item_id``    INT UNSIGNED NOT NULL,")
+[void]$sb.AppendLine("    ``instance``   VARCHAR(64) NOT NULL,")
+[void]$sb.AppendLine("    ``difficulte`` TINYINT UNSIGNED NOT NULL,")
+[void]$sb.AppendLine("    PRIMARY KEY (``item_id``, ``instance``, ``difficulte``)")
 [void]$sb.AppendLine(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;")
 [void]$sb.AppendLine("")
 
@@ -101,9 +114,9 @@ foreach ($lot in Lots $notes 500) {
 # qui doivent etre doublees pour SQL.
 foreach ($lot in Lots $sources 500) {
     $valeurs = ($lot | ForEach-Object {
-        "($($_.Id),'" + $_.Instance.Replace("'", "''") + "')"
+        "($($_.Id),'" + $_.Instance.Replace("'", "''") + "',$($_.Difficulte))"
     }) -join ","
-    [void]$sb.AppendLine("INSERT IGNORE INTO ``cl_source`` (``item_id``,``instance``) VALUES $valeurs;")
+    [void]$sb.AppendLine("INSERT IGNORE INTO ``cl_source`` (``item_id``,``instance``,``difficulte``) VALUES $valeurs;")
 }
 
 $dossier = Split-Path -Parent $Sortie
@@ -121,7 +134,9 @@ if (-not (Test-Path $dossier)) { New-Item -ItemType Directory -Force -Path $doss
 "paires objet/instance : " + $sources.Count
 "fichier ecrit         : " + (Resolve-Path $Sortie).Path
 ""
-"--- INSTANCES TROUVEES ---"
-$sources | Group-Object Instance | Sort-Object Name |
-    Select-Object @{n='Instance';e={$_.Name}}, @{n='Objets';e={$_.Count}} |
-    Format-Table -AutoSize
+"--- INSTANCES TROUVEES (difficulte 0 = version d'origine) ---"
+$sources | Group-Object Instance, Difficulte | Sort-Object Name |
+    Select-Object @{n='Instance';e={($_.Group[0]).Instance}},
+                  @{n='Diff';e={($_.Group[0]).Difficulte}},
+                  @{n='Objets';e={$_.Count}} |
+    Sort-Object Instance, Diff | Format-Table -AutoSize

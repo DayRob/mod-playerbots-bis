@@ -1,0 +1,3 @@
+
+# Genere par tools/extraire_classloot.ps1 depuis les fichiers de l addon.
+data/sql/db-world/base/21_classloot_seed.sql
