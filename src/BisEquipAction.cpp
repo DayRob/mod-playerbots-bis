@@ -5,7 +5,9 @@
  */
 
 #include "BisEquipAction.h"
+#include "BisBotScan.h"
 #include "BisPriorityMgr.h"
+#include "Chat.h"
 #include "ChatHelper.h"
 #include "Event.h"
 #include "Item.h"
@@ -15,6 +17,8 @@
 #include "Player.h"
 #include "Playerbots.h"
 #include <sstream>
+#include <string>
+#include <vector>
 
 bool BisEquipUpgradesAction::Execute(Event event)
 {
@@ -95,4 +99,82 @@ bool BisEquipUpgradesAction::EquipBisFromBags()
     }
 
     return equipped;
+}
+
+// ---------------------------------------------------------------------------
+// ".playerbotsbis equipe" - the same sweep, on demand.
+//
+// The action above is a packet action: it answers an arriving item. That is the
+// right moment in normal play, and the wrong one for everything that lands
+// outside it - a quest reward turned in by forty bots at once, a piece looted
+// while the module was switched off, a list that changed under a bot that has
+// received nothing since. In all of those the gear sits in the bags, correct and
+// unworn, with nothing scheduled to look at it again.
+// ---------------------------------------------------------------------------
+
+
+bool BisEquipCommand::HandleEquipNow(ChatHandler* handler, char const* args)
+{
+    if (!sBisPriorityMgr->IsEnabled() || !sBisPriorityMgr->IsLoaded())
+    {
+        handler->PSendSysMessage("mod-playerbots-bis : module desactive ou tables non chargees.");
+        return true;
+    }
+
+    std::string const arg = args ? args : "";
+    bool const all = arg.find("all") != std::string::npos;
+
+    Player* const viewer = handler->GetSession() ? handler->GetSession()->GetPlayer() : nullptr;
+
+    uint32 guildId = 0;
+    if (!all)
+    {
+        if (!viewer || !viewer->GetGuildId())
+        {
+            handler->PSendSysMessage("Tu n'es dans aucune guilde. Utilise |cffffd100.playerbotsbis equipe all|r "
+                                     "pour couvrir tous les bots.");
+            return true;
+        }
+        guildId = viewer->GetGuildId();
+    }
+
+    std::vector<std::string> skipped;
+    std::vector<Player*> const bots = BisBotScan::CollectBots(guildId, all, &skipped);
+    if (bots.empty())
+    {
+        handler->PSendSysMessage("Aucun bot concerne. Les bots doivent etre connectes.");
+        for (std::string const& line : skipped)
+            handler->PSendSysMessage("  ignore : {}", line);
+        return true;
+    }
+
+    uint32 changed = 0;
+
+    for (Player* bot : bots)
+    {
+        PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
+        if (!botAI)
+            continue;
+
+        // Built on the stack for this one call. The action carries no state of
+        // its own between invocations - it reads the bags, the worn gear and
+        // the ladder, all of which live on the bot - so a temporary is exactly
+        // as correct as the one the engine keeps.
+        BisEquipUpgradesAction action(botAI);
+        if (action.EquipBisFromBags())
+            ++changed;
+    }
+
+    handler->PSendSysMessage("{} bot(s) examines, {} ont equipe au moins une piece.",
+                             uint32(bots.size()), changed);
+
+    if (!changed)
+        handler->PSendSysMessage("Rien a equiper : soit les pieces sont deja portees, soit aucune "
+                                 "liste ne les nomme a leur palier (|cffffd100.playerbotsbis missing "
+                                 "<nom>|r pour le detail d'un bot).");
+
+    for (std::string const& line : skipped)
+        handler->PSendSysMessage("  ignore : {}", line);
+
+    return true;
 }

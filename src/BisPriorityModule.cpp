@@ -5,6 +5,7 @@
  */
 
 #include "BisActionContext.h"
+#include "BisEquipAction.h"
 #include "BisInstanceReset.h"
 #include "BisPriorityMgr.h"
 #include "BisReport.h"
@@ -129,6 +130,7 @@ public:
             {"report",  HandleBisReportCommand,  SEC_GAMEMASTER, Console::No},
             {"missing", HandleBisMissingCommand, SEC_GAMEMASTER, Console::No},
             {"libere",  HandleBisUnbindCommand,  SEC_GAMEMASTER, Console::No},
+            {"equipe",  HandleBisEquipCommand,   SEC_GAMEMASTER, Console::No},
         };
 
         static ChatCommandTable commandTable = {
@@ -191,6 +193,11 @@ public:
     static bool HandleBisUnbindCommand(ChatHandler* handler, char const* args)
     {
         return BisUnbind::HandleUnbind(handler, args);
+    }
+
+    static bool HandleBisEquipCommand(ChatHandler* handler, char const* args)
+    {
+        return BisEquipCommand::HandleEquipNow(handler, args);
     }
 };
 

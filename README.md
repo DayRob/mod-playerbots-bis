@@ -490,6 +490,23 @@ construction. Un guerrier affichait ainsi 35 « pièces » pour dix-sept crénea
 
 Même chose pour un seul bot, directement dans le chat, avec les liens d'objets cliquables.
 
+### Faire équiper ce qui dort dans les sacs
+
+```
+.playerbotsbis equipe             (les bots de ta guilde)
+.playerbotsbis equipe all         (tous les bots suivis par le module)
+```
+
+L'équipement automatique est une **action de paquet** : elle se déclenche quand un objet
+arrive. C'est le bon moment en jeu normal, et le mauvais pour tout ce qui atterrit en dehors —
+une récompense de quête rendue par quarante bots d'un coup, une pièce ramassée pendant que le
+module était éteint, ou une liste qui change sous un bot qui n'a rien reçu depuis. Dans tous
+ces cas la pièce reste dans les sacs, correcte et non portée, sans rien de prévu pour la
+regarder à nouveau.
+
+Cette commande passe en revue les sacs de chaque bot et lui fait enfiler tout ce que sa liste
+classe au-dessus de ce qu'il porte.
+
 ### Le transport
 
 Le relevé voyage en **messages système** portant le marqueur `PBBISREP;` : un en-tête, une
