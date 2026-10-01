@@ -19,17 +19,50 @@
 #>
 
 param(
-    [string] $ServerDir            = "C:\Azerothcore\bin",
+    [string] $ServerDir            = "",
     [string] $LogsDir              = "C:\Azerothcore\logs",
     [string] $Archive              = "C:\Azerothcore\crash_archive",
+    [string] $RacineRecherche      = "C:\Azerothcore",
     [int]    $RestartDelaySeconds  = 10,
     [int]    $RapidFailWindowMin   = 5,
     [int]    $RapidFailLimit       = 4
 )
 
+# Le dossier d'installation varie d'une machine a l'autre - bin\, bin\Release\,
+# la racine - alors que le serveur est toujours quelque part sous C:\Azerothcore.
+# Plutot que d'imposer un chemin qui sera faux une fois sur deux, on cherche.
+#
+# Le plus recent gagne : une machine qui compile garde souvent plusieurs copies,
+# et celle qu'on veut surveiller est celle qui vient d'etre installee.
+if (-not $ServerDir) {
+    $trouve = Get-ChildItem -LiteralPath $RacineRecherche -Recurse -Filter "worldserver.exe" `
+                            -ErrorAction SilentlyContinue |
+              Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+    if (-not $trouve) {
+        throw "worldserver.exe introuvable sous $RacineRecherche - passe le dossier avec -ServerDir."
+    }
+
+    $ServerDir = $trouve.DirectoryName
+    Write-Host "worldserver.exe trouve : $($trouve.FullName)" -ForegroundColor Cyan
+}
+
 $exe = Join-Path $ServerDir "worldserver.exe"
 if (-not (Test-Path $exe)) {
     throw "worldserver.exe introuvable : $exe - passe le bon dossier avec -ServerDir."
+}
+
+# Meme raisonnement pour les journaux : sans eux l'archive ne contient que le
+# code de sortie, ce qui ne suffit pas a comprendre un arret.
+if (-not (Test-Path $LogsDir)) {
+    $logTrouve = Get-ChildItem -LiteralPath $RacineRecherche -Recurse -Filter "Server.log" `
+                               -ErrorAction SilentlyContinue |
+                 Where-Object { $_.DirectoryName -notlike "*crash_archive*" } |
+                 Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($logTrouve) {
+        $LogsDir = $logTrouve.DirectoryName
+        Write-Host "journaux trouves : $LogsDir" -ForegroundColor Cyan
+    }
 }
 
 if (-not (Test-Path $Archive)) {
