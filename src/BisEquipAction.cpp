@@ -13,6 +13,7 @@
 #include "Item.h"
 #include "ItemPackets.h"
 #include "ItemVisitors.h"
+#include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "Playerbots.h"
@@ -34,7 +35,7 @@ bool BisEquipUpgradesAction::Execute(Event event)
     return EquipBisFromBags() || acted;
 }
 
-bool BisEquipUpgradesAction::EquipBisFromBags()
+bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
 {
     CollectItemsVisitor visitor;
     IterateItems(&visitor, ITERATE_ITEMS_IN_BAGS);
@@ -50,7 +51,9 @@ bool BisEquipUpgradesAction::EquipBisFromBags()
         if (!proto)
             continue;
 
-        // Only gear. Everything else keeps playerbots' own handling.
+        // Only gear. Everything else keeps playerbots' own handling. Not
+        // reported either: a report naming every reagent and potion in the
+        // bags would bury the lines that matter.
         if (proto->Class != ITEM_CLASS_WEAPON && proto->Class != ITEM_CLASS_ARMOR)
             continue;
 
@@ -58,17 +61,36 @@ bool BisEquipUpgradesAction::EquipBisFromBags()
         uint16 tierId = 0;
         uint32 const priority = sBisPriorityMgr->GetItemPriority(bot, proto->ItemId, &slot, &tierId);
         if (!priority)
-            continue;  // no list names it; the original's verdict stands
+        {
+            // No list names it AT THIS BOT'S CAP - which is not the same as
+            // "no list names it at all". A piece listed only for Blackwing Lair
+            // lands here for a bot whose ceiling stops at Molten Core, and that
+            // distinction is the whole reason this report exists.
+            if (report)
+                report->PSendSysMessage("  {} : aucune ligne a son palier", ChatHelper::FormatItem(proto));
+            continue;
+        }
 
         // Unlike the claim made at loot time, a missing level is disqualifying
         // here: the core refuses the equip outright, so forcing it would only
         // spend a packet per tick until the bot grows into the piece.
-        if (bot->BotCanUseItem(proto) != EQUIP_ERR_OK)
+        if (InventoryResult const canUse = bot->BotCanUseItem(proto); canUse != EQUIP_ERR_OK)
+        {
+            if (report)
+                report->PSendSysMessage("  {} : ne peut pas l'equiper (code {})",
+                                        ChatHelper::FormatItem(proto), uint32(canUse));
             continue;
+        }
 
         uint8 targetSlot = slot;
-        if (priority <= sBisPriorityMgr->GetWornPriorityPaired(bot, slot, &targetSlot))
+        uint32 const worn = sBisPriorityMgr->GetWornPriorityPaired(bot, slot, &targetSlot);
+        if (priority <= worn)
+        {
+            if (report)
+                report->PSendSysMessage("  {} : deja mieux au creneau {} (porte {}, sac {})",
+                                        ChatHelper::FormatItem(proto), uint32(slot), worn, priority);
             continue;  // already wearing this piece, or something higher up the ladder
+        }
 
         // A two-hander goes to the main hand with an off-hand still on: the
         // core moves that off-hand to the bags when there is room, and refuses
@@ -82,6 +104,20 @@ bool BisEquipUpgradesAction::EquipBisFromBags()
         equipPacket.Read();
         bot->GetSession()->HandleAutoEquipItemSlotOpcode(equipPacket);
 
+        // The handler answers by changing the inventory, not by returning
+        // anything, and it declines in silence - a full bag with no room for
+        // the piece coming off, an off-hand that cannot be put away. Counting
+        // the packet as a success would report work that never happened, so
+        // the result is read back from the slot itself.
+        Item* const now = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, targetSlot);
+        if (!now || now->GetEntry() != proto->ItemId)
+        {
+            if (report)
+                report->PSendSysMessage("  {} : le coeur a refuse l'equipement au creneau {} "
+                                        "(sacs pleins ?)", ChatHelper::FormatItem(proto), uint32(targetSlot));
+            continue;
+        }
+
         // Said out loud for the same reason the claim is: the bot is putting on
         // something playerbots' own score had just declined, and without a word
         // that reads as the item jumping slots by itself.
@@ -94,6 +130,10 @@ bool BisEquipUpgradesAction::EquipBisFromBags()
                 out << " (" << tierName << ")";
             botAI->TellMaster(out.str());
         }
+
+        if (report)
+            report->PSendSysMessage("  {} : EQUIPE au creneau {} ({})", ChatHelper::FormatItem(proto),
+                                    uint32(targetSlot), sBisPriorityMgr->GetTierName(tierId));
 
         equipped = true;
     }
@@ -113,6 +153,50 @@ bool BisEquipUpgradesAction::EquipBisFromBags()
 // ---------------------------------------------------------------------------
 
 
+namespace
+{
+    bool ReportOne(ChatHandler* handler, std::string const& name)
+    {
+        Player* bot = ObjectAccessor::FindPlayerByName(name, false);
+        if (!bot)
+        {
+            handler->PSendSysMessage("{} n'est pas connecte.", name);
+            return true;
+        }
+
+        PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
+        if (!botAI)
+        {
+            handler->PSendSysMessage("{} n'est pas un bot.", bot->GetName());
+            return true;
+        }
+
+        if (char const* why = sBisPriorityMgr->WhyNotFollowed(bot))
+        {
+            handler->PSendSysMessage("{} n'est pas suivi : {}", bot->GetName(), why);
+            return true;
+        }
+
+        // The three values that decide everything downstream, printed before
+        // any verdict. A wrong spec or a ceiling below the phase explains a
+        // whole bot at once, where the per-item lines would only repeat it.
+        uint8 const spec = sBisPriorityMgr->GetSpec(bot);
+        uint16 const cap = sBisPriorityMgr->GetEffectiveTierCap(bot);
+        std::string const capName = sBisPriorityMgr->GetTierName(cap);
+
+        handler->PSendSysMessage("{} - {} {} - palier plafond {} ({})", bot->GetName(),
+                                 BisBotScan::ClassName(bot->getClass()),
+                                 BisBotScan::SpecName(bot->getClass(), spec),
+                                 uint32(cap), capName.empty() ? "sans nom" : capName);
+
+        BisEquipUpgradesAction action(botAI);
+        if (!action.EquipBisFromBags(handler))
+            handler->PSendSysMessage("Rien equipe.");
+
+        return true;
+    }
+}
+
 bool BisEquipCommand::HandleEquipNow(ChatHandler* handler, char const* args)
 {
     if (!sBisPriorityMgr->IsEnabled() || !sBisPriorityMgr->IsLoaded())
@@ -121,8 +205,18 @@ bool BisEquipCommand::HandleEquipNow(ChatHandler* handler, char const* args)
         return true;
     }
 
-    std::string const arg = args ? args : "";
-    bool const all = arg.find("all") != std::string::npos;
+    std::string arg = args ? args : "";
+    while (!arg.empty() && arg.back() == ' ')
+        arg.pop_back();
+
+    bool const all = arg == "all";
+
+    // A name instead of a scope switches to the detailed mode. One bot, one
+    // line per piece of gear it carries, with the reason it stayed in the bag.
+    // "0 ont equipe" over 359 bots says nothing about which of the four tests
+    // refused, and that is exactly what has to be known.
+    if (!arg.empty() && !all)
+        return ReportOne(handler, arg);
 
     Player* const viewer = handler->GetSession() ? handler->GetSession()->GetPlayer() : nullptr;
 

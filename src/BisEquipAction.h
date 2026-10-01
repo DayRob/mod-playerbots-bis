@@ -50,13 +50,18 @@ public:
     // again until the next item lands - so a quest reward handed to forty bots
     // at once, or anything received while the module was off, stays there.
     // ".playerbotsbis equipe" calls this directly to sweep that up.
-    bool EquipBisFromBags();
+    //
+    // report, when given, prints one line per piece of gear in the bags with
+    // the verdict and its reason. Without it the sweep is silent, which is what
+    // the packet path wants; with it the command can say why nothing moved,
+    // instead of leaving "0 ont equipe" to be guessed at.
+    bool EquipBisFromBags(ChatHandler* report = nullptr);
 };
 
 namespace BisEquipCommand
 {
     // args: empty for the caller's guild, "all" for every bot the module
-    // applies to. Runs the bag sweep on each and prints what was put on.
+    // applies to, or a bot NAME for the detailed verdict on that one bot.
     bool HandleEquipNow(ChatHandler* handler, char const* args);
 }
 

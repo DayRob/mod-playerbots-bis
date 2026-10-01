@@ -495,6 +495,7 @@ Même chose pour un seul bot, directement dans le chat, avec les liens d'objets 
 ```
 .playerbotsbis equipe             (les bots de ta guilde)
 .playerbotsbis equipe all         (tous les bots suivis par le module)
+.playerbotsbis equipe <nom>       (un seul bot, avec le detail des refus)
 ```
 
 L'équipement automatique est une **action de paquet** : elle se déclenche quand un objet
@@ -506,6 +507,21 @@ regarder à nouveau.
 
 Cette commande passe en revue les sacs de chaque bot et lui fait enfiler tout ce que sa liste
 classe au-dessus de ce qu'il porte.
+
+Avec un **nom de bot** à la place de la portée, elle devient bavarde : elle annonce d'abord la
+classe, la spé et le **palier plafond** du bot, puis une ligne par pièce d'équipement portée
+dans les sacs, avec la raison du refus. C'est ce qu'il faut quand la version muette répond
+« 0 ont équipé » : quatre tests peuvent refuser, et ce chiffre ne dit pas lequel.
+
+```
+Hurnest - Voleur Combat - palier plafond 30 (Vanilla P2 BWL)
+  [Bague du Maître-tueur de dragon] : EQUIPE au creneau 10 (Vanilla P2 BWL)
+  [Ceinture en cuir épais] : aucune ligne a son palier
+```
+
+Le succès est lu **dans le créneau**, pas déduit de l'envoi du paquet : le cœur refuse en
+silence quand les sacs sont pleins, et compter l'envoi ferait état d'un travail qui n'a pas eu
+lieu.
 
 ### Le transport
 
