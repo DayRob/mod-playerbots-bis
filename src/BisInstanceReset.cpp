@@ -8,8 +8,10 @@
 #include "Config.h"
 #include "DBCStores.h"
 #include "DatabaseEnv.h"
+#include "Field.h"
 #include "InstanceSaveMgr.h"
 #include "Log.h"
+#include "QueryResult.h"
 #include <vector>
 
 namespace
