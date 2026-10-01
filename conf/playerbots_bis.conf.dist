@@ -200,3 +200,27 @@ PlayerbotsBis.UseIndividualProgression = 0
 # Evite une requete SQL par objet evalue. Ignore si UseIndividualProgression = 0.
 # Defaut : 300
 PlayerbotsBis.ProgressionCacheSeconds = 300
+
+# Remet a zero les verrous d'instance de TOUS les personnages a chaque demarrage
+# du serveur.
+#
+# A quoi ca sert : un bot lie a sa propre copie de Blackwing Lair y est envoye
+# quand tu le summons, quelle que soit la facon dont le raid est forme. Le coeur
+# lit le verrou du bot AVANT de regarder celui du chef de groupe
+# (InstanceSaveMgr::PlayerGetDestinationInstanceId), donc ni le groupe ni la
+# reinvitation n'y changent rien. En effacant tout avant la premiere connexion,
+# la premiere entree de la soiree ouvre une copie neuve que les 40 bots
+# partagent ensuite.
+#
+# ATTENTION : ca efface AUSSI les verrous des vrais joueurs, et avec eux les
+# boss deja tues de la semaine. Sur un serveur solo ou entre amis c'est le but
+# recherche ; sur un serveur avec des joueurs qui progressent dans un raid sur
+# plusieurs soirees, ca annule leur progression a chaque redemarrage.
+#
+# La commande ".playerbotsbis libere" reste l'outil pour le meme probleme en
+# cours de session, sans redemarrer et sans toucher aux vrais joueurs.
+#
+# 0 = desactive (defaut)
+# 1 = raids seulement
+# 2 = raids et donjons
+PlayerbotsBis.ResetInstancesOnStartup = 0

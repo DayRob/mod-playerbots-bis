@@ -5,6 +5,7 @@
  */
 
 #include "BisActionContext.h"
+#include "BisInstanceReset.h"
 #include "BisPriorityMgr.h"
 #include "BisReport.h"
 #include "BisUnbind.h"
@@ -59,6 +60,13 @@ public:
 
         sBisPriorityMgr->LoadConfig();
         sBisPriorityMgr->LoadTables();
+
+        // Before anything else, and deliberately outside the IsLoaded() guard
+        // below: clearing the instance locks has nothing to do with the BiS
+        // tables, and a server whose tables failed to load still wants its
+        // raid freed. This is also the right moment - InstanceSaveMgr has
+        // finished LoadInstances, and no character has logged in yet.
+        BisInstanceReset::RunOnce();
 
         if (!sBisPriorityMgr->IsLoaded())
         {

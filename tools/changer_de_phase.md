@@ -59,6 +59,25 @@ AccountInstancesPerHour = 100
 
 Pas 0 : la comparaison est `size() < config`, donc 0 veut dire "aucune".
 
+### Repartir d'instances neuves a chaque demarrage
+
+Dans `playerbots_bis.conf` :
+
+```
+PlayerbotsBis.ResetInstancesOnStartup = 1
+```
+
+A chaque demarrage du serveur, tous les verrous de raid sont effaces - ceux des
+bots comme ceux des vrais joueurs. La premiere entree de la soiree ouvre donc
+une copie neuve que les 40 bots partagent, et tu n'as plus a y penser.
+
+`2` au lieu de `1` inclut les donjons. `0` desactive.
+
+Ce n'est pas anodin : les boss deja tues de la semaine disparaissent avec les
+verrous. Sur un serveur ou des joueurs etalent un raid sur plusieurs soirees,
+laisse a 0 et utilise `.playerbotsbis libere` en cours de session, qui ne touche
+que les bots.
+
 ## 3. Importer les listes du nouveau palier
 
 Ouvre le client MySQL, puis donne-lui les fichiers. C'est la methode qui sert
