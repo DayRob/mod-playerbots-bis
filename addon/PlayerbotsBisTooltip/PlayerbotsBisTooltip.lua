@@ -447,6 +447,12 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         else
             Print("fenetre d'etat indisponible - PlayerbotsBisRoster.lua n'est pas charge.")
         end
+    elseif cmd == "raids" or cmd == "raid" then
+        if PlayerbotsBisRaids_Toggle then
+            PlayerbotsBisRaids_Toggle()
+        else
+            Print("fenetre des raids indisponible - PlayerbotsBisRaids.lua n'est pas charge.")
+        end
     elseif cmd == "minimap" then
         local said = false
         if PlayerbotsBisBrowser_ToggleMinimap then
@@ -486,6 +492,7 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         Print("/pbbis maxtier <n> - masque les paliers superieurs a n (actuel : "
               .. (db.maxTier == 0 and "aucun plafond" or db.maxTier) .. ")")
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
+        Print("/pbbis raids - quel raid rapporte quoi, et a quels bots (aussi /pbbisraids)")
         Print("/pbbis compo - enregistre et reapplique une repartition de raid")
         Print("/pbbis minimap - affiche ou masque le bouton de minicarte")
         Print("/pbbis info - ce resume")

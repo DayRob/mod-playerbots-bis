@@ -623,6 +623,14 @@ end
 
 PlayerbotsBisRoster_Toggle = Toggle
 
+-- Lue par la fenetre des raids, qui regroupe les memes pieces par palier au
+-- lieu de les regrouper par bot. Le flux du serveur porte deja le palier de
+-- chaque ligne, donc la vue par raid ne demande rien de plus au serveur - elle
+-- relit ce releve-ci.
+function PlayerbotsBisRoster_Data()
+    return roster
+end
+
 --------------------------------------------------------------------------------
 -- Reception
 --------------------------------------------------------------------------------

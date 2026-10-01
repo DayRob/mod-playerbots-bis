@@ -490,6 +490,39 @@ construction. Un guerrier affichait ainsi 35 « pièces » pour dix-sept crénea
 
 Même chose pour un seul bot, directement dans le chat, avec les liens d'objets cliquables.
 
+### Quel raid faire
+
+```
+/pbbis raids          (aussi /pbbisraids)
+```
+
+La fenêtre d'état répond à « ce bot, que lui manque-t-il ». Choisir le raid de la soirée
+demande l'inverse : **« ce raid, à qui sert-il, et pour quoi »**. Cette vue regroupe les mêmes
+pièces par palier au lieu de les regrouper par bot.
+
+Elle ne demande rien de plus au serveur : le flux de `.playerbotsbis report` porte déjà le
+palier de chaque ligne, et cette fenêtre relit ce même relevé. Lance le rapport, ouvre la
+fenêtre.
+
+Chaque palier annonce le nombre de pièces encore manquantes et le nombre de bots concernés.
+Dépliez-le et les pièces arrivent **triées par nombre de bots en attente** — celle que six bots
+convoitent avant celle qu'un seul attend. Le survol d'une pièce donne son infobulle, le survol
+de la colonne de droite la liste complète des bots, et un Maj-clic insère le lien dans le chat.
+
+Trois exclusions font tout l'intérêt du classement :
+
+- une pièce **déjà portée** ne justifie pas un raid ;
+- une pièce **dans les sacs** non plus — elle demande `.playerbotsbis equipe`, pas une soirée ;
+- un **repli** non plus : si la cible d'un créneau est à Blackwing Lair, la pièce de Molten Core
+  pour ce même créneau n'est plus l'objectif.
+
+C'est cette dernière règle qui rend le nombre lisible. Chaque créneau de chaque bot compte pour
+**un seul** raid, celui qui porte sa meilleure pièce atteignable — donc le chiffre en face d'un
+palier est bien le nombre de pièces que cette soirée-là ferait gagner, sans double compte.
+
+La granularité est le **palier**, pas l'instance. Molten Core et Onyxia partagent le palier 20 et
+apparaissent donc ensemble ; tous les autres raids Vanilla ont leur palier propre.
+
 ### Faire équiper ce qui dort dans les sacs
 
 ```
