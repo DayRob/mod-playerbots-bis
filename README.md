@@ -490,6 +490,27 @@ construction. Un guerrier affichait ainsi 35 « pièces » pour dix-sept crénea
 
 Même chose pour un seul bot, directement dans le chat, avec les liens d'objets cliquables.
 
+### Convertir une liste wowtbc.gg
+
+```
+python3 tools/convert_wowtbc_bis.py --classe 1 --spec 2 --palier 10 \
+    --entree page.txt --sortie data/sql/db-world/base/30_ma_liste.sql \
+    --etiquette "Vanilla P2 BWL" --sans-arme-main-gauche
+```
+
+`page.txt` est le **texte brut copié depuis le navigateur**, tel quel : le site est inaccessible
+depuis l'environnement de développement, donc le copier-coller est la seule entrée possible.
+
+Les **rangs viennent de l'ordre d'apparition** dans un créneau — c'est ce que la page exprime
+par ses menus déroulants. `finger 2` et `trinket 2` sont ignorés : ils rejouent les mêmes objets
+dans un autre ordre, et le module apparie lui-même le second emplacement. Les armes raciales
+(`orc weapon`, `human weapon`) sont aplaties dans le même créneau, la table n'ayant pas de
+dimension race. Le PvP et la réputation sont écartés à la génération, d'après la provenance que
+la page indique pour chaque objet.
+
+`--sans-arme-main-gauche` est à passer pour une **spé tank** : le créneau 16 doit rester au
+bouclier, et y laisser entrer une arme ferait lâcher le bouclier au bot.
+
 ### Quel raid faire
 
 ```
