@@ -66,9 +66,16 @@ $tierRows = Invoke-Sql "SELECT tier_id, name FROM playerbots_bis_tier ORDER BY t
 Write-Host "Lecture des objets..."
 $itemRows = Invoke-Sql "SELECT i.item_id, i.class, i.spec, i.tier_id, i.rank FROM playerbots_bis_item i ORDER BY i.item_id, i.tier_id, i.rank;"
 
+$stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
 $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine("-- Genere par tools/export_bis_tooltip.ps1 - ne pas editer a la main.")
-[void]$sb.AppendLine("-- Source : $Database.playerbots_bis_item, $(Get-Date -Format 'yyyy-MM-dd HH:mm').")
+[void]$sb.AppendLine("-- Source : $Database.playerbots_bis_item, $stamp.")
+[void]$sb.AppendLine()
+# La date est aussi une valeur Lua, pas seulement un commentaire : un export
+# oublie apres un import SQL fait mentir l'infobulle sans rien signaler, et le
+# bot - qui lit la base en direct - annonce alors un BiS que l'infobulle ignore.
+# /pbbis info affiche cette date pour que l'ecart se voie.
+[void]$sb.AppendLine("PlayerbotsBisTooltipStamp = `"$stamp`"")
 [void]$sb.AppendLine()
 [void]$sb.AppendLine("PlayerbotsBisTooltipTiers = {")
 foreach ($row in $tierRows) {

@@ -482,6 +482,17 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
             for _ in pairs(PlayerbotsBisTooltipItems) do count = count + 1 end
         end
         Print(count .. " objets charges.")
+        -- Le bot lit la base en direct, l'infobulle lit ce fichier. Un export
+        -- oublie apres un import SQL les fait diverger en silence, et c'est
+        -- toujours la base qui a raison : la date dit laquelle croire.
+        if PlayerbotsBisTooltipStamp then
+            Print("exportes le " .. PlayerbotsBisTooltipStamp
+                  .. " - si un bot annonce un BiS absent de l'infobulle, relance"
+                  .. " tools/export_bis_tooltip.ps1 puis /reload.")
+        else
+            Print("date d'export inconnue (BisData.lua d'avant cette version) -"
+                  .. " relance tools/export_bis_tooltip.ps1 puis /reload.")
+        end
         Print("/pbbis - ouvre le navigateur des listes (aussi /pbbislist)")
         Print("/pbbis all - bascule entre ta classe seule et toutes les classes (actuel : "
               .. (db.allClasses and "toutes" or "ta classe") .. ")")
