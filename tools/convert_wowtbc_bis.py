@@ -130,6 +130,11 @@ def main():
                         "separes par des virgules. Pour les objets ARTISANAUX liables "
                         "dont seul le PATRON demande une reputation : le porteur, lui, "
                         "n'a rien a gagner, donc un bot peut les recevoir.")
+    p.add_argument("--exclut", default="",
+                   help="noms d'objets a ecarter nommement, separes par des "
+                        "virgules. Pour ce que la provenance ne trahit pas : une "
+                        "recompense de quete d'Alterac Valley s'affiche comme "
+                        "n'importe quelle quete.")
     p.add_argument("--remplace", action="store_true",
                    help="efface d'abord les lignes existantes de ce couple "
                         "classe/spe/palier (sinon elles coexistent, et deux "
@@ -153,6 +158,7 @@ def main():
     blocs = lire_blocs(lignes)
 
     gardes = set(x.strip().lower() for x in args.garde.split(",") if x.strip())
+    exclus_nommes = set(x.strip().lower() for x in args.exclut.split(",") if x.strip())
 
     retenus, ecartes, inconnus = [], [], []
     par_creneau = {}
@@ -163,6 +169,10 @@ def main():
             continue
         if creneau in IGNORES:
             continue
+        if nom.lower() in exclus_nommes:
+            ecartes.append((nom, "ecarte nommement (--exclut)"))
+            continue
+
         if EXCLUS.search(source) and nom.lower() not in gardes:
             ecartes.append((nom, source.strip()))
             continue
@@ -253,6 +263,12 @@ def main():
         print("\nECARTES (%d) :" % len(ecartes))
         for nom, pourquoi in ecartes:
             print("  - %-38s %s" % (nom, pourquoi[:60]))
+    if exclus_nommes:
+        vus = set(n.lower() for n, _ in ((x[0], x[1]) for x in ecartes))
+        for e in sorted(exclus_nommes):
+            if e not in vus:
+                print("\nATTENTION : --exclut \"%s\" ne correspond a aucun objet de la page." % e)
+
     if gardes:
         poses = set(n.lower() for n, _, _ in retenus)
         for g in sorted(gardes):

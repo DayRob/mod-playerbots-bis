@@ -520,6 +520,11 @@ ne permet pas de les distinguer — elle écrit « Reputation » dans les deux c
 sait : un objet verrouillé sur son porteur a `RequiredReputationFaction` et
 `RequiredReputationRank` renseignés dans `item_template`, un objet artisanal non.
 
+`--exclut "Nom A,Nom B"` écarte nommément des objets que la provenance ne trahit pas. Le cas
+type est une **récompense de quête d'Alterac Valley** : la page l'affiche comme n'importe quelle
+quête, alors qu'un bot n'y accédera jamais. `Wand of Biting Cold`, rang 1 à distance du mage,
+vient de la quête « Hero of the Frostwolf » et tombe dans ce cas.
+
 `--remplace` efface d'abord la liste existante de ce couple classe/spé/palier. **À passer dès
 qu'une liste existe déjà** pour cette combinaison — ce qui est le cas partout où l'import WoWSims
 est passé. Sans lui, les deux listes coexistent et un créneau se retrouve avec deux objets de
