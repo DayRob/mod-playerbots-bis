@@ -64,9 +64,14 @@ DECOR = {"gear", "slot", "source", "dropdown arrow", "alternative", "enchant"}
 
 # Provenances qui disqualifient : la regle du projet ecarte le PvP et la
 # reputation, qu'un bot n'ira jamais chercher.
+# "arena" tout court est volontairement absent : le Cercle de la Loi de
+# Blackrock Depths donne un coffre appele "Arena Spoils", qui est du PvE pur et
+# que le mot seul faisait tomber. Il n'y avait pas d'arene en Vanilla ; pour les
+# pages TBC et WotLK, ce sont "arena season" et "arena points" qui comptent.
 EXCLUS = re.compile(
-    r"\b(exalted|revered|honored|friendly|reputation|rank \d|pvp|honor|"
-    r"battleground|alterac valley|warsong gulch|arathi basin|arena)\b", re.I)
+    r"\b(exalted|revered|honored|friendly|reputation|rank \d|pvp|honor system|"
+    r"battleground|alterac valley|warsong gulch|arathi basin|"
+    r"arena season|arena points)\b", re.I)
 
 RANG_MAX = 3
 
