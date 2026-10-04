@@ -508,6 +508,11 @@ dans un autre ordre, et le module apparie lui-même le second emplacement. Les a
 dimension race. Le PvP et la réputation sont écartés à la génération, d'après la provenance que
 la page indique pour chaque objet.
 
+`--spec` accepte **plusieurs spés séparées par des virgules** (`--spec 0,2`) quand la même page
+les couvre toutes. C'est le cas du démoniste, du chasseur et du mage, dont les arbres partagent
+le même équipement en Vanilla. Une seule table de départ est alors posée autant de fois qu'il y
+a de spés — recopier le fichier n'apporterait que des divergences au fil des corrections.
+
 `--remplace` efface d'abord la liste existante de ce couple classe/spé/palier. **À passer dès
 qu'une liste existe déjà** pour cette combinaison — ce qui est le cas partout où l'import WoWSims
 est passé. Sans lui, les deux listes coexistent et un créneau se retrouve avec deux objets de

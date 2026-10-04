@@ -111,7 +111,9 @@ def lire_blocs(lignes):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--classe", type=int, required=True)
-    p.add_argument("--spec", type=int, required=True)
+    p.add_argument("--spec", required=True,
+                   help="une spe, ou plusieurs separees par des virgules quand "
+                        "la meme liste les couvre toutes (ex: 0,2)")
     p.add_argument("--palier", type=int, required=True)
     p.add_argument("--entree", required=True)
     p.add_argument("--sortie", required=True)
@@ -123,6 +125,11 @@ def main():
                         "classe/spe/palier (sinon elles coexistent, et deux "
                         "rangs 1 se retrouvent dans le meme creneau)")
     args = p.parse_args()
+
+    specs = [int(x) for x in str(args.spec).split(",") if x.strip() != ""]
+    if not specs:
+        print("--spec est vide", file=sys.stderr)
+        return 1
 
     brut = open(args.entree, encoding="utf-8").read()
     lignes = []
@@ -170,8 +177,8 @@ def main():
     etiquette = args.etiquette or "wowtbc.gg"
     out = []
     out.append("-- mod-playerbots-bis : GENERE par tools/convert_wowtbc_bis.py")
-    out.append("-- Source : %s. Classe %d, spe %d, palier %d."
-               % (etiquette, args.classe, args.spec, args.palier))
+    out.append("-- Source : %s. Classe %d, spe %s, palier %d."
+               % (etiquette, args.classe, ",".join(str(x) for x in specs), args.palier))
     out.append("-- Les rangs viennent de l'ordre d'apparition dans la page.")
     out.append("-- PvP et reputation ecartes a la generation.")
     out.append("")
@@ -186,25 +193,30 @@ def main():
     lignes_sql = ["(%2d, %d, '%s')" % (s, r, n.replace("'", "''")) for n, s, r in retenus]
     out.append(",\n".join(lignes_sql) + ";")
     out.append("")
-    if args.remplace:
-        out.append("-- REMPLACE : la liste existante de ce couple classe/spe/palier part")
-        out.append("-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau")
-        out.append("-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne")
-        out.append("-- sait pas departager.")
-        out.append("DELETE FROM `playerbots_bis_item`")
-        out.append("WHERE `class` = %d AND `spec` = %d AND `tier_id` = %d;"
-                   % (args.classe, args.spec, args.palier))
+    # Une seule table de depart, posee autant de fois qu'il y a de spes : quand
+    # la page couvre plusieurs arbres - c'est le cas du demoniste, du chasseur
+    # et du mage - recopier le fichier n'apporterait que des divergences.
+    for spec in specs:
+        if args.remplace:
+            out.append("-- REMPLACE : la liste existante de ce couple classe/spe/palier part")
+            out.append("-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau")
+            out.append("-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne")
+            out.append("-- sait pas departager.")
+            out.append("DELETE FROM `playerbots_bis_item`")
+            out.append("WHERE `class` = %d AND `spec` = %d AND `tier_id` = %d;"
+                       % (args.classe, spec, args.palier))
+            out.append("")
+
+        out.append("INSERT IGNORE INTO `playerbots_bis_item`")
+        out.append("    (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)")
+        out.append("SELECT %d, %d, s.`slot`, 0, %d, r.entry, s.`rank`,"
+                   % (args.classe, spec, args.palier))
+        out.append("       CONCAT('%s - ', s.`item_name`)" % etiquette.replace("'", "''"))
+        out.append("FROM `bis_seed_wowtbc` s")
+        out.append("JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r")
+        out.append("  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci;")
         out.append("")
 
-    out.append("INSERT IGNORE INTO `playerbots_bis_item`")
-    out.append("    (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)")
-    out.append("SELECT %d, %d, s.`slot`, 0, %d, r.entry, s.`rank`,"
-               % (args.classe, args.spec, args.palier))
-    out.append("       CONCAT('%s - ', s.`item_name`)" % etiquette.replace("'", "''"))
-    out.append("FROM `bis_seed_wowtbc` s")
-    out.append("JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r")
-    out.append("  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci;")
-    out.append("")
     out.append("-- VERIFICATION 1 - noms non resolus (aucune ligne = bon).")
     out.append("SELECT s.`slot`, s.`rank`, s.`item_name` AS nom_non_resolu")
     out.append("FROM `bis_seed_wowtbc` s")
@@ -213,16 +225,17 @@ def main():
     out.append("WHERE r.entry IS NULL;")
     out.append("")
     out.append("-- VERIFICATION 2 - couverture obtenue.")
-    out.append("SELECT `slot`, `rank`, COUNT(*) AS objets FROM `playerbots_bis_item`")
-    out.append("WHERE `class` = %d AND `spec` = %d AND `tier_id` = %d"
-               % (args.classe, args.spec, args.palier))
-    out.append("GROUP BY `slot`, `rank` ORDER BY `slot`, `rank`;")
+    out.append("SELECT `spec`, `slot`, `rank`, COUNT(*) AS objets FROM `playerbots_bis_item`")
+    out.append("WHERE `class` = %d AND `spec` IN (%s) AND `tier_id` = %d"
+               % (args.classe, ",".join(str(x) for x in specs), args.palier))
+    out.append("GROUP BY `spec`, `slot`, `rank` ORDER BY `spec`, `slot`, `rank`;")
     out.append("")
     out.append("DROP TEMPORARY TABLE IF EXISTS `bis_seed_wowtbc`;")
 
     open(args.sortie, "w", encoding="ascii", errors="strict").write("\n".join(out) + "\n")
 
-    print("objets retenus : %d sur %d creneaux" % (len(retenus), len(par_creneau)))
+    print("objets retenus : %d sur %d creneaux, poses sur la/les spe(s) %s"
+          % (len(retenus), len(par_creneau), ",".join(str(x) for x in specs)))
     print("fichier ecrit  : %s" % args.sortie)
     if ecartes:
         print("\nECARTES (%d) :" % len(ecartes))
