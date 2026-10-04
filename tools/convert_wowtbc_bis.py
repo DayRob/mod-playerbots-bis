@@ -120,6 +120,11 @@ def main():
     p.add_argument("--etiquette", default="", help="texte mis dans le commentaire SQL")
     p.add_argument("--sans-arme-main-gauche", action="store_true",
                    help="spe tank : le creneau 16 reste au bouclier")
+    p.add_argument("--garde", default="",
+                   help="noms d'objets a conserver malgre la regle PvP/reputation, "
+                        "separes par des virgules. Pour les objets ARTISANAUX liables "
+                        "dont seul le PATRON demande une reputation : le porteur, lui, "
+                        "n'a rien a gagner, donc un bot peut les recevoir.")
     p.add_argument("--remplace", action="store_true",
                    help="efface d'abord les lignes existantes de ce couple "
                         "classe/spe/palier (sinon elles coexistent, et deux "
@@ -142,6 +147,8 @@ def main():
 
     blocs = lire_blocs(lignes)
 
+    gardes = set(x.strip().lower() for x in args.garde.split(",") if x.strip())
+
     retenus, ecartes, inconnus = [], [], []
     par_creneau = {}
 
@@ -151,7 +158,7 @@ def main():
             continue
         if creneau in IGNORES:
             continue
-        if EXCLUS.search(source):
+        if EXCLUS.search(source) and nom.lower() not in gardes:
             ecartes.append((nom, source.strip()))
             continue
 
@@ -241,6 +248,12 @@ def main():
         print("\nECARTES (%d) :" % len(ecartes))
         for nom, pourquoi in ecartes:
             print("  - %-38s %s" % (nom, pourquoi[:60]))
+    if gardes:
+        poses = set(n.lower() for n, _, _ in retenus)
+        for g in sorted(gardes):
+            if g not in poses:
+                print("\nATTENTION : --garde \"%s\" ne correspond a aucun objet de la page." % g)
+
     if inconnus:
         print("\nSANS CRENEAU RECONNU (%d) - a verifier :" % len(inconnus))
         for nom in inconnus:

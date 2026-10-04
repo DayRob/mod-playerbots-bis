@@ -513,6 +513,13 @@ les couvre toutes. C'est le cas du démoniste, du chasseur et du mage, dont les 
 le même équipement en Vanilla. Une seule table de départ est alors posée autant de fois qu'il y
 a de spés — recopier le fichier n'apporterait que des divergences au fil des corrections.
 
+`--garde "Nom A,Nom B"` conserve des objets que la règle PvP/réputation écarterait. C'est fait
+pour les pièces **artisanales liables à l'équipement** dont seul le *patron* demande une
+réputation : le porteur n'a rien à gagner, un bot peut donc très bien en recevoir une. La page
+ne permet pas de les distinguer — elle écrit « Reputation » dans les deux cas — mais la base le
+sait : un objet verrouillé sur son porteur a `RequiredReputationFaction` et
+`RequiredReputationRank` renseignés dans `item_template`, un objet artisanal non.
+
 `--remplace` efface d'abord la liste existante de ce couple classe/spé/palier. **À passer dès
 qu'une liste existe déjà** pour cette combinaison — ce qui est le cas partout où l'import WoWSims
 est passé. Sans lui, les deux listes coexistent et un créneau se retrouve avec deux objets de
