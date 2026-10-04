@@ -70,6 +70,17 @@ EXCLUS = re.compile(
 
 RANG_MAX = 3
 
+# Certaines pages suffixent un objet par la classe a qui il revient :
+# "Royal Seal of Eldre'Thalas (Warlock)". item_template ne connait que le nom
+# nu, donc le suffixe est retire - sinon la ligne finit en "nom non resolu".
+QUALIFICATIF = re.compile(
+    r"\s*\((?:warlock|mage|priest|druid|hunter|rogue|paladin|shaman|warrior|"
+    r"death knight|alliance|horde|a|h)\)\s*$", re.I)
+
+
+def nettoyer(nom):
+    return QUALIFICATIF.sub("", nom).strip()
+
 
 def lire_blocs(lignes):
     """Decoupe le texte en (nom, creneau, provenance)."""
@@ -90,7 +101,7 @@ def lire_blocs(lignes):
                 elif creneau is not None:
                     source.append(lignes[j])
                 j += 1
-            blocs.append((nom, creneau, " ".join(source)))
+            blocs.append((nettoyer(nom), creneau, " ".join(source)))
             i = j
         else:
             i += 1
@@ -107,6 +118,10 @@ def main():
     p.add_argument("--etiquette", default="", help="texte mis dans le commentaire SQL")
     p.add_argument("--sans-arme-main-gauche", action="store_true",
                    help="spe tank : le creneau 16 reste au bouclier")
+    p.add_argument("--remplace", action="store_true",
+                   help="efface d'abord les lignes existantes de ce couple "
+                        "classe/spe/palier (sinon elles coexistent, et deux "
+                        "rangs 1 se retrouvent dans le meme creneau)")
     args = p.parse_args()
 
     brut = open(args.entree, encoding="utf-8").read()
@@ -171,6 +186,16 @@ def main():
     lignes_sql = ["(%2d, %d, '%s')" % (s, r, n.replace("'", "''")) for n, s, r in retenus]
     out.append(",\n".join(lignes_sql) + ";")
     out.append("")
+    if args.remplace:
+        out.append("-- REMPLACE : la liste existante de ce couple classe/spe/palier part")
+        out.append("-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau")
+        out.append("-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne")
+        out.append("-- sait pas departager.")
+        out.append("DELETE FROM `playerbots_bis_item`")
+        out.append("WHERE `class` = %d AND `spec` = %d AND `tier_id` = %d;"
+                   % (args.classe, args.spec, args.palier))
+        out.append("")
+
     out.append("INSERT IGNORE INTO `playerbots_bis_item`")
     out.append("    (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)")
     out.append("SELECT %d, %d, s.`slot`, 0, %d, r.entry, s.`rank`,"

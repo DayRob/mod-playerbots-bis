@@ -508,6 +508,11 @@ dans un autre ordre, et le module apparie lui-même le second emplacement. Les a
 dimension race. Le PvP et la réputation sont écartés à la génération, d'après la provenance que
 la page indique pour chaque objet.
 
+`--remplace` efface d'abord la liste existante de ce couple classe/spé/palier. **À passer dès
+qu'une liste existe déjà** pour cette combinaison — ce qui est le cas partout où l'import WoWSims
+est passé. Sans lui, les deux listes coexistent et un créneau se retrouve avec deux objets de
+rang 1, que l'échelle ne sait pas départager.
+
 `--sans-arme-main-gauche` est à passer pour une **spé tank** : le créneau 16 doit rester au
 bouclier, et y laisser entrer une arme ferait lâcher le bouclier au bot.
 
