@@ -568,10 +568,20 @@ bool BisPriorityMgr::ClaimsClassRestricted(PlayerbotAI* botAI, Player* bot, uint
     if (GetWornPriorityPaired(bot, dstSlot))
         return false;
 
+    Item* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, dstSlot);
+
+    // The piece the bot is ALREADY wearing. Item level cannot separate those
+    // two - they are the same number - so the test below let a bot claim, roll
+    // for and equip a second copy of what it had on, replacing it with itself.
+    // That costs a drop another bot could have used, and the whisper announcing
+    // it reads as nonsense.
+    if (worn && worn->GetEntry() == itemId)
+        return false;
+
     // Item level is the blunt measure the stat score is not: it cannot rate a
     // downgrade as an upgrade, and it cannot be fooled by weights tuned for
-    // another spec.
-    Item* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, dstSlot);
+    // another spec. Equal counts as good enough, deliberately: the claim exists
+    // to settle a slot no list covers, where a sidegrade is still an answer.
     if (worn && proto->ItemLevel < worn->GetTemplate()->ItemLevel)
         return false;
 
