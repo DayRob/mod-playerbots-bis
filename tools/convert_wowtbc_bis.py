@@ -73,6 +73,24 @@ EXCLUS = re.compile(
     r"battleground|alterac valley|warsong gulch|arathi basin|"
     r"arena season|arena points)\b", re.I)
 
+# Suffixes aleatoires de Vanilla. Un objet "Eternal Crown of Healing" n'existe
+# pas sous ce nom dans item_template : la base ne connait que "Eternal Crown",
+# et le "of Healing" vient d'ItemRandomSuffix, applique a l'exemplaire au
+# moment ou il tombe. Le nom complet ne se resout donc JAMAIS.
+#
+# Et le rabattre sur l'objet de base serait pire que de l'ecarter :
+# playerbots_bis_item est indexee par item_id, et toutes les variantes
+# partagent le meme. Le bot reclamerait alors "Eternal Crown of the Tiger"
+# aussi volontiers que celle de soin.
+#
+# Le test exige AUSSI l'hotel des ventes, parce que le suffixe seul ne suffit
+# pas : "Hands of Power" est un vrai objet, qui tombe sur Quartermaster Zigris.
+SUFFIXES_ALEATOIRES = re.compile(
+    r"\s+of (?:the (?:Bear|Boar|Eagle|Falcon|Gorilla|Monkey|Owl|Tiger|Whale|Wolf)|"
+    r"Agility|Arcane Wrath|Defense|Fiery Wrath|Frozen Wrath|Healing|Intellect|"
+    r"Nature's Wrath|Power|Shadow Wrath|Spirit|Stamina|Strength|Marksmanship|"
+    r"Concentration|Restoration|Sorcery)$", re.I)
+
 RANG_MAX = 3
 
 # Certaines pages suffixent un objet par la classe a qui il revient :
@@ -175,6 +193,10 @@ def main():
 
         if EXCLUS.search(source) and nom.lower() not in gardes:
             ecartes.append((nom, source.strip()))
+            continue
+
+        if "Auction House" in source and SUFFIXES_ALEATOIRES.search(nom):
+            ecartes.append((nom, "suffixe aleatoire - absent d'item_template"))
             continue
 
         slot = CRENEAUX[creneau]

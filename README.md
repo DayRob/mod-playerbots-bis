@@ -570,6 +570,18 @@ et les manques sont comblés de façon explicite plutôt que devinée :
 | Druide | « feral tank » est l'ours, spé **10** ; « feral dps » est le chat, spé 1 |
 | Prêtre | **Discipline n'a pas de liste** : le site ne publie que Sacré et Ombre. Discipline reprend Sacré, par `20_specs_partagees.sql` — pas par un fichier recopié |
 
+**Les objets à suffixe aléatoire sont écartés à la génération.** `Eternal Crown of Healing`
+n'existe pas sous ce nom dans `item_template` : la base ne connaît que `Eternal Crown`, et le
+`of Healing` vient d'`ItemRandomSuffix`, appliqué à l'exemplaire au moment où il tombe. Le nom
+complet ne se résout donc jamais, et la ligne mourait silencieusement à l'import.
+
+Le rabattre sur l'objet de base serait pire : `playerbots_bis_item` est indexée par `item_id`,
+et **toutes les variantes partagent le même**. Le bot réclamerait alors la couronne « of the
+Tiger » aussi volontiers que celle de soin.
+
+Le test exige la provenance *Auction House* **en plus** du suffixe, parce que le suffixe seul ne
+suffit pas : `Hands of Power` est un vrai objet, qui tombe sur Quartermaster Zigris.
+
 `--exclut "Nom A,Nom B"` écarte nommément des objets que la provenance ne trahit pas. Le cas
 type est une **récompense de quête d'Alterac Valley** : la page l'affiche comme n'importe quelle
 quête, alors qu'un bot n'y accédera jamais. `Wand of Biting Cold`, rang 1 à distance du mage,
