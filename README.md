@@ -539,7 +539,12 @@ Les **rangs viennent de l'ordre d'apparition** dans un créneau — c'est ce que
 par ses menus déroulants. `finger 2` et `trinket 2` sont ignorés : ils rejouent les mêmes objets
 dans un autre ordre, et le module apparie lui-même le second emplacement. Les armes raciales
 (`orc weapon`, `human weapon`) sont aplaties dans le même créneau, la table n'ayant pas de
-dimension race. Le PvP et la réputation sont écartés à la génération, d'après la provenance que
+dimension race. **La colonne qui vient en premier dans la page garde les rangs 1 et 2** ; la
+seconde arrive après le plafond de rang et tombe entièrement en rang 3. Chez le guerrier
+Fureur, la page liste l'orc d'abord : `Crul'shorukh` est donc rang 1 et `Chromatically
+Tempered Sword`, qui est le rang 1 humain, devient un repli. C'est le bon choix sur un serveur
+Horde, et les armes de l'autre race restent disponibles en repli — mais c'est un choix, pas
+une neutralité. Le PvP et la réputation sont écartés à la génération, d'après la provenance que
 la page indique pour chaque objet.
 
 `--spec` accepte **plusieurs spés séparées par des virgules** (`--spec 0,2`) quand la même page
