@@ -617,6 +617,20 @@ lui-même le jour où il ramasse une arme à une main.
 `--sans-arme-main-gauche` est à passer pour une **spé tank** : le créneau 16 doit rester au
 bouclier, et y laisser entrer une arme ferait lâcher le bouclier au bot.
 
+### Un objet, une phase
+
+L'infobulle n'affiche que **le palier le plus haut** où l'objet figure. Une cape qui est BiS à
+Blackwing Lair *et* à Molten Core ne dit rien d'utile avec sa ligne Molten Core ; un objet
+pré-raid et rien d'autre continue de s'afficher, puisque le pré-raid est alors son plus haut.
+
+`/pbbis top` rebascule sur l'historique complet.
+
+**À combiner avec un plafond.** Sans lui, « le plus haut » peut désigner une phase que le
+serveur ne joue pas : une cape listée à BWL *et* à Ahn'Qiraj n'afficherait que la ligne
+Ahn'Qiraj, la seule sur laquelle personne ne peut agir. `/pbbis maxtier 30` pour un serveur
+arrêté à Blackwing Lair — le même chiffre que `PlayerbotsBis.MaxTier`. `/pbbis info` le
+rappelle tant que le plafond est à zéro.
+
 ### Quel raid faire
 
 ```

@@ -101,6 +101,12 @@ local defaults = {
     allClasses = false,  -- false: only your own class, plus a one-line summary
     maxTier = 0,         -- 0: no ceiling. Mirror PlayerbotsBis.MaxTier to match the bots.
     compact = true,      -- one line per tier instead of one per class/spec/tier
+    -- Only the highest tier an item reaches, not the phases it passed through.
+    -- An item that is best in slot at Blackwing Lair AND at Molten Core says
+    -- nothing useful with its Molten Core line; one that is pre-raid only still
+    -- shows, since pre-raid is then its highest. Default on: the history is
+    -- what people asked to stop reading.
+    topOnly = true,
 }
 
 local db
@@ -245,7 +251,10 @@ end
 -- One line per tier. "BiS" stays at the head of every line so the block is
 -- still recognisable without a header line eating a row of its own.
 local function AddCompactLines(tooltip, data)
-    for _, tier in ipairs(data.tierOrder) do
+    for i, tier in ipairs(data.tierOrder) do
+        -- tierOrder is sorted highest first, so stopping after the first line
+        -- leaves the phase that matters and drops the history behind it.
+        if db.topOnly and i > 1 then return end
         local entry = data.tiers[tier]
         table.sort(entry.order)
 
@@ -293,7 +302,8 @@ end
 -- the tier spelled out. Verbose, but it is the one that shows every rank number.
 local function AddDetailedLines(tooltip, data)
     local flat = {}
-    for _, tier in ipairs(data.tierOrder) do
+    for i, tier in ipairs(data.tierOrder) do
+        if db.topOnly and i > 1 then break end
         local entry = data.tiers[tier]
         for _, class in ipairs(entry.order) do
             for spec, rank in pairs(entry.classes[class]) do
@@ -426,6 +436,10 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         db.compact = not db.compact
         Print(db.compact and "infobulle compacte : une ligne par palier."
                           or "infobulle detaillee : une ligne par classe, spe et palier.")
+    elseif cmd == "top" then
+        db.topOnly = not db.topOnly
+        Print(db.topOnly and "infobulle : seulement le palier le plus haut."
+                          or "infobulle : tous les paliers, du plus haut au plus bas.")
     elseif cmd == "maxtier" then
         local n = tonumber(arg)
         if n and n >= 0 then
@@ -500,6 +514,17 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
               .. (db.compact and "compact" or "detaille") .. ")")
         Print("En compact, le rang suit la spe entre parentheses et la colore : "
               .. "|cff1eff00(1)|r, |cffffe650(2)|r, |cff999999(3)|r.")
+        Print("/pbbis top - n'affiche que le palier le plus haut (actuel : "
+              .. (db.topOnly and "oui" or "non") .. ")")
+        -- Without a ceiling, "highest" can mean a phase the server does not
+        -- play: a cape listed at Blackwing Lair AND at Ahn'Qiraj would show
+        -- only the Ahn'Qiraj line, which is the one piece of news nobody can
+        -- act on.
+        if db.topOnly and db.maxTier == 0 then
+            Print("|cffffcc00Sans plafond, 'le plus haut' peut designer une phase que ton "
+                  .. "serveur ne joue pas. Mets /pbbis maxtier au meme chiffre que "
+                  .. "PlayerbotsBis.MaxTier.|r")
+        end
         Print("/pbbis maxtier <n> - masque les paliers superieurs a n (actuel : "
               .. (db.maxTier == 0 and "aucun plafond" or db.maxTier) .. ")")
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
