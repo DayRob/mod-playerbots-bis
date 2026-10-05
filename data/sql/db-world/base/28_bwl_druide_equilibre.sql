@@ -1,5 +1,5 @@
 -- mod-playerbots-bis : GENERE par tools/convert_wowtbc_bis.py
--- Source : Vanilla P2 BWL (icy-veins). Classe 11, spe 0, palier 30.
+-- Source : Vanilla P3 BWL (wowtbc.gg). Classe 11, spe 0, palier 30.
 -- Les rangs viennent de l'ordre d'apparition dans la page.
 -- PvP et reputation ecartes a la generation.
 
@@ -97,7 +97,7 @@ WHERE `class` = 11 AND `spec` = 0 AND `tier_id` = 30;
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
 SELECT 11, 0, s.`slot`, 0, 30, r.entry, s.`rank`,
-       CONCAT('Vanilla P2 BWL (icy-veins) - ', s.`item_name`)
+       CONCAT('Vanilla P3 BWL (wowtbc.gg) - ', s.`item_name`)
 FROM `bis_seed_wowtbc` s
 JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci;
