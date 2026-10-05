@@ -541,6 +541,28 @@ qu'une liste existe déjà** pour cette combinaison — ce qui est le cas partou
 est passé. Sans lui, les deux listes coexistent et un créneau se retrouve avec deux objets de
 rang 1, que l'échelle ne sait pas départager.
 
+### Deux mains, ou une main + main gauche ?
+
+```
+mysql -u acore -p acore_world < tools/main_droite_ou_main_gauche.sql
+```
+
+La question n'a pas de réponse dans la formule : `palier × 1000 + (255 − rang)` compare
+**une ligne à une autre dans un même créneau**, jamais une ligne contre deux. Elle ne peut donc
+pas mettre « bâton » en face de « arme à une main + main gauche ».
+
+Mais la réponse est quand même dans les listes : c'est le **rang 1 du créneau 15**. Les guides
+classent l'arme dans une seule échelle où les deux mains et les une main se mélangent. Poser un
+bâton en tête, c'est dire qu'il bat la meilleure arme à une main *accompagnée* de la meilleure
+main gauche. Le site n'écrit jamais cette phrase — il la dit par l'ordre.
+
+Quand le rang 1 du créneau 15 est à deux mains, les lignes du créneau 16 de ce couple sont
+**inatteignables** pour un bot qui a atteint son BiS. Elles ne sont pas fausses pour autant, et
+c'est pourquoi la table les garde : un bot qui n'a pas encore son bâton porte très bien une main
+gauche en attendant. C'est `BisPriorityMgr::OffHandClosed` qui tranche, à l'exécution, **sur la
+main portée** et non sur la liste — les mains du bot décident, et le créneau se rouvre de
+lui-même le jour où il ramasse une arme à une main.
+
 `--sans-arme-main-gauche` est à passer pour une **spé tank** : le créneau 16 doit rester au
 bouclier, et y laisser entrer une arme ferait lâcher le bouclier au bot.
 
