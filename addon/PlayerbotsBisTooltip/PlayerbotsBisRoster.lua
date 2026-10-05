@@ -533,7 +533,12 @@ local function BuildWindow()
                     local colour = "|cff1eff00"
                     if ratio < 0.5 then colour = "|cffff2020"
                     elseif ratio < 0.85 then colour = "|cffffcc00" end
-                    r.info:SetText(string.format("%s%d/%d|r", colour, bot.equipped, bot.total))
+                    -- The percentage is shown because the sort is on it, not on
+                    -- the count. Lists do not all have the same number of slots,
+                    -- so 5/14 really does come after 6/17 - and with the counts
+                    -- alone that reads as a broken sort rather than as the point.
+                    r.info:SetText(string.format("%s%d/%d|r |cff999999%d%%|r",
+                        colour, bot.equipped, bot.total, math.floor(ratio * 100 + 0.5)))
                     r.botName = bot.name
                 elseif e.slot then
                     r.bar:Hide()
