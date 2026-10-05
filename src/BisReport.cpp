@@ -124,6 +124,12 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
         // the fallbacks on screen.
         for (BisItem const& row : list)
         {
+            // An off-hand under a two-hander is not missing, it is out of reach.
+            // Counting it would charge the bot for a slot its own weapon closed,
+            // and send the raid view hunting a drop nobody here can wear.
+            if (sBisPriorityMgr->OffHandClosed(bot, row.slot))
+                continue;
+
             uint8 const state = ResolveState(bot, row.itemId);
 
             auto target = targets.find(row.slot);

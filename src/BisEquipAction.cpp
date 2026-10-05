@@ -4,6 +4,7 @@
  * option) any later version.
  */
 
+#include <algorithm>
 #include "BisEquipAction.h"
 #include "BisBotScan.h"
 #include "BisPriorityMgr.h"
@@ -39,6 +40,34 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
 {
     CollectItemsVisitor visitor;
     IterateItems(&visitor, ITERATE_ITEMS_IN_BAGS);
+
+    // Off-hands go last. The sweep takes the bags in their own order, so a bot
+    // trading a two-hander for a one-hander in this very pass would only reach
+    // its off-hand if the bags happened to hold it further along - and stay a
+    // weapon short until the next item arrived otherwise. Handling the main hand
+    // first makes the off-hand's own test read a hand that is already settled.
+    std::stable_sort(visitor.items.begin(), visitor.items.end(),
+                     [](Item const* a, Item const* b)
+                     {
+                         auto offHand = [](Item const* item)
+                         {
+                             ItemTemplate const* const proto = item ? item->GetTemplate() : nullptr;
+                             if (!proto)
+                                 return 0;
+
+                             switch (proto->InventoryType)
+                             {
+                                 case INVTYPE_SHIELD:
+                                 case INVTYPE_WEAPONOFFHAND:
+                                 case INVTYPE_HOLDABLE:
+                                     return 1;
+                                 default:
+                                     return 0;
+                             }
+                         };
+
+                         return offHand(a) < offHand(b);
+                     });
 
     bool equipped = false;
 
@@ -84,6 +113,20 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
 
         uint8 targetSlot = slot;
         uint32 const worn = sBisPriorityMgr->GetWornPriorityPaired(bot, slot, &targetSlot);
+
+        // A two-hander fills both hands, so the core refuses this one every
+        // single time. Sending the packet anyway spent a refusal per item
+        // received and answered the master in the core's own words, which read
+        // like a module failure rather than what it is: a slot the bot's own
+        // weapon closed.
+        if (sBisPriorityMgr->OffHandClosed(bot, targetSlot))
+        {
+            if (report)
+                report->PSendSysMessage("  {} : main gauche fermee par l'arme a deux mains portee",
+                                        ChatHelper::FormatItem(proto));
+            continue;
+        }
+
         if (priority <= worn)
         {
             if (report)

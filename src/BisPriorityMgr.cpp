@@ -581,6 +581,11 @@ bool BisPriorityMgr::ClaimsClassRestricted(PlayerbotAI* botAI, Player* bot, uint
     return true;
 }
 
+bool BisPriorityMgr::OffHandClosed(Player* bot, uint8 slot)
+{
+    return slot == EQUIPMENT_SLOT_OFFHAND && bot && bot->IsTwoHandUsed();
+}
+
 bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId, bool* outTooLowLevel)
 {
     if (outTooLowLevel)
@@ -600,6 +605,12 @@ bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierI
     uint16 tierId = 0;
     uint32 const priority = GetItemPriority(bot, itemId, &slot, &tierId);
     if (!priority)
+        return false;
+
+    // Same reason the equip sweep refuses it: a two-hander leaves no off-hand to
+    // fill. Claiming it here would have the bot roll NEED on a piece the core
+    // will not let it put on.
+    if (OffHandClosed(bot, slot))
         return false;
 
     // Claiming something the bot can NEVER wear would have it ask for an item it

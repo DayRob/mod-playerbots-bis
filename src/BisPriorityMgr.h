@@ -91,6 +91,23 @@ public:
     // WEAKER of the two. outTargetSlot receives the slot it would replace.
     uint32 GetWornPriorityPaired(Player* bot, uint8 slot, uint8* outTargetSlot = nullptr);
 
+    // True when slot is the off-hand AND the bot already holds a two-handed
+    // weapon, which fills both hands. Titan's Grip is the exception, and the
+    // core's own IsTwoHandUsed() already accounts for it.
+    //
+    // The lists cannot express this on their own. They rank slot 15 and slot 16
+    // as two independent ladders, because that is how the guides present them:
+    // a page whose weapon row is a staff simply stops using its off-hand row.
+    // That "simply stops" is the information the per-slot import dropped, and
+    // without it a bot claims, rolls for, and endlessly fails to equip an
+    // off-hand it cannot physically wear.
+    //
+    // Answering from the WORN main hand rather than from the list keeps the
+    // answer true and stable: the bot's hands decide, not a guess about which
+    // weapon it will end up with, and the slot reopens by itself the day it
+    // picks up a one-hander.
+    bool OffHandClosed(Player* bot, uint8 slot);
+
     // The full "this is my best in slot and I want it" test: on the bot's list,
     // within its tier cap, wearable by its class and race, and better than what
     // it wears. Shared by the item-usage layer and the master-loot announcer so
