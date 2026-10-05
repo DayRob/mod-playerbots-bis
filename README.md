@@ -566,7 +566,7 @@ et les manques sont comblés de façon explicite plutôt que devinée :
 |---|---|
 | Chasseur | une seule liste publiée — elle couvre les trois arbres |
 | Mage | **Feu n'a pas de liste avant la phase 6 (Naxxramas)** : il reprend celle de Givre. Arcane et Givre ont été vérifiés identiques à P3, donc les trois spés partagent le même fichier |
-| Démoniste | Affliction et Destruction vérifiés identiques à P3 ; Démonologie attend sa page |
+| Démoniste | Affliction et Destruction vérifiés identiques à P3. **Démonologie n'est pas publiée** : elle reprend Affliction, par `20_specs_partagees.sql` |
 | Druide | « feral tank » est l'ours, spé **10** ; « feral dps » est le chat, spé 1 |
 | Prêtre | **Discipline n'a pas de liste** : le site ne publie que Sacré et Ombre. Discipline reprend Sacré, par `20_specs_partagees.sql` — pas par un fichier recopié |
 

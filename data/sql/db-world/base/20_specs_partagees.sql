@@ -41,7 +41,8 @@ CREATE TEMPORARY TABLE `bis_copie_spec` (
 INSERT INTO `bis_copie_spec` (`classe`, `spec_source`, `spec_cible`, `etiquette`) VALUES
 (4, 1, 0, 'set Combat'),
 (4, 1, 2, 'set Combat'),
-(5, 1, 0, 'set Sacre');
+(5, 1, 0, 'set Sacre'),
+(9, 0, 1, 'set Affliction');
 
 -- ---------------------------------------------------------------------
 -- 1. La photo de ce qu'il faut poser.
