@@ -107,6 +107,12 @@ public:
 
                 wanted << ChatHelper::FormatItem(proto);
 
+                // Half the master-loot decision is what the bot gives up. On a
+                // ring or a trinket it is the only way to know which of the two
+                // this would cost, and whether the trade is worth the roll.
+                if (ItemTemplate const* const replaced = sBisPriorityMgr->WouldReplace(bot, itemId))
+                    wanted << " a la place de " << ChatHelper::FormatItem(replaced);
+
                 std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
                 if (!tierName.empty())
                     wanted << " (" << tierName << ")";

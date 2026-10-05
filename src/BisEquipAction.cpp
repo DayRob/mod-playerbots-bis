@@ -135,6 +135,24 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
             continue;  // already wearing this piece, or something higher up the ladder
         }
 
+        // What goes away, read BEFORE the swap - afterwards the slot holds the
+        // new piece and the old one is somewhere in the bags, indistinguishable
+        // from everything else the bot carries. Only the template is kept: the
+        // Item object may move or be destroyed by the equip, while an
+        // ItemTemplate lives in the object manager's store for the run.
+        Item const* const previous = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, targetSlot);
+        ItemTemplate const* const replaced = previous ? previous->GetTemplate() : nullptr;
+
+        // The off-hand a two-hander pushes out is a second loss, and the one a
+        // master notices least: nothing names it, it simply stops being worn.
+        bool const twoHander = proto->InventoryType == INVTYPE_2HWEAPON;
+        ItemTemplate const* displacedOffHand = nullptr;
+        if (twoHander && targetSlot == EQUIPMENT_SLOT_MAINHAND)
+        {
+            Item const* const offHand = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
+            displacedOffHand = offHand ? offHand->GetTemplate() : nullptr;
+        }
+
         // A two-hander goes to the main hand with an off-hand still on: the
         // core moves that off-hand to the bags when there is room, and refuses
         // the whole thing when there is none. Either way it answers for itself,
@@ -164,19 +182,47 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         // Said out loud for the same reason the claim is: the bot is putting on
         // something playerbots' own score had just declined, and without a word
         // that reads as the item jumping slots by itself.
+        // The off-hand is only reported as displaced if it actually left: with
+        // the bags full the core refuses the whole swap, and that case already
+        // returned above - but a stale claim here would be worse than silence.
+        if (displacedOffHand && bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+            displacedOffHand = nullptr;
+
+        // Said out loud for the same reason the claim is: the bot is putting on
+        // something playerbots' own score had just declined, and without a word
+        // that reads as the item jumping slots by itself. Naming what leaves
+        // matters as much as naming what arrives - on a paired slot it is the
+        // only way to know WHICH ring went.
         if (sBisPriorityMgr->AnnounceOwnBis() && botAI)
         {
             std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
             std::ostringstream out;
             out << "J'equipe " << ChatHelper::FormatItem(proto);
+            if (replaced)
+                out << " a la place de " << ChatHelper::FormatItem(replaced);
+            else
+                out << " sur un creneau vide";
+            if (displacedOffHand)
+                out << ", et je range " << ChatHelper::FormatItem(displacedOffHand);
             if (!tierName.empty())
                 out << " (" << tierName << ")";
             botAI->TellMaster(out.str());
         }
 
         if (report)
-            report->PSendSysMessage("  {} : EQUIPE au creneau {} ({})", ChatHelper::FormatItem(proto),
-                                    uint32(targetSlot), sBisPriorityMgr->GetTierName(tierId));
+        {
+            std::ostringstream line;
+            line << "  " << ChatHelper::FormatItem(proto) << " : EQUIPE au creneau "
+                 << uint32(targetSlot);
+            if (replaced)
+                line << " a la place de " << ChatHelper::FormatItem(replaced);
+            else
+                line << " (creneau vide)";
+            if (displacedOffHand)
+                line << ", main gauche rangee : " << ChatHelper::FormatItem(displacedOffHand);
+            line << " (" << sBisPriorityMgr->GetTierName(tierId) << ")";
+            report->PSendSysMessage("{}", line.str());
+        }
 
         equipped = true;
     }

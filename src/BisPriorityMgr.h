@@ -16,6 +16,7 @@
 
 class Player;
 class PlayerbotAI;
+struct ItemTemplate;
 
 // Sentinel spec used for Druid Feral Tank, which shares talent tab 1 with Cat.
 // Resolved at runtime from the bot's tank strategy.
@@ -107,6 +108,12 @@ public:
     // weapon it will end up with, and the slot reopens by itself the day it
     // picks up a one-hander.
     bool OffHandClosed(Player* bot, uint8 slot);
+
+    // What this item would push out if the bot put it on: the piece worn in the
+    // slot the list assigns it, or nullptr when that slot is empty. Pairs are
+    // resolved first, so on a ring or a trinket it names WHICH of the two goes -
+    // the one thing a master cannot work out from the item alone.
+    ItemTemplate const* WouldReplace(Player* bot, uint32 itemId);
 
     // The full "this is my best in slot and I want it" test: on the bot's list,
     // within its tier cap, wearable by its class and race, and better than what

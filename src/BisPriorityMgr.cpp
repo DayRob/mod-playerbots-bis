@@ -586,6 +586,22 @@ bool BisPriorityMgr::OffHandClosed(Player* bot, uint8 slot)
     return slot == EQUIPMENT_SLOT_OFFHAND && bot && bot->IsTwoHandUsed();
 }
 
+ItemTemplate const* BisPriorityMgr::WouldReplace(Player* bot, uint32 itemId)
+{
+    if (!bot)
+        return nullptr;
+
+    uint8 slot = 0;
+    if (!GetItemPriority(bot, itemId, &slot))
+        return nullptr;
+
+    uint8 targetSlot = slot;
+    GetWornPriorityPaired(bot, slot, &targetSlot);
+
+    Item const* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, targetSlot);
+    return worn ? worn->GetTemplate() : nullptr;
+}
+
 bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId, bool* outTooLowLevel)
 {
     if (outTooLowLevel)

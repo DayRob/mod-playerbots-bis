@@ -151,11 +151,32 @@ joueur. Résultat : quand c'est vous qui distribuez, aucun bot n'exprime jamais 
 `OnPlayerBeforeSendLoot` — qui se déclenche à l'ouverture du cadavre et fournit le butin
 complet — et interroge chaque bot du groupe avec le **même** test
 `BisPriorityMgr::WantsAsUpgrade()` que la couche d'item usage. Les intéressés chuchotent
-au maître : « Je need cet objet : *nom* (*phase*) ».
+au maître : « Je need cet objet : *nom* **à la place de** *ce qu'il porte* (*phase*) ».
+
+**Ce qui part compte autant que ce qui arrive.** Sur un anneau ou un bijou, c'est la seule
+façon de savoir *lequel des deux* le bot sacrifierait — l'objet seul ne le dit pas, puisque
+le module apparie lui-même les deux emplacements et vise toujours le plus faible des deux.
+`BisPriorityMgr::WouldReplace()` résout la paire puis lit le créneau visé.
 
 Un seul chuchotement par bot, listant tout ce qu'il convoite sur ce cadavre : un raid de
 quarante ne produit pas quarante lignes par boss. Le script ne s'enregistre que sur ce
 hook précis, et non sur l'ensemble des événements joueur.
+
+### Ce que le bot dit en s'équipant
+
+```
+J'equipe [Objet] a la place de [Ancien] (Vanilla Phase 2 - Blackwing Lair)
+J'equipe [Objet] sur un creneau vide (Vanilla Pre-Raid)
+J'equipe [Baton] a la place de [Epee], et je range [Grimoire] (…)
+```
+
+La troisième forme est celle qu'on ne voit nulle part ailleurs : une arme à deux mains
+déloge **aussi** la main gauche, et rien dans le jeu ne le signale — elle cesse simplement
+d'être portée. Le module la nomme, et seulement si elle a réellement quitté le créneau
+(avec les sacs pleins le cœur refuse l'échange entier, et l'annonce ne doit pas mentir).
+
+`.playerbotsbis equipe` donne la même information en plus détaillé, avec le numéro de
+créneau et la raison exacte des refus.
 
 ## Installation
 
