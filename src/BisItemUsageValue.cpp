@@ -93,20 +93,23 @@ namespace
             uint8 claimSlot = 0;
             if (sBisPriorityMgr->ClaimsClassRestricted(botAI, bot, itemId, &claimSlot))
             {
+                Item const* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, claimSlot);
+
                 // Said out loud, because this claim has no list behind it:
                 // without a word, a bot rolling on a piece absent from every
                 // table looks like a bug rather than the rule it is.
                 if (sBisPriorityMgr->AnnounceOwnBis())
                 {
                     std::ostringstream out;
-                    out << ChatHelper::FormatItem(proto)
-                        << " - je le prends : reserve a ma classe, et je n'ai pas encore"
+                    out << ChatHelper::FormatItem(proto) << " - je le prends";
+                    if (worn && worn->GetTemplate())
+                        out << " a la place de " << ChatHelper::FormatItem(worn->GetTemplate());
+                    out << " : reserve a ma classe, et je n'ai pas encore"
                            " mon BiS a cet emplacement";
                     botAI->TellMaster(out.str());
                 }
 
-                return bot->GetItemByPos(INVENTORY_SLOT_BAG_0, claimSlot) ? ITEM_USAGE_REPLACE
-                                                                         : ITEM_USAGE_EQUIP;
+                return worn ? ITEM_USAGE_REPLACE : ITEM_USAGE_EQUIP;
             }
 
             return base;
@@ -141,6 +144,13 @@ namespace
         if (priority <= wornPriority)
             return ITEM_USAGE_NONE;
 
+        // What it costs, named here rather than at the equip. The equip that
+        // follows a roll is playerbots' own EquipAction, which answers with its
+        // "Equipping ..." and knows nothing of this module - only a sweep over
+        // the bags goes through BisEquipAction. The claim is therefore the one
+        // moment where this module can say what leaves.
+        Item const* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, targetSlot);
+
         if (sBisPriorityMgr->AnnounceOwnBis() && botAI)
         {
             std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
@@ -148,12 +158,16 @@ namespace
             out << ChatHelper::FormatItem(proto) << " - c'est mon BiS";
             if (!tierName.empty())
                 out << " (" << tierName << ")";
+            if (worn && worn->GetTemplate())
+                out << ", a la place de " << ChatHelper::FormatItem(worn->GetTemplate());
+            else
+                out << ", creneau vide";
             if (tooLowLevel)
                 out << " - je le garde, il me faut le niveau " << uint32(proto->RequiredLevel);
             botAI->TellMaster(out.str());
         }
 
-        return bot->GetItemByPos(INVENTORY_SLOT_BAG_0, targetSlot) ? ITEM_USAGE_REPLACE : ITEM_USAGE_EQUIP;
+        return worn ? ITEM_USAGE_REPLACE : ITEM_USAGE_EQUIP;
     }
 }
 

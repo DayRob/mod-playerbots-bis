@@ -162,6 +162,19 @@ Un seul chuchotement par bot, listant tout ce qu'il convoite sur ce cadavre : un
 quarante ne produit pas quarante lignes par boss. Le script ne s'enregistre que sur ce
 hook précis, et non sur l'ensemble des événements joueur.
 
+### Ce que le bot dit en revendiquant
+
+```
+[Objet] - c'est mon BiS (Vanilla Phase 2 - Blackwing Lair), a la place de [Ancien]
+[Objet] - c'est mon BiS (Vanilla Pre-Raid), creneau vide
+[Objet] - je le prends a la place de [Ancien] : reserve a ma classe, et je n'ai pas encore mon BiS a cet emplacement
+```
+
+C'est **ici** que la perte est nommée, et pas à l'équipement : l'équipement qui suit un roll
+est la `EquipAction` de playerbots, qui répond par son propre « Equipping … » et ne sait rien
+de ce module. Seul un balayage des sacs passe par `BisEquipAction`. La revendication est donc
+le seul moment où le module peut dire ce qui part.
+
 ### Ce que le bot dit en s'équipant
 
 ```
