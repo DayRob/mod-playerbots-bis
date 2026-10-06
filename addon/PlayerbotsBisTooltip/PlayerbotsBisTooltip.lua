@@ -449,6 +449,12 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         else
             Print("usage : /pbbis maxtier <nombre>, 0 pour aucun plafond.")
         end
+    elseif cmd == "jets" or cmd == "roll" or cmd == "rolls" then
+        if PlayerbotsBisRolls_Command then
+            PlayerbotsBisRolls_Command(arg)
+        else
+            Print("jets automatiques indisponibles - PlayerbotsBisRolls.lua n'est pas charge.")
+        end
     elseif cmd == "compo" then
         if PlayerbotsBisCompo_Command then
             PlayerbotsBisCompo_Command(arg)

@@ -1,8 +1,8 @@
 ## Interface: 30300
 ## Title: Playerbots BiS Tooltip
-## Notes: Infobulle BiS, navigateur des listes, etat des bots, choix du raid et compositions (/pbbis), d'apres les tables de mod-playerbots-bis.
+## Notes: Infobulle BiS, navigateur des listes, etat des bots, choix du raid, compositions et jets automatiques (/pbbis), d'apres les tables de mod-playerbots-bis.
 ## Author: mod-playerbots-bis
-## Version: 1.14
+## Version: 1.15
 ## SavedVariables: PlayerbotsBisTooltipDB
 
 BisData.lua
@@ -11,3 +11,4 @@ PlayerbotsBisBrowser.lua
 PlayerbotsBisRoster.lua
 PlayerbotsBisRaids.lua
 PlayerbotsBisCompo.lua
+PlayerbotsBisRolls.lua
