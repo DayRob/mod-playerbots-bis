@@ -185,6 +185,14 @@ local function Rebuild()
     -- count is what the eye checks, so the count is what decides.
     table.sort(roster.bots, function(a, b)
         if a.equipped ~= b.equipped then return a.equipped > b.equipped end
+
+        -- A egalite de pieces, le ratio departage : 6/14 est une meilleure
+        -- couverture que 6/15, et c'est la seule chose qui distingue encore
+        -- deux bots dont les listes n'ont pas la meme taille.
+        local ra = a.total > 0 and (a.equipped / a.total) or 0
+        local rb = b.total > 0 and (b.equipped / b.total) or 0
+        if ra ~= rb then return ra > rb end
+
         return a.name < b.name
     end)
 
