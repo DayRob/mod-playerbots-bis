@@ -111,6 +111,26 @@ local defaults = {
 
 local db
 
+-- Le plafond qui compte vraiment.
+--
+-- db.maxTier etait un reglage PUREMENT local, a 0 par defaut, et il fallait le
+-- recopier a la main depuis PlayerbotsBis.MaxTier. Personne ne le fait, et le
+-- symptome est trompeur : avec topOnly, "le palier le plus haut" devient une
+-- phase que le serveur ne joue pas. Drake Fang Talisman, best in slot ZG pour
+-- NEUF couples classe/spe, n'affichait qu'une ligne "TBC Pre-Raid Druide Ours"
+-- - l'infobulle avait raison sur ses donnees et tort sur ce qui interesse.
+--
+-- L'export inscrit desormais le plafond du serveur dans BisData.lua. Il sert
+-- de defaut, et un /pbbis maxtier explicite le remplace - c'est a ca que sert
+-- maxTierManuel, sans quoi on ne saurait pas distinguer "jamais regle" de
+-- "regle a zero expres".
+local function PlafondEffectif()
+    if db.maxTierManuel then
+        return db.maxTier
+    end
+    return PlayerbotsBisTooltipServerMaxTier or 0
+end
+
 local function Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99" .. ADDON .. "|r: " .. msg)
 end
@@ -178,7 +198,8 @@ local function Gather(itemId)
 
     for i = 1, #rows, 4 do
         local class, spec, tier, rank = rows[i], rows[i + 1], rows[i + 2], rows[i + 3]
-        if db.maxTier == 0 or tier <= db.maxTier then
+        local plafond = PlafondEffectif()
+        if plafond == 0 or tier <= plafond then
             if db.allClasses or class == myClass then
                 local entry = tiers[tier]
                 if not entry then
@@ -442,12 +463,18 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
                           or "infobulle : tous les paliers, du plus haut au plus bas.")
     elseif cmd == "maxtier" then
         local n = tonumber(arg)
-        if n and n >= 0 then
+        if arg == "auto" then
+            db.maxTierManuel = nil
+            local serveur = PlayerbotsBisTooltipServerMaxTier or 0
+            Print("plafond repris du serveur : "
+                  .. (serveur == 0 and "aucun" or serveur) .. ".")
+        elseif n and n >= 0 then
             db.maxTier = n
+            db.maxTierManuel = true
             Print(n == 0 and "aucun plafond de palier."
                           or ("paliers au-dessus de " .. n .. " masques."))
         else
-            Print("usage : /pbbis maxtier <nombre>, 0 pour aucun plafond.")
+            Print("usage : /pbbis maxtier <nombre> | auto, 0 pour aucun plafond.")
         end
     elseif cmd == "jets" or cmd == "roll" or cmd == "rolls" then
         if PlayerbotsBisRolls_Command then
@@ -526,13 +553,16 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         -- play: a cape listed at Blackwing Lair AND at Ahn'Qiraj would show
         -- only the Ahn'Qiraj line, which is the one piece of news nobody can
         -- act on.
-        if db.topOnly and db.maxTier == 0 then
+        local plafond = PlafondEffectif()
+        if db.topOnly and plafond == 0 then
             Print("|cffffcc00Sans plafond, 'le plus haut' peut designer une phase que ton "
-                  .. "serveur ne joue pas. Mets /pbbis maxtier au meme chiffre que "
-                  .. "PlayerbotsBis.MaxTier.|r")
+                  .. "serveur ne joue pas - et l'infobulle masque alors le palier qui "
+                  .. "t'interesse. Mets /pbbis maxtier <n>, ou reexporte BisData.lua "
+                  .. "avec -MaxTier pour que le plafond vienne du serveur.|r")
         end
-        Print("/pbbis maxtier <n> - masque les paliers superieurs a n (actuel : "
-              .. (db.maxTier == 0 and "aucun plafond" or db.maxTier) .. ")")
+        Print("/pbbis maxtier <n> | auto - masque les paliers superieurs a n (actuel : "
+              .. (plafond == 0 and "aucun plafond" or plafond)
+              .. ", " .. (db.maxTierManuel and "regle ici" or "repris du serveur") .. ")")
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
         Print("/pbbis raids - quel raid rapporte quoi, et a quels bots (aussi /pbbisraids)")
         Print("/pbbis compo - enregistre et reapplique une repartition de raid")

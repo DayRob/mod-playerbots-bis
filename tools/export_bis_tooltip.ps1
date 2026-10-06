@@ -24,6 +24,11 @@ param(
     [string] $Password = "admin",
     [string] $Database = "acore_world",
     [string] $WowPath  = "",
+    # Le plafond de palier du serveur. -1 signifie "a deduire du fichier de
+    # configuration", 0 "aucun plafond", et toute autre valeur s'impose.
+    [int]    $MaxTier  = -1,
+    # Chemin de playerbots_bis.conf. Vide : on cherche aux endroits habituels.
+    [string] $Conf     = "",
     [string] $Out      = (Join-Path $PSScriptRoot "..\addon\PlayerbotsBisTooltip\BisData.lua")
 )
 
@@ -43,6 +48,54 @@ if ($WowPath -and -not $PSBoundParameters.ContainsKey('Out')) {
 
 if (-not (Test-Path $MySql)) {
     throw "mysql.exe introuvable : $MySql - passe le bon chemin avec -MySql."
+}
+
+# ---------------------------------------------------------------------------
+# Le plafond de palier du SERVEUR.
+#
+# L'addon avait jusqu'ici un plafond purement local, a zero par defaut, qu'il
+# fallait recopier a la main depuis PlayerbotsBis.MaxTier. Personne ne le fait,
+# et le symptome ne designe pas sa cause : avec l'affichage "palier le plus
+# haut", une piece best in slot a Zul'Gurub n'affiche que sa ligne TBC Pre-Raid,
+# une phase que le serveur ne joue pas.
+#
+# La valeur vit dans playerbots_bis.conf, qui est sur cette machine. On la lit.
+# ---------------------------------------------------------------------------
+function Trouver-Conf {
+    if ($Conf) {
+        if (Test-Path $Conf) { return $Conf }
+        throw "Fichier de configuration introuvable : $Conf"
+    }
+    # Les emplacements habituels d'AzerothCore, relatifs au depot du module.
+    $pistes = @(
+        (Join-Path $PSScriptRoot '..\..\..\env\dist\etc\playerbots_bis.conf'),
+        (Join-Path $PSScriptRoot '..\..\..\etc\playerbots_bis.conf'),
+        (Join-Path $PSScriptRoot '..\..\..\bin\etc\playerbots_bis.conf'),
+        (Join-Path $PSScriptRoot '..\conf\playerbots_bis.conf')
+    )
+    foreach ($p in $pistes) {
+        if (Test-Path $p) { return (Resolve-Path $p).Path }
+    }
+    return $null
+}
+
+$plafond = $MaxTier
+if ($plafond -lt 0) {
+    $fichierConf = Trouver-Conf
+    if ($fichierConf) {
+        foreach ($ligne in (Get-Content $fichierConf)) {
+            if ($ligne -match '^\s*PlayerbotsBis\.MaxTier\s*=\s*(\d+)') {
+                $plafond = [int]$Matches[1]
+                Write-Host "Plafond lu dans $fichierConf : $plafond"
+                break
+            }
+        }
+    }
+    if ($plafond -lt 0) {
+        $plafond = 0
+        Write-Host "PlayerbotsBis.MaxTier introuvable - aucun plafond inscrit." -ForegroundColor Yellow
+        Write-Host "  Passe -MaxTier <n> ou -Conf <chemin> pour que l'infobulle s'y cale." -ForegroundColor Yellow
+    }
 }
 
 # Le mot de passe passe par MYSQL_PWD et non par -p.
@@ -89,6 +142,9 @@ $sb = New-Object System.Text.StringBuilder
 # bot - qui lit la base en direct - annonce alors un BiS que l'infobulle ignore.
 # /pbbis info affiche cette date pour que l'ecart se voie.
 [void]$sb.AppendLine("PlayerbotsBisTooltipStamp = `"$stamp`"")
+[void]$sb.AppendLine()
+# Le plafond du serveur, dont l'addon se sert par defaut. 0 = aucun.
+[void]$sb.AppendLine("PlayerbotsBisTooltipServerMaxTier = $plafond")
 [void]$sb.AppendLine()
 [void]$sb.AppendLine("PlayerbotsBisTooltipTiers = {")
 foreach ($row in $tierRows) {
@@ -138,3 +194,4 @@ if ($dir -and -not (Test-Path $dir)) {
 
 Write-Host "Ecrit : $Out"
 Write-Host "$items objets, $($itemRows.Count) lignes, $($tierRows.Count) paliers."
+Write-Host "Plafond de palier inscrit : $(if ($plafond -eq 0) { 'aucun' } else { $plafond })"
