@@ -162,6 +162,29 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         packet << guid << targetSlot;
 
         WorldPackets::Item::AutoEquipItemSlot equipPacket(std::move(packet));
+        // Demander au coeur AVANT d'envoyer le paquet.
+        //
+        // HandleAutoEquipItemSlotOpcode ne rend rien et decline en silence : la
+        // seule chose lisible apres coup est que le creneau ne porte pas la
+        // piece, ce qui ne dit pas POURQUOI. Le message se rabattait donc sur
+        // une supposition - "sacs pleins ?" - qui envoie chercher au mauvais
+        // endroit des que la cause est ailleurs : un anneau unique deja porte a
+        // l'autre doigt refuse exactement pareil.
+        //
+        // CanEquipItem rend le code d'erreur du coeur lui-meme, et couvre
+        // l'unicite par CanEquipUniqueItem. On le lit d'abord, on le rapporte
+        // tel quel, et on n'envoie le paquet que s'il dit oui.
+        uint16 dest = 0;
+        if (InventoryResult const canEquip = bot->CanEquipItem(targetSlot, dest, item, true);
+            canEquip != EQUIP_ERR_OK)
+        {
+            if (report)
+                report->PSendSysMessage("  {} : le coeur refuse le creneau {} (code {})",
+                                        ChatHelper::FormatItem(proto), uint32(targetSlot),
+                                        uint32(canEquip));
+            continue;
+        }
+
         equipPacket.Read();
         bot->GetSession()->HandleAutoEquipItemSlotOpcode(equipPacket);
 
@@ -173,9 +196,13 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         Item* const now = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, targetSlot);
         if (!now || now->GetEntry() != proto->ItemId)
         {
+            // CanEquipItem vient de dire oui, et pourtant le creneau n'a pas
+            // change. Il reste les refus que le controle prealable ne couvre
+            // pas - la place pour ressortir la piece remplacee, notamment.
             if (report)
-                report->PSendSysMessage("  {} : le coeur a refuse l'equipement au creneau {} "
-                                        "(sacs pleins ?)", ChatHelper::FormatItem(proto), uint32(targetSlot));
+                report->PSendSysMessage("  {} : accepte au creneau {} mais le coeur n'a rien "
+                                        "change (place pour la piece qui sort ?)",
+                                        ChatHelper::FormatItem(proto), uint32(targetSlot));
             continue;
         }
 
