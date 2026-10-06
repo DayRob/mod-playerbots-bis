@@ -11,6 +11,7 @@
 #include "Chat.h"
 #include "Item.h"
 #include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "Player.h"
 #include "SharedDefines.h"
 #include <algorithm>
@@ -121,11 +122,31 @@ namespace BisBotScan
     // the denominator grows with the number of phases opened and 100% stops
     // being reachable by construction. A warrior showed 35 "pieces" for
     // seventeen slots.
+    // A slot's target has to be something the bot can WEAR. The lists also
+    // carry pieces that merely LEAD to gear - the Zul'Gurub tokens sit at the
+    // slot, tier and rank of the set piece they buy, so a bot's wrist slot can
+    // hold both Zandalar Vindicator's Armguards and Primal Hakkari Armsplint at
+    // rank 1 of the same tier. Equal on every field the comparison below reads,
+    // std::sort leaves their order unspecified, and the slot's target became
+    // whichever landed first: half the time a quest item, which no bot can ever
+    // equip, so the slot read as missing for ever and the ratio lost a point it
+    // could not earn back.
+    inline bool CanBeWorn(uint32 itemId)
+    {
+        ItemTemplate const* const proto = sObjectMgr->GetItemTemplate(itemId);
+        return proto && (proto->Class == ITEM_CLASS_WEAPON || proto->Class == ITEM_CLASS_ARMOR);
+    }
+
+    // One target per slot: the best reachable pick, highest phase first and rank
+    // 1 within it - among the pieces that can actually be worn.
     inline std::map<uint8, BisItem> TargetsPerSlot(std::vector<BisItem> const& list)
     {
         std::map<uint8, BisItem> targets;
         for (BisItem const& row : list)
         {
+            if (!CanBeWorn(row.itemId))
+                continue;
+
             auto it = targets.find(row.slot);
             if (it == targets.end())
                 targets.emplace(row.slot, row);
