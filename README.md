@@ -258,6 +258,24 @@ la seule sortie qui demande une action, donc elle est séparée du reste.
 Sur une base vierge, ajoutez `-Depuis 1`. Par défaut le script part du fichier 24, les
 précédents ne changeant plus.
 
+### Quels noms votre base ne connaît pas
+
+Chaque fichier généré porte sa propre requête de vérification, mais elle ne parle que de son
+fichier et défile avec le reste de l'import. `tools/noms_absents.ps1` relit les noms
+directement dans les fichiers et les confronte tous à `item_template` en un passage :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\noms_absents.ps1
+```
+
+Un nom absent n'est pas une erreur de l'import : la ligne est simplement perdue et le créneau
+garde ses autres rangs. Mais c'est un rang en moins, et quand c'est le rang 1, le bot vise la
+pièce du dessous sans que rien ne le signale.
+
+Trois causes possibles : un **suffixe aléatoire** (`Eternal Crown of Healing` n'existe sous
+aucun nom, la base ne connaît que `Eternal Crown`), un **nom écrit autrement** dans la base, ou
+un **objet réellement absent** de votre base monde.
+
 ### Quand l'infobulle n'est pas à jour
 
 Entre la base et l'infobulle il y a **quatre maillons**, et chacun casse en silence avec le
