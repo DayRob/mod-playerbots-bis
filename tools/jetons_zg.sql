@@ -36,22 +36,39 @@ WHERE `name` LIKE 'Primal Hakkari %'
 ORDER BY `name`;
 
 -- ---------------------------------------------------------------------
--- 2. Le lien jeton -> piece. Les quetes "Paragons of Power" demandent un
---    jeton et rendent une piece. ReqItemId* porte le jeton, RewChoiceItemId*
---    ou RewItemId* la recompense.
+-- 2a. Les quetes "Paragons of Power" et ce qu'elles rendent.
+--
+--     Decoupe en deux requetes INDEPENDANTES a dessein : les noms de
+--     colonnes de quest_template varient d'une version d'AzerothCore a
+--     l'autre, et je n'ai pas pu les verifier contre une vraie base
+--     monde. Avec --force, une requete qui echoue n'emporte pas les
+--     autres. Si l'une rend "Unknown column", colle l'erreur.
+--
+--     RewardItem1 et RewardChoiceItemID1 sont ceux qu'utilise deja
+--     tools/ou_tombe_cet_objet.sql.
 -- ---------------------------------------------------------------------
-SELECT 'Jeton -> piece, par quete' AS section;
-SELECT q.`ID` AS quete, q.`LogTitle` AS titre,
-       j.`name` AS jeton,
-       COALESCE(r1.`name`, r2.`name`) AS piece,
-       COALESCE(q.`RewardChoiceItemID1`, q.`RewardItemID1`) AS piece_entry,
-       q.`AllowableClasses`
+SELECT 'Quetes Paragons of Power : ce qu elles rendent' AS section;
+SELECT q.`ID` AS quete, q.`LogTitle` AS titre, q.`AllowableClasses`,
+       COALESCE(c1.`name`, r1.`name`) AS piece,
+       COALESCE(q.`RewardChoiceItemID1`, q.`RewardItem1`) AS piece_entry,
+       COALESCE(c1.`InventoryType`, r1.`InventoryType`) AS type_emplacement
+FROM `quest_template` q
+LEFT JOIN `item_template` c1 ON c1.`entry` = q.`RewardChoiceItemID1`
+LEFT JOIN `item_template` r1 ON r1.`entry` = q.`RewardItem1`
+WHERE q.`LogTitle` LIKE 'Paragons of Power%'
+ORDER BY q.`LogTitle`;
+
+-- ---------------------------------------------------------------------
+-- 2b. Quel JETON chaque quete demande. C'est la moitie qui manque a la
+--     precedente : sans elle on sait ce que la quete rend, pas ce
+--     qu'elle coute.
+-- ---------------------------------------------------------------------
+SELECT 'Quetes Paragons of Power : le jeton demande' AS section;
+SELECT q.`ID` AS quete, q.`LogTitle` AS titre, j.`entry` AS jeton_entry, j.`name` AS jeton
 FROM `quest_template` q
 JOIN `item_template` j
   ON j.`entry` IN (q.`RequiredItemId1`, q.`RequiredItemId2`, q.`RequiredItemId3`,
                    q.`RequiredItemId4`, q.`RequiredItemId5`, q.`RequiredItemId6`)
-LEFT JOIN `item_template` r1 ON r1.`entry` = q.`RewardChoiceItemID1`
-LEFT JOIN `item_template` r2 ON r2.`entry` = q.`RewardItemID1`
 WHERE j.`name` LIKE 'Primal Hakkari %'
 ORDER BY j.`name`, q.`ID`;
 
