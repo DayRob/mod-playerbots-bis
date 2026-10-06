@@ -15,7 +15,6 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`) VALUES
 ( 0, 2, 'Crystal Adorned Crown'),
 ( 0, 3, 'Mish''undare, Circlet of the Mind Flayer'),
 ( 0, 3, 'Helm of the Lifegiver'),
-( 0, 3, 'Triumphant Skullcap of Healing'),
 ( 0, 3, 'Earthfury Helmet'),
 ( 1, 1, 'Choker of the Fire Lord'),
 ( 1, 2, 'Pendant of the Fallen Dragon'),
@@ -32,7 +31,6 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`) VALUES
 (14, 3, 'Drape of Benediction'),
 (14, 3, 'Cloak of the Brood Lord'),
 (14, 3, 'Cloak of the Cosmos'),
-(14, 3, 'Master''s Cloak of Healing'),
 ( 4, 1, 'Robes of the Exalted'),
 ( 4, 2, 'Red Dragonscale Breastplate'),
 ( 4, 3, 'Robe of Volatile Power'),
@@ -41,7 +39,6 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`) VALUES
 ( 4, 3, 'Chestplate of Tranquility'),
 ( 8, 1, 'Bracers of Ten Storms'),
 ( 8, 2, 'Loomguard Armbraces'),
-( 8, 3, 'Masterwork Bracers of Healing'),
 ( 8, 3, 'Flarecore Wraps'),
 ( 8, 3, 'Bracers of Prosperity'),
 ( 9, 1, 'Gauntlets of Ten Storms'),
@@ -54,11 +51,9 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`) VALUES
 ( 5, 2, 'Sash of Mercy'),
 ( 5, 3, 'Belt of Ten Storms'),
 ( 5, 3, 'Eyestalk Cord'),
-( 5, 3, 'Masterwork Girdle of Healing'),
 ( 6, 1, 'Empowered Leggings'),
 ( 6, 2, 'Salamander Scale Pants'),
 ( 6, 3, 'Padre''s Trousers'),
-( 6, 3, 'Masterwork Legplates of Healing'),
 ( 6, 3, 'Ghoul Skin Leggings'),
 ( 6, 3, 'Legplates of Ten Storms'),
 ( 7, 1, 'Boots of Pure Thought'),
@@ -87,7 +82,6 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`) VALUES
 (16, 1, 'Red Dragonscale Protector'),
 (16, 2, 'Master Dragonslayer''s Orb'),
 (16, 3, 'Brightly Glowing Stone'),
-(16, 3, 'Triumphant Shield of Healing'),
 (16, 3, 'Thaurissan''s Royal Scepter');
 
 -- REMPLACE : la liste existante de ce couple classe/spe/palier part

@@ -83,8 +83,18 @@ EXCLUS = re.compile(
 # partagent le meme. Le bot reclamerait alors "Eternal Crown of the Tiger"
 # aussi volontiers que celle de soin.
 #
-# Le test exige AUSSI l'hotel des ventes, parce que le suffixe seul ne suffit
-# pas : "Hands of Power" est un vrai objet, qui tombe sur Quartermaster Zigris.
+# Le test exige AUSSI une PROVENANCE DE BUTIN LIBRE, parce que le suffixe seul
+# ne suffit pas : "Hands of Power" est un vrai objet, qui tombe sur
+# Quartermaster Zigris, et "Cloak of Healing" pourrait tout aussi bien etre le
+# nom nu d'une recompense de quete.
+#
+# Les pages ecrivent cette provenance de deux facons selon la phase :
+# "Auction House" sur les pages P4, "World Drop" sur les pages P3. Ne tester
+# que la premiere laissait passer QUARANTE ET UN noms a suffixe dans les
+# fichiers 24 a 33 - tous confirmes absents d'item_template par la base du
+# joueur. Aucun n'etait grave, parce que le JOIN les ecarte de toute facon et
+# que le module prend le plus petit rang PRESENT dans un creneau ; mais ils
+# consommaient un rang et polluaient chaque import.
 SUFFIXES_ALEATOIRES = re.compile(
     r"\s+of (?:the (?:Bear|Boar|Eagle|Falcon|Gorilla|Monkey|Owl|Tiger|Whale|Wolf)|"
     r"Agility|Arcane Wrath|Defense|Fiery Wrath|Frozen Wrath|Healing|Intellect|"
@@ -206,7 +216,8 @@ def main():
             ecartes.append((nom, source.strip()))
             continue
 
-        if "Auction House" in source and SUFFIXES_ALEATOIRES.search(nom):
+        libre = "Auction House" in source or "World Drop" in source
+        if libre and SUFFIXES_ALEATOIRES.search(nom):
             ecartes.append((nom, "suffixe aleatoire - absent d'item_template"))
             continue
 
