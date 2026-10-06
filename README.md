@@ -233,6 +233,31 @@ La troisième signifie que le SQL n'a pas été importé. Dans ce cas le module 
 même avec `Enable = 1`, et un `.playerbotsbis reload` ne suffira pas : il faut importer les
 tables puis redémarrer.
 
+### Tout importer d'un coup, sous Windows
+
+`tools/importer_tout.ps1` passe tous les fichiers dans le bon ordre, puis réexporte
+`BisData.lua` et recopie l'addon :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\importer_tout.ps1 -WowPath "C:\Wow335"
+```
+
+Deux choses que ce script existe pour éviter :
+
+- **`source fichier.sql` n'est pas du SQL.** C'est une commande du client interactif `mysql` ;
+  la passer par `-e` donne un `ERROR 1064` par fichier. Le seul moyen fiable depuis PowerShell
+  est de pousser le **contenu** du fichier dans l'entrée standard de `mysql.exe`.
+- **`20_specs_partagees.sql` passe après les listes qu'il recopie**, et
+  `17_purge_pvp_reputation.sql` en dernier — sinon le premier recopie du vide et le second
+  laisse passer le PvP que le premier vient de recopier.
+
+Il isole aussi les **noms non résolus** : chaque fichier généré porte sa propre requête de
+vérification, et une ligne y signifie « ta base ne connaît pas cet objet sous ce nom ». C'est
+la seule sortie qui demande une action, donc elle est séparée du reste.
+
+Sur une base vierge, ajoutez `-Depuis 1`. Par défaut le script part du fichier 24, les
+précédents ne changeant plus.
+
 ## Configuration essentielle
 
 ```ini
