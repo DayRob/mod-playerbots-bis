@@ -96,9 +96,12 @@ RANG_MAX = 3
 # Certaines pages suffixent un objet par la classe a qui il revient :
 # "Royal Seal of Eldre'Thalas (Warlock)". item_template ne connait que le nom
 # nu, donc le suffixe est retire - sinon la ligne finit en "nom non resolu".
+# Qualificatifs que la page accole au nom et que la base ne connait pas : la
+# classe (la table est deja indexee par classe), la faction, et la main a
+# laquelle l'objet se porte - "(OH)" chez Zul'Gurub.
 QUALIFICATIF = re.compile(
     r"\s*\((?:warlock|mage|priest|druid|hunter|rogue|paladin|shaman|warrior|"
-    r"death knight|alliance|horde|a|h)\)\s*$", re.I)
+    r"death knight|alliance|horde|oh|mh|a|h)\)\s*$", re.I)
 
 
 def nettoyer(nom):
@@ -109,15 +112,23 @@ def lire_blocs(lignes):
     """Decoupe le texte en (nom, creneau, provenance)."""
     # Le nom apparait deux fois de suite : c'est l'ancre la plus fiable, parce
     # qu'un nom d'objet peut par ailleurs ressembler a n'importe quoi.
+    #
+    # Les deux occurrences ne sont pas toujours identiques au caractere pres :
+    # la premiere porte parfois un qualificatif que la seconde n'a pas, comme
+    # "Warblade of the Hakkari (OH)" a Zul'Gurub. Comparer les noms NETTOYES
+    # plutot que bruts rattrape ces blocs, qui disparaissaient en silence.
+    def ancre(a, b):
+        return bool(a) and nettoyer(a) == nettoyer(b)
+
     blocs = []
     i = 0
     n = len(lignes)
     while i < n - 1:
-        if lignes[i] and lignes[i] == lignes[i + 1]:
+        if ancre(lignes[i], lignes[i + 1]):
             nom = lignes[i]
             j = i + 2
             creneau, source = None, []
-            while j < n and not (lignes[j] and j + 1 < n and lignes[j] == lignes[j + 1]):
+            while j < n and not (j + 1 < n and ancre(lignes[j], lignes[j + 1])):
                 bas = lignes[j].lower()
                 if creneau is None and (bas in CRENEAUX or bas in IGNORES):
                     creneau = bas

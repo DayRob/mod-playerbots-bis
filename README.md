@@ -582,6 +582,12 @@ Tiger » aussi volontiers que celle de soin.
 Le test exige la provenance *Auction House* **en plus** du suffixe, parce que le suffixe seul ne
 suffit pas : `Hands of Power` est un vrai objet, qui tombe sur Quartermaster Zigris.
 
+**Deux objets de même nom.** Zul'Gurub en donne le cas type : `Warblade of the Hakkari` existe
+en main droite *et* en main gauche, sous le même nom et avec deux `entry` différents. La table
+de départ résout par `MIN(entry)`, donc elle prendrait toujours la même — la main droite — et la
+poserait au créneau 16, où le cœur la refuserait à chaque fois. Ces objets-là s'écartent avec
+`--exclut` tant que la bonne `entry` n'est pas connue.
+
 `--exclut "Nom A,Nom B"` écarte nommément des objets que la provenance ne trahit pas. Le cas
 type est une **récompense de quête d'Alterac Valley** : la page l'affiche comme n'importe quelle
 quête, alors qu'un bot n'y accédera jamais. `Wand of Biting Cold`, rang 1 à distance du mage,
