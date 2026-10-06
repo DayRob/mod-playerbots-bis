@@ -45,14 +45,27 @@ if (-not (Test-Path $MySql)) {
     throw "mysql.exe introuvable : $MySql - passe le bon chemin avec -MySql."
 }
 
+# Le mot de passe passe par MYSQL_PWD et non par -p.
+#
+# Avec -p, le client ecrit "Using a password on the command line interface can
+# be insecure." sur sa sortie d'ERREUR a chaque appel. Tant que ce script est
+# lance seul, PowerShell se contente d'en faire un enregistrement d'erreur non
+# fatal et le filtre ci-dessous suffisait. Mais appele depuis un script qui a
+# pose ErrorActionPreference a Stop - importer_tout.ps1 - la preference est
+# HERITEE, et ce simple avertissement devient fatal alors que la requete a
+# reussi. MYSQL_PWD est lu en silence et supprime le probleme a la racine.
+$env:MYSQL_PWD = $Password
+
 # -N retire la ligne d'en-tete, -B produit du tabule sans bordures.
 function Invoke-Sql([string] $query) {
-    $raw = & $MySql -u $User "-p$Password" -N -B $Database -e $query 2>&1
+    # Portee de fonction : la valeur se retablit d'elle-meme a la sortie.
+    $ErrorActionPreference = 'Continue'
+    $raw = & $MySql -u $User -N -B $Database -e $query 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "mysql a echoue : $raw"
     }
-    # L'avertissement sur le mot de passe en clair arrive sur stderr et se
-    # retrouve melange a la sortie ; on le jette.
+    # Ceinture et bretelles : une autre ligne de stderr ne doit pas finir dans
+    # le fichier Lua.
     return $raw | Where-Object { $_ -notmatch '^mysql: \[Warning\]' }
 }
 

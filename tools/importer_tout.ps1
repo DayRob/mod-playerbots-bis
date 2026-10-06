@@ -59,6 +59,21 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# ---------------------------------------------------------------------------
+# Le mot de passe passe par MYSQL_PWD, pas par -p.
+#
+# Avec "-pMOTDEPASSE", le client ecrit "Using a password on the command line
+# interface can be insecure." sur sa sortie d'ERREUR a chaque appel. PowerShell
+# transforme toute ligne de stderr d'un programme externe en enregistrement
+# d'erreur, et avec ErrorActionPreference a Stop cet avertissement devient
+# FATAL - alors que la requete a reussi. Ce script mourait donc sur son premier
+# fichier, sans rien importer.
+#
+# MYSQL_PWD est lu en silence, et ne laisse plus le mot de passe dans la ligne
+# de commande du processus.
+# ---------------------------------------------------------------------------
+$env:MYSQL_PWD = $Password
+
 if (-not (Test-Path $MySql)) {
     throw "mysql.exe introuvable : $MySql`nPasse le bon chemin avec -MySql."
 }
@@ -73,10 +88,18 @@ $base = (Resolve-Path $base).Path
 # ecrivent dans playerbots_bis_item, et la recapitulation lit
 # playerbots_bis_tier. Mieux vaut le dire ici que laisser defiler trente-deux
 # echecs identiques.
-$compte = & $MySql -u $User "-p$Password" -N -B $Database -e `
-    "SELECT COUNT(*) FROM playerbots_bis_tier;" 2>&1 |
-    Where-Object { $_ -notmatch '^mysql: \[Warning\]' }
-if ($LASTEXITCODE -ne 0) {
+# ErrorActionPreference revient a Continue le temps de l'appel : sa portee est
+# la fonction, donc la valeur Stop se retablit d'elle-meme ensuite.
+function Invoke-MySql([string[]] $arguments) {
+    $ErrorActionPreference = 'Continue'
+    $sortie = & $MySql @arguments 2>&1
+    $script:MySqlCode = $LASTEXITCODE
+    return @($sortie | Where-Object { $_ -notmatch '^mysql: \[Warning\]' })
+}
+
+$compte = Invoke-MySql @('-u', $User, '-N', '-B', $Database,
+                         '-e', 'SELECT COUNT(*) FROM playerbots_bis_tier;')
+if ($script:MySqlCode -ne 0) {
     throw "Les tables du module sont absentes de $Database ($compte).`nPasse d'abord 01 et 02 : relance avec -Depuis 1."
 }
 if ([int]($compte | Select-Object -First 1) -eq 0) {
@@ -87,11 +110,10 @@ if ([int]($compte | Select-Object -First 1) -eq 0) {
 # Un passage de mysql.exe, par l'entree standard.
 # ---------------------------------------------------------------------------
 function Invoke-SqlFile([System.IO.FileInfo] $fichier) {
+    $ErrorActionPreference = 'Continue'
     $sortie = Get-Content $fichier.FullName -Raw |
-              & $MySql -u $User "-p$Password" --default-character-set=utf8mb4 $Database 2>&1
+              & $MySql -u $User --default-character-set=utf8mb4 $Database 2>&1
     $code = $LASTEXITCODE
-    # L'avertissement sur le mot de passe en clair arrive sur stderr a chaque
-    # appel ; il n'apprend rien et noierait le reste.
     $lignes = @($sortie | Where-Object { $_ -notmatch '^mysql: \[Warning\]' })
     return [pscustomobject]@{ Code = $code; Lignes = $lignes }
 }
@@ -184,20 +206,22 @@ if ($nonResolus.Count -gt 0) {
 # ---------------------------------------------------------------------------
 Write-Host ""
 Write-Host "Couverture par palier :" -ForegroundColor Cyan
-& $MySql -u $User "-p$Password" --default-character-set=utf8mb4 --table $Database -e @"
+$q = @"
 SELECT t.name AS palier, COUNT(DISTINCT i.class, i.spec) AS couples,
        COUNT(*) AS lignes
 FROM playerbots_bis_item i
 JOIN playerbots_bis_tier t ON t.tier_id = i.tier_id
 GROUP BY i.tier_id, t.name ORDER BY i.tier_id;
-"@ 2>&1 | Where-Object { $_ -notmatch '^mysql: \[Warning\]' }
+"@
+Invoke-MySql @('-u', $User, '--default-character-set=utf8mb4', '--table', $Database, '-e', $q) |
+    ForEach-Object { Write-Host "  $_" }
 
 Write-Host ""
 Write-Host "Spes vanilla sans aucune arme (le bot n'a pas de cible au creneau 15) :" -ForegroundColor Cyan
 # Limite aux paliers vanilla : les paliers TBC et WotLK sont volontairement
 # incomplets - ils viennent de la conversion d'origine, pas d'une liste curee -
 # et les faire remonter ici noierait la seule ligne qui demande une action.
-& $MySql -u $User "-p$Password" --default-character-set=utf8mb4 --table $Database -e @"
+$q = @"
 SELECT t.name AS palier,
        CASE i.class WHEN 1 THEN 'Guerrier' WHEN 2 THEN 'Paladin' WHEN 3 THEN 'Chasseur'
             WHEN 4 THEN 'Voleur' WHEN 5 THEN 'Pretre' WHEN 7 THEN 'Chaman'
@@ -210,7 +234,9 @@ WHERE i.tier_id <= 70
 GROUP BY i.tier_id, t.name, i.class, i.spec
 HAVING SUM(i.slot = 15) = 0
 ORDER BY i.tier_id, i.class, i.spec;
-"@ 2>&1 | Where-Object { $_ -notmatch '^mysql: \[Warning\]' }
+"@
+Invoke-MySql @('-u', $User, '--default-character-set=utf8mb4', '--table', $Database, '-e', $q) |
+    ForEach-Object { Write-Host "  $_" }
 
 # ---------------------------------------------------------------------------
 # L'addon. Une base a jour et un BisData.lua perime se contredisent en silence.

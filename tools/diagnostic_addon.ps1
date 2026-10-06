@@ -34,6 +34,37 @@ $ErrorActionPreference = 'Stop'
 
 $source = (Resolve-Path (Join-Path $PSScriptRoot '..\addon\PlayerbotsBisTooltip')).Path
 
+# ---------------------------------------------------------------------------
+# Appeler mysql.exe sans se faire arreter par son propre avertissement.
+#
+# Deux pieges se combinent, et ensemble ils tuent le script a la premiere
+# requete :
+#
+#   - "-pMOTDEPASSE" sur la ligne de commande fait ecrire au client
+#     "Using a password on the command line interface can be insecure."
+#     sur sa sortie d'ERREUR, a chaque appel.
+#
+#   - PowerShell transforme toute ligne de stderr d'un programme externe en
+#     enregistrement d'erreur. Avec ErrorActionPreference a Stop, cet
+#     avertissement devient donc une erreur FATALE - alors que la requete,
+#     elle, a parfaitement reussi.
+#
+# Le mot de passe passe donc par MYSQL_PWD, que le client lit sans rien dire,
+# et qui a l'avantage de ne plus l'exposer dans la ligne de commande du
+# processus. Et par precaution la preference revient a Continue dans la
+# fonction - sa portee est locale, donc elle se restaure a la sortie - pour
+# qu'une autre ligne de stderr ne fasse pas tomber le script non plus.
+# ---------------------------------------------------------------------------
+$env:MYSQL_PWD = $Password
+$script:MySqlCode = 0
+
+function Invoke-MySql([string[]] $arguments) {
+    $ErrorActionPreference = 'Continue'
+    $sortie = & $MySql @arguments 2>&1
+    $script:MySqlCode = $LASTEXITCODE
+    return @($sortie | Where-Object { $_ -notmatch '^mysql: \[Warning\]' })
+}
+
 function Titre([string] $t) {
     Write-Host ""
     Write-Host $t -ForegroundColor Cyan
@@ -113,15 +144,24 @@ if (-not (Test-Path $MySql)) {
     Write-Host "  Passe le bon chemin avec -MySql ; les maillons 2 a 4 restent lisibles." -ForegroundColor Yellow
     $baseLue = $false
 } else {
-    & $MySql -u $User "-p$Password" --default-character-set=utf8mb4 --table $Database -e @"
+    $requete = @"
 SELECT i.tier_id AS palier, t.name AS nom,
        COUNT(DISTINCT i.class, i.spec) AS couples, COUNT(*) AS lignes
 FROM playerbots_bis_item i
 LEFT JOIN playerbots_bis_tier t ON t.tier_id = i.tier_id
 WHERE i.tier_id <= 70
 GROUP BY i.tier_id, t.name ORDER BY i.tier_id;
-"@ 2>&1 | Where-Object { $_ -notmatch '^mysql: \[Warning\]' }
-    $baseLue = $true
+"@
+    $lignesSql = Invoke-MySql @('-u', $User, '--default-character-set=utf8mb4',
+                                '--table', $Database, '-e', $requete)
+    if ($script:MySqlCode -ne 0) {
+        Write-Host "  La requete a echoue :" -ForegroundColor Red
+        $lignesSql | ForEach-Object { Write-Host "    $_" -ForegroundColor Red }
+        $baseLue = $false
+    } else {
+        $lignesSql | ForEach-Object { Write-Host "  $_" }
+        $baseLue = $true
+    }
 }
 
 # ---------------------------------------------------------------------------
