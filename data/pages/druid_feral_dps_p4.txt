@@ -1,0 +1,492 @@
+Gear
+Slot
+Source
+Wolfshead Helm
+Wolfshead Helm
+enchantLesser Arcanum of Voracity
+head
+Leatherworking
+Trainer (225)
+Dropdown Arrow
+Blooddrenched Mask
+Blooddrenched Mask
+head
+Zul'Gurub
+Multiple Bosses
+Supreme Crown of the Tiger
+Supreme Crown of the Tiger
+head
+Auction House
+BoE World Drop
+Lizardscale Eyepatch
+Lizardscale Eyepatch
+head
+Zul'Gurub
+Gahz'ranka
+Mask of the Unforgiven
+Mask of the Unforgiven
+head
+Stratholme (Live)
+The Unforgiven (19%)
+Eye of Rend
+Eye of Rend
+head
+Blackrock Spire (Upper)
+Warchief Rend Blackhand (20%)
+Prestor's Talisman of Connivery
+Prestor's Talisman of Connivery
+neck
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Onyxia Tooth Pendant
+Onyxia Tooth Pendant
+neck
+Quest Reward
+For All To See
+The Eye of Hakkar
+The Eye of Hakkar
+neck
+Zul'Gurub
+Hakkar
+Prismatic Pendant of the Tiger
+Prismatic Pendant of the Tiger
+neck
+Auction House
+BoE World Drop
+Beads of Ogre Might
+Beads of Ogre Might
+neck
+Quest Reward
+Falrin's Vendetta
+Mark of Fordring
+Mark of Fordring
+neck
+Quest Reward
+In Dreams
+Wyrmtongue Shoulders
+Wyrmtongue Shoulders
+enchantZandalar Signet of Might
+shoulder
+Stratholme (Live)
+Balnazzar (11%)
+Dropdown Arrow
+Truestrike Shoulders
+Truestrike Shoulders
+shoulder
+Blackrock Spire (Upper)
+Pyroguard Emberseer (12%)
+alternative
+Defiler's Leather Shoulders
+Defiler's Leather Shoulders
+shoulder
+Reputation
+The Defilers - Exalted (H)
+Flamescarred Shoulders
+Flamescarred Shoulders
+shoulder
+Dire Maul (West)
+Magister Kalendris (20%)
+Wyrmhide Spaulders
+Wyrmhide Spaulders
+shoulder
+Quest Reward
+A Taste of Flame
+Cloak of Draconic Might
+Cloak of Draconic Might
+enchantCloak - Lesser Agility
+back
+Blackwing Lair
+Trash Drop
+Dropdown Arrow
+Zulian Tigerhide Cloak
+Zulian Tigerhide Cloak
+back
+Zul'Gurub
+High Priest Venoxis
+Puissant Cape
+Puissant Cape
+back
+World Boss
+Azuregos (17%)
+Cloak of the Shrouded Mists
+Cloak of the Shrouded Mists
+back
+Molten Core
+Ragnaros (22%)
+Cape of the Black Baron
+Cape of the Black Baron
+back
+Stratholme (Undead)
+Baron Rivendare (15%)
+Blackveil Cape
+Blackveil Cape
+back
+Blackrock Depths
+High Interrogator Gerstahn (16%)
+Malfurion's Blessed Bulwark
+Malfurion's Blessed Bulwark
+enchantChest - Greater Stats
+chest
+Blackwing Lair
+Ebonroc
+Dropdown Arrow
+Primal Batskin Jerkin
+Primal Batskin Jerkin
+chest
+Leatherworking
+BoP Pattern
+alternative
+Legionnaire's Dragonhide Chestpiece
+Legionnaire's Dragonhide Chestpiece
+chest
+Honor System
+Rank 8
+Cadaverous Armor
+Cadaverous Armor
+chest
+Scholomance
+Lord Alex Barov (8%)
+Breastplate of Bloodthirst
+Breastplate of Bloodthirst
+chest
+Quest Reward
+Breastplate of Bloodthirst
+Grizzled Pelt
+Grizzled Pelt
+chest
+Quest Reward
+A Better Ingredient
+Wristguards of Stability
+Wristguards of Stability
+enchant
+Bracer - Superior Strength
+wrist
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (4%)
+
+Dropdown Arrow
+Forest Stalker's Bracers
+Forest Stalker's Bracers
+wrist
+Reputation
+Warsong Outriders, Silverwing Sentinels - Exalted
+Primal Batskin Bracers
+Primal Batskin Bracers
+wrist
+Leatherworking
+BoP Pattern
+Deepfury Bracers
+Deepfury Bracers
+wrist
+Auction House
+BoE World Drop
+Bracers of the Eclipse
+Bracers of the Eclipse
+wrist
+Dire Maul (West)
+Prince Tortheldrin (17%)
+Blackmist Armguards
+Blackmist Armguards
+wrist
+Blackrock Spire (Upper)
+The Beast (20%)
+Devilsaur Gauntlets
+Devilsaur Gauntlets
+enchant
+Gloves - Greater Agility
+hands
+Leatherworking
+BoE Pattern (290)
+
+Dropdown Arrow
+Primal Batskin Gloves
+Primal Batskin Gloves
+hands
+Leatherworking
+BoP Pattern
+Adventurer's Gloves of the Tiger
+Adventurer's Gloves of the Tiger
+hands
+Auction House
+BoE World Drop
+Doomhide Gauntlets
+Doomhide Gauntlets
+hands
+World Boss
+Lord Kazzak (16%)
+Gargoyle Slashers
+Gargoyle Slashers
+hands
+Scholomance
+Kirtonos the Herald (19%)
+Gloves of the Pathfinder
+Gloves of the Pathfinder
+hands
+Quest Reward
+Winterfall Activity
+Belt of Preserved Heads
+Belt of Preserved Heads
+waist
+Quest Reward
+A Collection of Heads
+
+Dropdown Arrow
+Molten Belt
+Molten Belt
+waist
+Reputation
+Thorium Brotherhood - Revered
+Cloudrunner Girdle
+Cloudrunner Girdle
+waist
+Blackrock Spire (Lower)
+Quartermaster Zigris (19%)
+Adventurer's Belt of the Tiger
+Adventurer's Belt of the Tiger
+waist
+Auction House
+BoE World Drop
+Shadow Panther Hide Belt
+Shadow Panther Hide Belt
+waist
+Zul'Gurub
+Trash Drop
+Shadowcraft Belt
+Shadowcraft Belt
+waist
+Blackrock Spire
+Trash Drop (3%)
+Devilsaur Leggings
+Devilsaur Leggings
+enchant
+Lesser Arcanum of Voracity
+legs
+Leatherworking
+BoE Pattern (300)
+
+Dropdown Arrow
+Plaguehound Leggings
+Plaguehound Leggings
+legs
+Stratholme
+Trash Drop (1%)
+alternative
+Outrider's Leather Pants
+Outrider's Leather Pants
+legs
+Reputation
+Warsong Riders - Exalted (H)
+Shadowcraft Pants
+Shadowcraft Pants
+legs
+Stratholme (Undead)
+Baron Rivendare (11%)
+Blooddrenched Leggings
+Blooddrenched Leggings
+legs
+Zul'Gurub
+Jin'do the Hexxer
+Dark Heart Pants
+Dark Heart Pants
+legs
+World Boss
+Lethon
+Boots of the Shadow Flame
+Boots of the Shadow Flame
+enchant
+Boots - Greater Agility
+feet
+Blackwing Lair
+Nefarian
+
+Dropdown Arrow
+Blooddrenched Footpads
+Blooddrenched Footpads
+feet
+Zul'Gurub
+High Priest Venoxis
+Swiftwalker Boots
+Swiftwalker Boots
+feet
+Blackrock Depths
+Princess Moira Bronzebeard (23%)
+Mongoose Boots
+Mongoose Boots
+feet
+Leatherworking
+BoP Pattern (300)
+Swiftfoot Treads
+Swiftfoot Treads
+feet
+Quest Reward
+The Darkstone Tablet (H)
+Sandstalker Ankleguards
+Sandstalker Ankleguards
+feet
+Zul'Farrak
+Zerillis (18%)
+Circle of Applied Force
+Circle of Applied Force
+finger 1
+Blackwing Lair
+Flamegor
+
+Dropdown Arrow
+Band of Accuria
+Band of Accuria
+finger 1
+Molten Core
+Ragnaros (16%)
+Tarnished Elven Ring
+Tarnished Elven Ring
+finger 1
+Dire Maul (North)
+Gordok Tribute (28%)
+Don Julio's Band
+Don Julio's Band
+finger 1
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+Band of Jin
+Band of Jin
+finger 1
+Zul'Gurub
+High Priestess Mar'li
+Master Dragonslayer's Ring
+Master Dragonslayer's Ring
+finger 1
+Blackwing Lair
+Nefarian
+Don Julio's Band
+Don Julio's Band
+finger 2
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+
+Dropdown Arrow
+Band of Accuria
+Band of Accuria
+finger 2
+Molten Core
+Ragnaros (16%)
+Circle of Applied Force
+Circle of Applied Force
+finger 2
+Blackwing Lair
+Flamegor
+Tarnished Elven Ring
+Tarnished Elven Ring
+finger 2
+Dire Maul (North)
+Gordok Tribute (28%)
+Band of Jin
+Band of Jin
+finger 2
+Zul'Gurub
+High Priestess Mar'li
+Master Dragonslayer's Ring
+Master Dragonslayer's Ring
+finger 2
+Blackwing Lair
+Nefarian
+Drake Fang Talisman
+Drake Fang Talisman
+trinket 1
+Blackwing Lair
+Ebonroc
+
+Dropdown Arrow
+Blackhand's Breadth
+Blackhand's Breadth
+trinket 1
+Quest Reward
+For The Horde! (H)
+Hand of Justice
+Hand of Justice
+trinket 1
+Blackrock Depths
+Emperor Dagran Thaurissan (15%)
+alternative
+Rune of the Guard Captain
+Rune of the Guard Captain
+trinket 1
+Quest Reward
+Job Opening: Guard Captain of Revantusk Village (H)
+Counterattack Lodestone
+Counterattack Lodestone
+trinket 1
+Dire Maul (North)
+Gordok Tribute
+Ramstein's Lightning Bolts
+Ramstein's Lightning Bolts
+trinket 1
+Stratholme (Undead)
+Ramstein the Gorger (12%)
+Blackhand's Breadth
+Blackhand's Breadth
+trinket 2
+Quest Reward
+For The Horde! (H)
+
+Dropdown Arrow
+Drake Fang Talisman
+Drake Fang Talisman
+trinket 2
+Blackwing Lair
+Ebonroc
+Hand of Justice
+Hand of Justice
+trinket 2
+Blackrock Depths
+Emperor Dagran Thaurissan (15%)
+alternative
+Rune of the Guard Captain
+Rune of the Guard Captain
+trinket 2
+Quest Reward
+Job Opening: Guard Captain of Revantusk Village (H)
+Counterattack Lodestone
+Counterattack Lodestone
+trinket 2
+Dire Maul (North)
+Gordok Tribute
+Ramstein's Lightning Bolts
+Ramstein's Lightning Bolts
+trinket 2
+Stratholme (Undead)
+Ramstein the Gorger (12%)
+Manual Crowd Pummeler
+Manual Crowd Pummeler
+enchant
+Iron Counterweight
+weapon
+Gnomergan
+Crowd Pummeler 9-60 (33%)
+
+Dropdown Arrow
+Hammer of Bestial Fury
+Hammer of Bestial Fury
+weapon
+World Boss
+All Dragons (13%)
+The Unstoppable Force
+The Unstoppable Force
+weapon
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+Bonecrusher
+Bonecrusher
+weapon
+Quest Reward
+The Treasure of the Shen'dralar
+Brutehammer of the Tiger
+Brutehammer of the Tiger
+weapon
+Auction House
+BoE World Drop
+Impervious Giant
+Impervious Giant
+weapon
+Blackrock Depths
+Chest of the Seven (25%)

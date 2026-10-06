@@ -1,0 +1,602 @@
+Gear
+Slot
+Source
+Helmet of Ten Storms
+Helmet of Ten Storms
+enchantVodouisant's Vigilant Embrace
+head
+Onyxia's Lair
+Onyxia (9%)
+Dropdown Arrow
+Deviate Growth Cap
+Deviate Growth Cap
+head
+World Boss
+Lethon
+Dropdown Arrow
+Crystal Adorned Crown
+Crystal Adorned Crown
+head
+World Boss
+Azuregos (19%)
+Dropdown Arrow
+Mish'undare, Circlet of the Mind Flayer
+Mish'undare, Circlet of the Mind Flayer
+head
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Zulian Headdress
+Zulian Headdress
+head
+Zul'Gurub
+Multiple Bosses
+Dropdown Arrow
+Helm of the Lifegiver
+Helm of the Lifegiver
+head
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (2%)
+Dropdown Arrow
+Jin'do's Evil Eye
+Jin'do's Evil Eye
+neck
+Zul'Gurub
+Jin'do the Hexxer
+Dropdown Arrow
+Choker of the Fire Lord
+Choker of the Fire Lord
+neck
+Molten Core
+Ragnaros (19%)
+Dropdown Arrow
+Pendant of the Fallen Dragon
+Pendant of the Fallen Dragon
+neck
+Blackwing Lair
+Vaelastrasz the Corrupt
+Dropdown Arrow
+Animated Chain Necklace
+Animated Chain Necklace
+neck
+Stratholme (Live)
+Ramstein the Gorger (12%)
+Dropdown Arrow
+Jeklik's Opaline Talisman
+Jeklik's Opaline Talisman
+neck
+Zul'Gurub
+High Priest Jeklik
+Dropdown Arrow
+Choker of Enlightenment
+Choker of Enlightenment
+neck
+Molten Core
+Lucifron (23%)
+Dropdown Arrow
+Wild Growth Spaulders
+Wild Growth Spaulders
+enchantZandalar Signet of Serenity
+shoulder
+Molten Core
+Majordomo Executus (5%)
+Dropdown Arrow
+Animist's Spaulders
+Animist's Spaulders
+shoulder
+Zul'Gurub
+High Priestess Jeklik
+Dropdown Arrow
+Earthfury Epaulets
+Earthfury Epaulets
+shoulder
+Molten Core
+Baron Geddon (15%)
+Dropdown Arrow
+Royal Cap Spaulders
+Royal Cap Spaulders
+shoulder
+Scholomance
+Jandice Barov (12%)
+Dropdown Arrow
+Living Shoulders
+Living Shoulders
+shoulder
+Leatherworking
+BoE Pattern (270)
+Dropdown Arrow
+Burial Shawl
+Burial Shawl
+shoulder
+Scholomance
+Lord Alexei Barov (8%)
+Dropdown Arrow
+Shroud of Pure Thought
+Shroud of Pure Thought
+enchantCloak - Greater Resistance
+back
+Blackwing Lair
+Flamegor
+Dropdown Arrow
+Hide of the Wild
+Hide of the Wild
+back
+Leatherworking
+BoE Pattern (300)
+Dropdown Arrow
+Drape of Benediction
+Drape of Benediction
+back
+World Boss
+Azuregos (16%)
+Dropdown Arrow
+Cloak of the Brood Lord
+Cloak of the Brood Lord
+back
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Hakkari Loa Cloak
+Hakkari Loa Cloak
+back
+Zul'Gurub
+Bloodlord Mandokir
+Dropdown Arrow
+Cloak of the Cosmos
+Cloak of the Cosmos
+back
+Dire Maul (West)
+Immol'thar (20%)
+Dropdown Arrow
+Robes of the Exalted
+Robes of the Exalted
+enchantChest - Greater Stats
+chest
+Stratholme (Undead)
+Baron Rivendare (15%)
+Dropdown Arrow
+Red Dragonscale Breastplate
+Red Dragonscale Breastplate
+chest
+Leatherworking
+BoP Pattern (300)
+Dropdown Arrow
+Jade Inlaid Vestments
+Jade Inlaid Vestments
+chest
+World Boss
+Ysondre
+Dropdown Arrow
+Zandalar Augur's Hauberk
+Zandalar Augur's Hauberk
+chest
+Quest Reward
+Paragons of Power: The Augur's Hauberk
+Dropdown Arrow
+Robe of Volatile Power
+Robe of Volatile Power
+chest
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (5%)
+Dropdown Arrow
+Earthfury Vestments
+Earthfury Vestments
+chest
+Molten Core
+Golemagg the Incinerator (12%)
+Dropdown Arrow
+Bracers of Ten Storms
+Bracers of Ten Storms
+enchant
+Bracer - Healing Power
+wrist
+Blackwing Lair
+Razoregore the Untamed
+
+Dropdown Arrow
+Loomguard Armbraces
+Loomguard Armbraces
+wrist
+Scholomance
+Kirtonos the Herald (19%)
+Dropdown Arrow
+Masterwork Bracers of Healing
+Masterwork Bracers of Healing
+wrist
+Auction House
+BoE World Drop
+Dropdown Arrow
+Zandalar Augur's Bracers
+Zandalar Augur's Bracers
+wrist
+Quest Reward
+Paragons of Power: The Augur's Bracers
+Dropdown Arrow
+Flarecore Wraps
+Flarecore Wraps
+wrist
+Tailoring
+BoE Pattern (300)
+Dropdown Arrow
+Bracers of Prosperity
+Bracers of Prosperity
+wrist
+Dire Maul (North)
+King Gordok (24%)
+Dropdown Arrow
+Gauntlets of Ten Storms
+Gauntlets of Ten Storms
+hands
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+
+Dropdown Arrow
+Harmonious Gauntlets
+Harmonious Gauntlets
+hands
+Dire Maul (North)
+King Gordok (24%)
+Dropdown Arrow
+Gloves of Delusional Power
+Gloves of Delusional Power
+hands
+World Boss
+All Dragons
+Dropdown Arrow
+Gloves of Restoration
+Gloves of Restoration
+hands
+Dire Maul (East)
+Alzzin the Wildshaper (19%)
+Dropdown Arrow
+Hands of the Exalted Herald
+Hands of the Exalted Herald
+hands
+Blackrock Depths
+Princess Moira Bronzebeard (23%)
+Dropdown Arrow
+Gauntlets of The Five Thunders
+Gauntlets of The Five Thunders
+hands
+Quest Reward
+Just Compensation
+Dropdown Arrow
+Corehound Belt
+Corehound Belt
+waist
+Reputation
+Thorium Brotherhood - Revered
+
+Dropdown Arrow
+Firemaw's Clutch
+Firemaw's Clutch
+waist
+Blackwing Lair
+Firemaw
+Dropdown Arrow
+Sash of Mercy
+Sash of Mercy
+waist
+Auction House
+BoE World Drop
+Dropdown Arrow
+Belt of Ten Storms
+Belt of Ten Storms
+waist
+Blackwing Lair
+Vaelastrasz the Corrupt
+Dropdown Arrow
+Eyestalk Cord
+Eyestalk Cord
+waist
+Dire Maul (West)
+Immol'thar (24%)
+Dropdown Arrow
+Masterwork Girdle of Healing
+Masterwork Girdle of Healing
+waist
+Auction House
+BoE World Drop
+Dropdown Arrow
+Empowered Leggings
+Empowered Leggings
+enchant
+Vodouisant's Vigilant Embrace
+legs
+Blackwing Lair
+Chromaggus
+
+Dropdown Arrow
+Salamander Scale Pants
+Salamander Scale Pants
+legs
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (4%)
+Dropdown Arrow
+Padre's Trousers
+Padre's Trousers
+legs
+Dire Maul (West)
+Illyanna Ravenoak (22%)
+Dropdown Arrow
+Leggings of the Demented Mind
+Leggings of the Demented Mind
+legs
+World Boss
+Ysondre
+Dropdown Arrow
+Masterwork Legplates of Healing
+Masterwork Legplates of Healing
+legs
+Auction House
+BoE World Drop
+Dropdown Arrow
+Ghoul Skin Leggings
+Ghoul Skin Leggings
+legs
+Scholomance
+Lord Alex Barov (8%)
+Dropdown Arrow
+Boots of Pure Thought
+Boots of Pure Thought
+enchant
+Boots - Minor Speed
+feet
+Blackwing Lair
+Trash Drop
+
+Dropdown Arrow
+Snowblind Shoes
+Snowblind Shoes
+feet
+World Boss
+Azuregos (16%)
+Dropdown Arrow
+Boots of Fright
+Boots of Fright
+feet
+World Boss
+Taerar
+Dropdown Arrow
+Animist's Boots
+Animist's Boots
+feet
+Zul'Gurub
+Jin'do the Hexxer
+Dropdown Arrow
+Verdant Footpads
+Verdant Footpads
+feet
+Stratholme (Undead)
+Stonespine (30%)
+Dropdown Arrow
+Boots of the Full Moon
+Boots of the Full Moon
+feet
+Dire Maul (North)
+Captain Kromcrush
+Dropdown Arrow
+Pure Elementium Band
+Pure Elementium Band
+finger 1
+Blackwing Lair
+Nefarian
+
+Dropdown Arrow
+Cauterizing Band
+Cauterizing Band
+finger 1
+Molten Core
+Majordomo Executus (22%)
+Dropdown Arrow
+Rosewine Circle
+Rosewine Circle
+finger 1
+Blackrock Spire (Lower)
+Urok Doomhowl (19%)
+Dropdown Arrow
+Ring of Blackrock
+Ring of Blackrock
+finger 1
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+Dropdown Arrow
+Fordring's Seal
+Fordring's Seal
+finger 1
+Quest Reward
+In Dreams
+Dropdown Arrow
+Primalist's Seal
+Primalist's Seal
+finger 1
+Zul'Gurub
+Bloodlord Mandokir
+Dropdown Arrow
+Cauterizing Band
+Cauterizing Band
+finger 2
+Molten Core
+Majordomo Executus (22%)
+
+Dropdown Arrow
+Pure Elementium Band
+Pure Elementium Band
+finger 2
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Rosewine Circle
+Rosewine Circle
+finger 2
+Blackrock Spire (Lower)
+Urok Doomhowl (19%)
+Dropdown Arrow
+Ring of Blackrock
+Ring of Blackrock
+finger 2
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+Dropdown Arrow
+Fordring's Seal
+Fordring's Seal
+finger 2
+Quest Reward
+In Dreams
+Dropdown Arrow
+Primalist's Seal
+Primalist's Seal
+finger 2
+Zul'Gurub
+Bloodlord Mandokir
+Dropdown Arrow
+Rejuvenating Gem
+Rejuvenating Gem
+trinket 1
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+
+Dropdown Arrow
+Hibernation Crystal
+Hibernation Crystal
+trinket 1
+World Boss
+Ysondre
+Dropdown Arrow
+Natural Alignment Crystal
+Natural Alignment Crystal
+trinket 1
+Blackwing Lair
+Firemaw
+Dropdown Arrow
+Talisman of Ephemeral Power
+Talisman of Ephemeral Power
+trinket 1
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (5%)
+Dropdown Arrow
+Shard of the Scale
+Shard of the Scale
+trinket 1
+Onyxia's Lair
+Onyxia (6%)
+Dropdown Arrow
+Briarwood Reed
+Briarwood Reed
+trinket 1
+Blackrock Spire
+Jed Runewatcher (30%)
+Dropdown Arrow
+Natural Alignment Crystal
+Natural Alignment Crystal
+trinket 2
+Blackwing Lair
+Firemaw
+
+Dropdown Arrow
+Rejuvenating Gem
+Rejuvenating Gem
+trinket 2
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+Dropdown Arrow
+Hibernation Crystal
+Hibernation Crystal
+trinket 2
+World Boss
+Ysondre
+Dropdown Arrow
+Talisman of Ephemeral Power
+Talisman of Ephemeral Power
+trinket 2
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (5%)
+Dropdown Arrow
+Shard of the Scale
+Shard of the Scale
+trinket 2
+Onyxia's Lair
+Onyxia (6%)
+Dropdown Arrow
+Briarwood Reed
+Briarwood Reed
+trinket 2
+Blackrock Spire
+Jed Runewatcher (30%)
+Dropdown Arrow
+Lok'amir il Romathis
+Lok'amir il Romathis
+enchant
+Weapon - Healing Power
+weapon
+Blackwing Lair
+Nefarian
+
+Dropdown Arrow
+Claw of Chromaggus
+Claw of Chromaggus
+weapon
+Blackwing Lair
+Chromaggus
+Dropdown Arrow
+Fang of the Mystics
+Fang of the Mystics
+weapon
+World Boss
+Azuregos (17%)
+Dropdown Arrow
+Jin'do's Hexxer
+Jin'do's Hexxer
+weapon
+Zul'Gurub
+Jin'do the Hexxer
+Dropdown Arrow
+Staff of the Shadow Flame
+Staff of the Shadow Flame
+weapon
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Aurastone Hammer
+Aurastone Hammer
+weapon
+Molten Core
+Garr (19%)
+Dropdown Arrow
+Lei of the Lifegiver
+Lei of the Lifegiver
+off hand
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+
+Dropdown Arrow
+Red Dragonscale Protector
+Red Dragonscale Protector
+off hand
+Blackwing Lair
+Vaelastrasz the Corrupt
+Dropdown Arrow
+Master Dragonslayer's Orb
+Master Dragonslayer's Orb
+off hand
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Brightly Glowing Stone
+Brightly Glowing Stone
+off hand
+Dire Maul (North)
+King Gordok (24%)
+Dropdown Arrow
+Triumphant Shield of Healing
+Triumphant Shield of Healing
+off hand
+Auction House
+BoE World Drop
+Dropdown Arrow
+Arlokk's Hoodoo Stick
+Arlokk's Hoodoo Stick
+off hand
+Zul'Gurub
+High Priest Arlokk
+Dropdown Arrow

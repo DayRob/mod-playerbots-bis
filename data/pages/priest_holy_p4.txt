@@ -1,0 +1,631 @@
+Gear
+Slot
+Source
+Zulian Headdress
+Zulian Headdress
+enchantProphetic Aura
+head
+Zul'Gurub
+Multiple Bosses
+Dropdown Arrow
+Crystal Adorned Crown
+Crystal Adorned Crown
+head
+World Boss
+Azuregos (19%)
+Dropdown Arrow
+Halo of Transcendence
+Halo of Transcendence
+head
+Onyxia's Lair
+Onyxia (19%)
+Dropdown Arrow
+Mish'undare, Circlet of the Mind Flayer
+Mish'undare, Circlet of the Mind Flayer
+head
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Eternal Crown of Healing
+Eternal Crown of Healing
+head
+Auction House
+BoE World Drop
+Dropdown Arrow
+Cassandra's Grace
+Cassandra's Grace
+head
+Auction House
+BoE World Drop
+Dropdown Arrow
+Jin'do's Evil Eye
+Jin'do's Evil Eye
+neck
+Zul'Gurub
+Jin'do the Hexxer
+Dropdown Arrow
+Animated Chain Necklace
+Animated Chain Necklace
+neck
+Stratholme (Live)
+Ramstein the Gorger (12%)
+Dropdown Arrow
+Choker of the Fire Lord
+Choker of the Fire Lord
+neck
+Molten Core
+Ragnaros (19%)
+Dropdown Arrow
+Choker of Enlightenment
+Choker of Enlightenment
+neck
+Molten Core
+Lucifron (23%)
+Dropdown Arrow
+Beads of Ogre Mojo
+Beads of Ogre Mojo
+neck
+Quest Reward
+Falrin's Vendetta
+Dropdown Arrow
+Lady Maye's Pendant
+Lady Maye's Pendant
+neck
+Auction House
+BoE World Drop
+Dropdown Arrow
+Pauldrons of Transcendence
+Pauldrons of Transcendence
+enchantZandalar Signet of Serenity
+shoulder
+Blackwing Lair
+Chromaggus
+Dropdown Arrow
+Mantle of the Blackwing Cabal
+Mantle of the Blackwing Cabal
+shoulder
+Blackwing Lair
+Razoregore the Untamed
+Dropdown Arrow
+Mantle of Prophecy
+Mantle of Prophecy
+shoulder
+Molten Core
+Sulfuron Harbinger (33%)
+Dropdown Arrow
+Virtuous Mantle
+Virtuous Mantle
+shoulder
+Quest Reward
+Anthion's Parting Words
+Dropdown Arrow
+Burial Shawl
+Burial Shawl
+shoulder
+Scholomance
+Lord Alexei Barov (8%)
+Dropdown Arrow
+alternative
+Champion's Satin Mantle
+Champion's Satin Mantle
+shoulder
+Honor System
+Rank 10
+Dropdown Arrow
+Hide of the Wild
+Hide of the Wild
+enchantCloak - Greater Resistance
+back
+Leatherworking
+BoE Pattern (300)
+Dropdown Arrow
+Drape of Benediction
+Drape of Benediction
+back
+World Boss
+Azuregos (16%)
+Dropdown Arrow
+Shroud of Pure Thought
+Shroud of Pure Thought
+back
+Blackwing Lair
+Flamegor
+Dropdown Arrow
+Hakkari Loa Cloak
+Hakkari Loa Cloak
+back
+Zul'Gurub
+Bloodlord Mandokir
+Dropdown Arrow
+Master's Cloak of Healing
+Master's Cloak of Healing
+back
+Auction House
+BoE World Drop
+Dropdown Arrow
+alternative
+Battle Healer's Cloak
+Battle Healer's Cloak
+back
+Reputation
+Warsong Outriders - Honored (H)
+Dropdown Arrow
+Truefaith Vestments
+Truefaith Vestments
+enchantChest - Greater Stats
+chest
+Tailoring
+BoE Pattern (300)
+Dropdown Arrow
+Robes of Transcendence
+Robes of Transcendence
+chest
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Robes of the Exalted
+Robes of the Exalted
+chest
+Stratholme (Undead)
+Baron Rivendare (15%)
+Dropdown Arrow
+Jade Inlaid Vestments
+Jade Inlaid Vestments
+chest
+World Boss
+Ysondre
+Dropdown Arrow
+Robes of Prophecy
+Robes of Prophecy
+chest
+Molten Core
+Golemagg the Incinerator (24%)
+Dropdown Arrow
+Alanna's Embrace
+Alanna's Embrace
+chest
+Scholomance
+Ras Frostwhisper (7%)
+Dropdown Arrow
+Bindings of Transcendence
+Bindings of Transcendence
+enchant
+Bracer - Healing Power
+wrist
+Blackwing Lair
+Razoregore the Untamed
+
+Dropdown Arrow
+Vambraces of Prophecy
+Vambraces of Prophecy
+wrist
+Molten Core
+Trash Drop (1%)
+Dropdown Arrow
+Master's Bracers of Healing
+Master's Bracers of Healing
+wrist
+Auction House
+BoE World Drop
+Dropdown Arrow
+Dryad's Wrist Bindings
+Dryad's Wrist Bindings
+wrist
+Reputation
+Warsong Outriders, Silverwing Sentinels - Exalted
+Dropdown Arrow
+Sublime Wristguards
+Sublime Wristguards
+wrist
+Dire Maul (North)
+Guard Mol'dar, Guard Slip'kik (6%)
+Dropdown Arrow
+Wyrmthalak's Shackles
+Wyrmthalak's Shackles
+wrist
+Quest Reward
+Warlord's Command (H)
+Dropdown Arrow
+Handguards of Transcendence
+Handguards of Transcendence
+hands
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+
+Dropdown Arrow
+Hands of the Exalted Herald
+Hands of the Exalted Herald
+hands
+Blackrock Depths
+Princess Moira Bronzebeard (23%)
+Dropdown Arrow
+Eternal Gloves of Healing
+Eternal Gloves of Healing
+hands
+Auction House
+BoE World Drop
+Dropdown Arrow
+Gloves of Prophecy
+Gloves of Prophecy
+hands
+Molten Core
+Gehennas (32%)
+Dropdown Arrow
+Hands of Power
+Hands of Power
+hands
+Blackrock Spire (Lower)
+Quartermaster Zigris (18%)
+Dropdown Arrow
+Virtuous Gloves
+Virtuous Gloves
+hands
+Quest Reward
+Just Compensation
+Dropdown Arrow
+Firemaw's Clutch
+Firemaw's Clutch
+waist
+Blackwing Lair
+Firemaw
+
+Dropdown Arrow
+Belt of Transcendence
+Belt of Transcendence
+waist
+Blackwing Lair
+Vaelastrasz the Corrupt
+Dropdown Arrow
+Master's Belt of Healing
+Master's Belt of Healing
+waist
+Auction House
+BoE World Drop
+Dropdown Arrow
+Whipvine Cord
+Whipvine Cord
+waist
+Dire Maul (East)
+Alzzin the Wildshaper (19%)
+Dropdown Arrow
+Mana Igniting Cord
+Mana Igniting Cord
+waist
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (6%)
+Dropdown Arrow
+Girdle of Prophecy
+Girdle of Prophecy
+waist
+Molten Core
+Trash Drop (1%)
+Dropdown Arrow
+Empowered Leggings
+Empowered Leggings
+enchant
+Prophetic Aura
+legs
+Blackwing Lair
+Chromaggus
+
+Dropdown Arrow
+Leggings of Transcendence
+Leggings of Transcendence
+legs
+Molten Core
+Ragnaros (14%)
+Dropdown Arrow
+Master's Leggings of Healing
+Master's Leggings of Healing
+legs
+Auction House
+BoE World Drop
+Dropdown Arrow
+Senior Designer's Pantaloons
+Senior Designer's Pantaloons
+legs
+Blackrock Depths
+Fineous Darkvire (23%)
+Dropdown Arrow
+Padre's Trousers
+Padre's Trousers
+legs
+Dire Maul (West)
+Illyanna Ravenoak (22%)
+Dropdown Arrow
+Pants of Prophecy
+Pants of Prophecy
+legs
+Molten Core
+Magmadar (20%)
+Dropdown Arrow
+Boots of Pure Thought
+Boots of Pure Thought
+enchant
+Boots - Minor Speed
+feet
+Blackwing Lair
+Trash Drop
+
+Dropdown Arrow
+Boots of Transcendence
+Boots of Transcendence
+feet
+Blackwing Lair
+Broodlord Lashlayer
+Dropdown Arrow
+Betrayer's Boots
+Betrayer's Boots
+feet
+Zul'Gurub
+High Priest Thekal
+Dropdown Arrow
+Boots of Prophecy
+Boots of Prophecy
+feet
+Molten Core
+Shazzrah (24%)
+Dropdown Arrow
+Boots of the Full Moon
+Boots of the Full Moon
+feet
+Dire Maul (North)
+Captain Kromcrush
+Dropdown Arrow
+Virtuous Sandals
+Virtuous Sandals
+feet
+Quest Reward
+Anthion's Parting Words
+Dropdown Arrow
+Pure Elementium Band
+Pure Elementium Band
+finger 1
+Blackwing Lair
+Nefarian
+
+Dropdown Arrow
+Cauterizing Band
+Cauterizing Band
+finger 1
+Molten Core
+Majordomo Executus (22%)
+Dropdown Arrow
+Primalist's Seal
+Primalist's Seal
+finger 1
+Zul'Gurub
+Bloodlord Mandokir
+Dropdown Arrow
+Fordring's Seal
+Fordring's Seal
+finger 1
+Quest Reward
+In Dreams
+Dropdown Arrow
+Rosewine Circle
+Rosewine Circle
+finger 1
+Blackrock Spire (Lower)
+Urok Doomhowl (19%)
+Dropdown Arrow
+Ring of Spell Power
+Ring of Spell Power
+finger 1
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (4%)
+Dropdown Arrow
+Cauterizing Band
+Cauterizing Band
+finger 2
+Molten Core
+Majordomo Executus (22%)
+
+Dropdown Arrow
+Pure Elementium Band
+Pure Elementium Band
+finger 2
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Primalist's Seal
+Primalist's Seal
+finger 2
+Zul'Gurub
+Bloodlord Mandokir
+Dropdown Arrow
+Fordring's Seal
+Fordring's Seal
+finger 2
+Quest Reward
+In Dreams
+Dropdown Arrow
+Rosewine Circle
+Rosewine Circle
+finger 2
+Blackrock Spire (Lower)
+Urok Doomhowl (19%)
+Dropdown Arrow
+Ring of Spell Power
+Ring of Spell Power
+finger 2
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (4%)
+Dropdown Arrow
+Rejuvenating Gem
+Rejuvenating Gem
+trinket 1
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+
+Dropdown Arrow
+Hibernation Crystal
+Hibernation Crystal
+trinket 1
+World Boss
+Ysondre
+Dropdown Arrow
+Zandalarian Hero Charm
+Zandalarian Hero Charm
+trinket 1
+Quest Reward
+The Heart of Hakkar
+Dropdown Arrow
+Blessed Prayer Beads
+Blessed Prayer Beads
+trinket 1
+Quest Reward
+Blood of Morphaz
+Dropdown Arrow
+Talisman of Ephemeral Power
+Talisman of Ephemeral Power
+trinket 1
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (5%)
+Dropdown Arrow
+Royal Seal of Eldre'Thalas (Priest)
+Royal Seal of Eldre'Thalas (Priest)
+trinket 1
+Quest Reward
+Holy Bologna: What the Light Won't Tell You
+Dropdown Arrow
+Zandalarian Hero Charm
+Zandalarian Hero Charm
+trinket 2
+Quest Reward
+The Heart of Hakkar
+
+Dropdown Arrow
+Hibernation Crystal
+Hibernation Crystal
+trinket 2
+World Boss
+Ysondre
+Dropdown Arrow
+Blessed Prayer Beads
+Blessed Prayer Beads
+trinket 2
+Quest Reward
+Blood of Morphaz
+Dropdown Arrow
+Rejuvenating Gem
+Rejuvenating Gem
+trinket 2
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+Dropdown Arrow
+Talisman of Ephemeral Power
+Talisman of Ephemeral Power
+trinket 2
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (5%)
+Dropdown Arrow
+Royal Seal of Eldre'Thalas (Priest)
+Royal Seal of Eldre'Thalas (Priest)
+trinket 2
+Quest Reward
+Holy Bologna: What the Light Won't Tell You
+Dropdown Arrow
+Benediction
+Benediction
+enchant
+Weapon - Healing Power
+weapon
+Quest Reward
+The Balance of Light and Shadow
+
+Dropdown Arrow
+Lok'amir il Romathis
+Lok'amir il Romathis
+weapon
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Claw of Chromaggus
+Claw of Chromaggus
+weapon
+Blackwing Lair
+Chromaggus
+Dropdown Arrow
+Staff of the Shadow Flame
+Staff of the Shadow Flame
+weapon
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Jin'do's Hexxer
+Jin'do's Hexxer
+weapon
+Zul'Gurub
+Jin'do the Hexxer
+Dropdown Arrow
+Fang of the Mystics
+Fang of the Mystics
+weapon
+World Boss
+Azuregos (17%)
+Dropdown Arrow
+off hand
+
+Dropdown Arrow
+Lei of the Lifegiver
+Lei of the Lifegiver
+off hand
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+Dropdown Arrow
+Brightly Glowing Stone
+Brightly Glowing Stone
+off hand
+Dire Maul (North)
+King Gordok (24%)
+Dropdown Arrow
+Master Dragonslayer's Orb
+Master Dragonslayer's Orb
+off hand
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Eternal Rod of Healing
+Eternal Rod of Healing
+off hand
+Auction House
+BoE World Drop
+Dropdown Arrow
+Thaurissan's Royal Scepter
+Thaurissan's Royal Scepter
+off hand
+Blackrock Depths
+Emperor Dagran Thaurissan (18%)
+Dropdown Arrow
+Touch of Chaos
+Touch of Chaos
+ranged
+Zul'Gurub
+Hakkar
+
+Dropdown Arrow
+Lunar Wand of Healing
+Lunar Wand of Healing
+ranged
+Auction House
+BoE World Drop
+Dropdown Arrow
+Bonecreeper Stylus
+Bonecreeper Stylus
+ranged
+Scholomance
+Darkmaster Gandling (13%)
+Dropdown Arrow
+Lethtendris's Wand
+Lethtendris's Wand
+ranged
+Dire Maul (East)
+Lethtendris (27%)
+Dropdown Arrow
+Oblivion's Touch
+Oblivion's Touch
+ranged
+Scholomance
+Death Knight Darkreaver (23%)
+Dropdown Arrow

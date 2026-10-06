@@ -258,6 +258,27 @@ la seule sortie qui demande une action, donc elle est séparée du reste.
 Sur une base vierge, ajoutez `-Depuis 1`. Par défaut le script part du fichier 24, les
 précédents ne changeant plus.
 
+### Les pages source, et l'audit des quêtes
+
+`data/pages/` conserve les pages wowtbc.gg **telles qu'elles ont été copiées**, une par
+couple classe/spé/phase. Elles ne servent pas de documentation : ce sont les entrées du
+convertisseur, et sans elles un fichier SQL ne peut plus être régénéré.
+
+La leçon vient d'un accident : les fichiers 24 à 33 ont dû rester tels quels alors qu'une
+règle du convertisseur avait changé, parce que leurs pages n'existaient plus nulle part.
+
+`tools/audit_quetes.py` les relit pour vérifier la règle « pas de PvP » là où elle est le
+plus fragile — les **récompenses de quête**. Une page écrit `Quest Reward` sans dire si la
+quête se déroule dans un donjon ou en Vallée d'Alterac :
+
+```bash
+python3 tools/audit_quetes.py
+```
+
+Il montre les deux côtés : ce que la règle écarte (qui doit être entièrement du PvP) et les
+noms de quête gardés, à relire des yeux. Le second ne peut pas être automatisé — rien dans
+`Warlord's Command (H)` ne dit s'il s'agit d'un donjon ou d'un front.
+
 ### Quels noms votre base ne connaît pas
 
 Chaque fichier généré porte sa propre requête de vérification, mais elle ne parle que de son

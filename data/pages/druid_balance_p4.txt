@@ -1,0 +1,525 @@
+Gear
+Slot
+Source
+Mish'undare, Circlet of the Mind Flayer
+Mish'undare, Circlet of the Mind Flayer
+enchantArcanum of Focus
+head
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+The Hexxer's Cover
+The Hexxer's Cover
+head
+Zul'Gurub
+Jin'do the Hexxer
+Bloodvine Goggles
+Bloodvine Goggles
+head
+Engineering
+BoP Pattern
+Eternal Crown of Arcane Wrath
+Eternal Crown of Arcane Wrath
+head
+Auction House
+BoE World Drop
+Crimson Felt Hat
+Crimson Felt Hat
+head
+Stratholme (Undead)
+Magistrate Barthilas (15%)
+Spellpower Goggles Xtreme Plus
+Spellpower Goggles Xtreme Plus
+head
+Engineering
+BoE Pattern (270)
+Choker of the Fire Lord
+Choker of the Fire Lord
+neck
+Molten Core
+Ragnaros (19%)
+Dropdown Arrow
+Pristine Enchanted South Seas Kelp
+Pristine Enchanted South Seas Kelp
+neck
+Quest Reward
+Pristine Enchanted South Seas Kelp
+Jeklik's Opaline Talisman
+Jeklik's Opaline Talisman
+neck
+Zul'Gurub
+High Priest Jeklik
+Diana's Pearl Necklace
+Diana's Pearl Necklace
+neck
+Stratholme (Live)
+Cannon Master Willey (23%)
+Choker of Enlightenment
+Choker of Enlightenment
+neck
+Molten Core
+Lucifron (23%)
+Soul Corrupter's Necklace
+Soul Corrupter's Necklace
+neck
+Zul'Gurub
+Hakkar
+Mantle of the Blackwing Cabal
+Mantle of the Blackwing Cabal
+enchantZandalar Signet of Mojo
+shoulder
+Blackwing Lair
+Razoregore the Untamed
+Dropdown Arrow
+Eternal Spaulders of Arcane Wrath
+Eternal Spaulders of Arcane Wrath
+shoulder
+Auction House
+BoE World Drop
+Burial Shawl
+Burial Shawl
+shoulder
+Scholomance
+Lord Alexei Barov (8%)
+Kentic Amice
+Kentic Amice
+shoulder
+Blackrock Depths
+High Interrogator Gerstahn (23%)
+alternative
+Champion's Dragonhide Shoulders
+Champion's Dragonhide Shoulders
+shoulder
+Honor System
+Rank 10
+Cyclone Spaulders
+Cyclone Spaulders
+shoulder
+Dire Maul (North)
+Gordok Tribute (3%)
+Cloak of Consumption
+Cloak of Consumption
+enchantCloak - Greater Resistance
+back
+Zul'Gurub
+Hakkar
+Dropdown Arrow
+Cloak of the Brood Lord
+Cloak of the Brood Lord
+back
+Blackwing Lair
+Nefarian
+Cloak of the Hakkari Worshipers
+Cloak of the Hakkari Worshipers
+back
+Zul'Gurub
+Multiple Bosses
+Master's Cloak of Arcane Wrath
+Master's Cloak of Arcane Wrath
+back
+Auction House
+BoE World Drop
+Amplifying Cloak
+Amplifying Cloak
+back
+Dire Maul (West)
+Magister Kalendris (25%)
+Shroud of Arcane Mastery
+Shroud of Arcane Mastery
+back
+Blackrock Depths
+Arena Spoils (26%)
+Bloodvine Vest
+Bloodvine Vest
+enchantChest - Greater Stats
+chest
+Tailoring
+BoP Pattern
+Dropdown Arrow
+Robe of Volatile Power
+Robe of Volatile Power
+chest
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (5%)
+Jade Inlaid Vestments
+Jade Inlaid Vestments
+chest
+World Boss
+Ysondre
+Eternal Chestguard of Arcane Wrath
+Eternal Chestguard of Arcane Wrath
+chest
+Auction House
+BoE World Drop
+Robe of Everlasting Night
+Robe of Everlasting Night
+chest
+Dire Maul (West)
+Immol'thar (21%)
+Chestplate of Tranquility
+Chestplate of Tranquility
+chest
+Dire Maul (North)
+Prince Tortheldrin (10%)
+Bracers of Arcane Accuracy
+Bracers of Arcane Accuracy
+enchant
+Bracer - Greater Intellect
+wrist
+Blackwing Lair
+Broodlord Lashlayer
+
+Dropdown Arrow
+Black Bark Wristbands
+Black Bark Wristbands
+wrist
+World Boss
+Lethon
+Dryad's Wrist Bindings
+Dryad's Wrist Bindings
+wrist
+Reputation
+Warsong Outriders, Silverwing Sentinels - Exalted
+Master's Bracers of Arcane Wrath
+Master's Bracers of Arcane Wrath
+wrist
+Auction House
+BoE World Drop
+Sublime Wristguards
+Sublime Wristguards
+wrist
+Dire Maul (North)
+Guard Mol'dar, Guard Slip'kik (6%)
+Blacklight Bracer
+Blacklight Bracer
+wrist
+World Boss
+Lord Kazzak (17%)
+Bloodtinged Gloves
+Bloodtinged Gloves
+hands
+Zul'Gurub
+Jin'do the Hexxer
+
+Dropdown Arrow
+Adventurer's Gloves of Arcane Wrath
+Adventurer's Gloves of Arcane Wrath
+hands
+Auction House
+BoE World Drop
+Hands of Power
+Hands of Power
+hands
+Blackrock Spire (Lower)
+Quartermaster Zigris (18%)
+Earth Warder's Gloves
+Earth Warder's Gloves
+hands
+Quest Reward
+Winterfall Activity
+Bloodfire Talons
+Bloodfire Talons
+hands
+Sunken Temple
+Hazzas, Dreamscythe, Morphaz, Weaver (8%)
+Dreamweave Gloves
+Dreamweave Gloves
+hands
+Tailoring
+Trainer (225)
+Mana Igniting Cord
+Mana Igniting Cord
+waist
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (6%)
+
+Dropdown Arrow
+Firemaw's Clutch
+Firemaw's Clutch
+waist
+Blackwing Lair
+Firemaw
+Angelista's Grasp
+Angelista's Grasp
+waist
+Blackwing Lair
+Chromaggus
+Belt of Untapped Power
+Belt of Untapped Power
+waist
+Zul'Gurub
+Multiple Bosses
+Adventurer's Belt of Arcane Wrath
+Adventurer's Belt of Arcane Wrath
+waist
+Auction House
+BoE World Drop
+Ban'thok Sash
+Ban'thok Sash
+waist
+Blackrock Depths
+Ok'thor the Breaker (32%)
+Bloodvine Leggings
+Bloodvine Leggings
+enchant
+Arcanum of Focus
+legs
+Tailoring
+BoP Pattern
+
+Dropdown Arrow
+Flarecore Leggings
+Flarecore Leggings
+legs
+Reputation
+Thorium Brotherhood - Revered
+Adventurer's Legguards of Arcane Wrath
+Adventurer's Legguards of Arcane Wrath
+legs
+Auction House
+BoE World Drop
+Leggings of Arcane Supremacy
+Leggings of Arcane Supremacy
+legs
+World Boss
+Azuregos (14%)
+Skyshroud Leggings
+Skyshroud Leggings
+legs
+Blackrock Spire (Upper)
+Highlord Omokk (14%)
+alternative
+Outrider's Silk Leggings
+Outrider's Silk Leggings
+legs
+Reputation
+Warsong Riders - Exalted (H)
+Bloodvine Boots
+Bloodvine Boots
+enchant
+Boots - Minor Speed
+feet
+Tailoring
+BoP Pattern
+
+Dropdown Arrow
+Boots of Fright
+Boots of Fright
+feet
+World Boss
+Taerar
+Betrayer's Boots
+Betrayer's Boots
+feet
+Zul'Gurub
+High Priest Thekal
+Master's Boots of Arcane Wrath
+Master's Boots of Arcane Wrath
+feet
+Auction House
+BoE World Drop
+Snowblind Shoes
+Snowblind Shoes
+feet
+World Boss
+Azuregos (16%)
+Waterspout Boots
+Waterspout Boots
+feet
+Dire Maul (East)
+Hydrospawn (20%)
+Band of Forced Concentration
+Band of Forced Concentration
+finger 1
+Blackwing Lair
+Ebonroc
+
+Dropdown Arrow
+Mindtear Band
+Mindtear Band
+finger 1
+World Boss
+Taerar (14%)
+Ring of Spell Power
+Ring of Spell Power
+finger 1
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (4%)
+Zanzil's Seal
+Zanzil's Seal
+finger 1
+Zul'Gurub
+Bloodlord Mandokir
+Band of Servitude
+Band of Servitude
+finger 1
+Zul'Gurub
+Multiple Bosses
+Maiden's Circle
+Maiden's Circle
+finger 1
+Auction House
+BoE World Drop
+Ring of Spell Power
+Ring of Spell Power
+finger 2
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (4%)
+
+Dropdown Arrow
+Band of Forced Concentration
+Band of Forced Concentration
+finger 2
+Blackwing Lair
+Ebonroc
+Mindtear Band
+Mindtear Band
+finger 2
+World Boss
+Taerar (14%)
+Zanzil's Seal
+Zanzil's Seal
+finger 2
+Zul'Gurub
+Bloodlord Mandokir
+Band of Servitude
+Band of Servitude
+finger 2
+Zul'Gurub
+Multiple Bosses
+Maiden's Circle
+Maiden's Circle
+finger 2
+Auction House
+BoE World Drop
+Neltharion's Tear
+Neltharion's Tear
+trinket 1
+Blackwing Lair
+Nefarian
+
+Dropdown Arrow
+Talisman of Ephemeral Power
+Talisman of Ephemeral Power
+trinket 1
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (5%)
+Zandalarian Hero Charm
+Zandalarian Hero Charm
+trinket 1
+Quest Reward
+The Heart of Hakkar
+Briarwood Reed
+Briarwood Reed
+trinket 1
+Blackrock Spire
+Jed Runewatcher (30%)
+Eye of the Beast
+Eye of the Beast
+trinket 1
+Quest Reward
+For The Horde! (H)
+Burst of Knowledge
+Burst of Knowledge
+trinket 1
+Blackrock Depths
+Ambassador Flamelash (10%)
+Talisman of Ephemeral Power
+Talisman of Ephemeral Power
+trinket 2
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (5%)
+
+Dropdown Arrow
+Neltharion's Tear
+Neltharion's Tear
+trinket 2
+Blackwing Lair
+Nefarian
+Zandalarian Hero Charm
+Zandalarian Hero Charm
+trinket 2
+Quest Reward
+The Heart of Hakkar
+Briarwood Reed
+Briarwood Reed
+trinket 2
+Blackrock Spire
+Jed Runewatcher (30%)
+Eye of the Beast
+Eye of the Beast
+trinket 2
+Quest Reward
+For The Horde! (H)
+Burst of Knowledge
+Burst of Knowledge
+trinket 2
+Blackrock Depths
+Ambassador Flamelash (10%)
+Lok'amir il Romathis
+Lok'amir il Romathis
+enchant
+Weapon - Spell Power
+weapon
+Blackwing Lair
+Nefarian
+
+Dropdown Arrow
+Staff of the Shadow Flame
+Staff of the Shadow Flame
+weapon
+Blackwing Lair
+Nefarian
+Claw of Chromaggus
+Claw of Chromaggus
+weapon
+Blackwing Lair
+Chromaggus
+Fang of the Mystics
+Fang of the Mystics
+weapon
+World Boss
+Azuregos (17%)
+alternative
+Mindfang
+Mindfang
+weapon
+Reputation
+The Defilers - Exalted (H)
+Staff of Dominance
+Staff of Dominance
+weapon
+Molten Core
+Golemagg the Incinerator (25%)
+Jin'do's Bag of Whammies
+Jin'do's Bag of Whammies
+off hand
+Zul'Gurub
+Jin'do the Hexxer
+
+Dropdown Arrow
+Tome of Arcane Domination
+Tome of Arcane Domination
+off hand
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+Master Dragonslayer's Orb
+Master Dragonslayer's Orb
+off hand
+Blackwing Lair
+Nefarian
+Eternal Rod of Arcane Wrath
+Eternal Rod of Arcane Wrath
+off hand
+Auction House
+BoE World Drop
+Spirit of Aquementas
+Spirit of Aquementas
+off hand
+Quest Reward
+It's Dangerous to Go Alone
+Fire Runed Grimoire
+Fire Runed Grimoire
+off hand
+Molten Core
+Garr, Magmadar, Baron Geddon, Golemagg (6%)
