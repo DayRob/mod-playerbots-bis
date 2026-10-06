@@ -22,6 +22,8 @@ local MAX_GROUPS = 8
 local GROUP_SIZE = 5
 local STEP_DELAY = 0.4    -- laisse au serveur le temps de renvoyer la liste
 local MAX_STEPS  = 160    -- garde-fou : 40 bots mal places tiennent largement dedans
+local INVITES_PAR_TICK = 2     -- le serveur jette les invitations envoyees en rafale
+local CALME_AVANT_RANGEMENT = 6  -- ticks sans nouvelle arrivee avant de ranger
 
 local db
 local worker
@@ -160,6 +162,27 @@ local function Layouts()
     return db.compo
 end
 
+-- Qui est deja la, groupe normal comme raid. ReadRaid ne lit que le raid, et
+-- au moment d'inviter on est encore seul ou a quatre.
+local function Presents()
+    local vus = {}
+    local moi = UnitName("player")
+    if moi then vus[moi] = true end
+
+    if GetNumRaidMembers() > 0 then
+        for i = 1, GetNumRaidMembers() do
+            local n = GetRaidRosterInfo(i)
+            if n then vus[n] = true end
+        end
+    else
+        for i = 1, GetNumPartyMembers() do
+            local n = UnitName("party" .. i)
+            if n then vus[n] = true end
+        end
+    end
+    return vus
+end
+
 local function Save(name)
     if GetNumRaidMembers() == 0 then
         Print("tu n'es pas en raid - rien a enregistrer.")
@@ -230,6 +253,86 @@ local function List()
     end
 end
 
+-- Inviter puis ranger, en une commande.
+--
+-- La composition enregistre deja QUI etait la : chaque membre avec son
+-- sous-groupe. Il n'y a donc pas de liste d'invitation a tenir a part, c'est la
+-- meme donnee lue dans l'autre sens.
+local function Invite(name)
+    local layout = Layouts()[name]
+    if not layout then
+        Print("aucune composition nommee |cffffd100" .. name .. "|r.")
+        return
+    end
+
+    local presents = Presents()
+    local aInviter = {}
+    for membre in pairs(layout) do
+        if not presents[membre] then table.insert(aInviter, membre) end
+    end
+    table.sort(aInviter)
+
+    if #aInviter == 0 then
+        Apply(name)
+        return
+    end
+
+    Print(string.format("|cffffd100%s|r : %d invitation(s) a envoyer.", name, #aInviter))
+
+    if not worker then
+        worker = CreateFrame("Frame")
+    end
+
+    local elapsed, i, calme, dernier, steps = 0, 1, 0, -1, 0
+
+    worker:SetScript("OnUpdate", function(self, delta)
+        elapsed = elapsed + delta
+        if elapsed < STEP_DELAY then
+            return
+        end
+        elapsed = 0
+
+        steps = steps + 1
+        if steps > MAX_STEPS then
+            StopWorker("composition : abandon, le raid ne se remplit pas.")
+            return
+        end
+
+        -- Au-dela de cinq, une invitation en groupe normal est refusee. On
+        -- convertit des que le groupe existe, pas une fois qu'il deborde.
+        if GetNumRaidMembers() == 0 and GetNumPartyMembers() > 0 then
+            ConvertToRaid()
+        end
+
+        if i <= #aInviter then
+            for _ = 1, INVITES_PAR_TICK do
+                if i > #aInviter then break end
+                InviteUnit(aInviter[i])
+                i = i + 1
+            end
+            return
+        end
+
+        -- Toutes les invitations sont parties. Un bot hors ligne n'en refuse
+        -- aucune, il ne repond simplement jamais : on attend que l'effectif
+        -- cesse de monter plutot qu'un compte exact, sinon un seul absent
+        -- bloquerait la mise en place.
+        local n = GetNumRaidMembers()
+        if n ~= dernier then
+            dernier, calme = n, 0
+            return
+        end
+
+        calme = calme + 1
+        if calme < CALME_AVANT_RANGEMENT then
+            return
+        end
+
+        StopWorker(nil)
+        Apply(name)
+    end)
+end
+
 -- Appelee par le repartiteur de /pbbis.
 function PlayerbotsBisCompo_Command(arg)
     local cmd, name = string.match(arg or "", "^(%S*)%s*(.-)%s*$")
@@ -240,6 +343,8 @@ function PlayerbotsBisCompo_Command(arg)
         Save(name)
     elseif cmd == "apply" or cmd == "load" then
         Apply(name)
+    elseif cmd == "invite" then
+        Invite(name)
     elseif cmd == "stop" then
         StopWorker("composition : arret demande.")
     elseif cmd == "clear" or cmd == "delete" then
@@ -253,6 +358,7 @@ function PlayerbotsBisCompo_Command(arg)
         List()
         Print("/pbbis compo save <nom> - enregistre la repartition actuelle")
         Print("/pbbis compo apply <nom> - la reapplique au raid")
+        Print("/pbbis compo invite <nom> - invite les absents puis range")
         Print("/pbbis compo clear <nom> - l'oublie")
         Print("(sans nom : |cffffd100defaut|r)")
     end

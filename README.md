@@ -617,6 +617,21 @@ lui-même le jour où il ramasse une arme à une main.
 `--sans-arme-main-gauche` est à passer pour une **spé tank** : le créneau 16 doit rester au
 bouclier, et y laisser entrer une arme ferait lâcher le bouclier au bot.
 
+### Réinviter un raid entier
+
+```
+/pbbis compo save zg1        une fois le raid formé et rangé
+/pbbis compo invite zg1      la fois suivante : tout, en une commande
+```
+
+`invite` n'a pas de liste à lui : la composition enregistre **le nom de chaque membre avec son
+sous-groupe**, donc la liste d'invitation est la même donnée lue dans l'autre sens.
+
+Il envoie les invitations par deux — le serveur jette celles qui partent en rafale — convertit
+en raid dès que le groupe existe plutôt qu'une fois qu'il déborde, puis range. Un bot hors ligne
+ne refuse pas : il ne répond jamais. L'attente porte donc sur **l'arrêt de la montée de
+l'effectif**, pas sur un compte exact, sinon un seul absent bloquerait la mise en place.
+
 ### Un objet, une phase
 
 L'infobulle n'affiche que **le palier le plus haut** où l'objet figure. Une cape qui est BiS à
