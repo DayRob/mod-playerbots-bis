@@ -258,6 +258,36 @@ la seule sortie qui demande une action, donc elle est séparée du reste.
 Sur une base vierge, ajoutez `-Depuis 1`. Par défaut le script part du fichier 24, les
 précédents ne changeant plus.
 
+### Quand l'infobulle n'est pas à jour
+
+Entre la base et l'infobulle il y a **quatre maillons**, et chacun casse en silence avec le
+même symptôme :
+
+| | Maillon | Ce qui le remplit |
+|---|---|---|
+| 1 | la base contient les lignes | l'import SQL |
+| 2 | le `BisData.lua` du **dépôt** les porte | `export_bis_tooltip.ps1` |
+| 3 | le `BisData.lua` du **client** est copié | `install_addon.ps1` |
+| 4 | le client a relu le fichier | quitter et relancer le jeu |
+
+`tools/diagnostic_addon.ps1` lit les quatre et nomme celui qui manque :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\diagnostic_addon.ps1 -WowPath "C:\Wow335"
+```
+
+Il ne modifie rien. Il affiche les paliers présents de chaque côté, signale un fichier `.lua`
+absent du dossier du client — un fichier absent n'existe pas pour le jeu, même listé dans le
+`.toc`, et le chargement saute la ligne sans rien dire — puis donne la commande à lancer.
+
+Deux pièges qu'il connaît :
+
+- **Un `/reload` ne suffit pas** pour un fichier `.lua` nouveau. Il faut quitter le client
+  entièrement.
+- **Un plafond posé un jour par `/pbbis maxtier` reste enregistré** dans les SavedVariables et
+  masque tous les paliers au-dessus, même quand la base les contient. `/pbbis info` affiche le
+  plafond courant ; `/pbbis maxtier 0` l'enlève.
+
 ## Configuration essentielle
 
 ```ini
