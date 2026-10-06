@@ -68,9 +68,19 @@ DECOR = {"gear", "slot", "source", "dropdown arrow", "alternative", "enchant"}
 # Blackrock Depths donne un coffre appele "Arena Spoils", qui est du PvE pur et
 # que le mot seul faisait tomber. Il n'y avait pas d'arene en Vanilla ; pour les
 # pages TBC et WotLK, ce sont "arena season" et "arena points" qui comptent.
+#
+# "frostwolf" et "stormpike" sont la pour une raison precise : la chaine de
+# quetes "Hero of the Frostwolf" se deroule EN Vallee d'Alterac mais s'affiche
+# comme une simple "Quest Reward". Rien dans la provenance ne trahit le champ
+# de bataille, et deux objets - Bloodseeker et Wand of Biting Cold - sont
+# ainsi revenus dans quatre listes le jour ou je les ai regenerees, parce que
+# l'exclusion vivait dans un --exclut tape a la main que je n'ai pas retape.
+# Une regle dans le fichier ne s'oublie pas ; une option sur une ligne de
+# commande, si.
 EXCLUS = re.compile(
     r"\b(exalted|revered|honored|friendly|reputation|rank \d|pvp|honor system|"
     r"battleground|alterac valley|warsong gulch|arathi basin|"
+    r"frostwolf|stormpike|"
     r"arena season|arena points)\b", re.I)
 
 # Suffixes aleatoires de Vanilla. Un objet "Eternal Crown of Healing" n'existe
@@ -103,6 +113,43 @@ SUFFIXES_ALEATOIRES = re.compile(
 
 RANG_MAX = 3
 
+# ---------------------------------------------------------------------------
+# Ce que la BASE MONDE a corrige, et que la page seule ne pouvait pas dire.
+# ---------------------------------------------------------------------------
+
+# La page ecrit un nom, item_template en ecrit un autre. Ce ne sont pas des
+# objets differents : c'est la meme piece, orthographiee autrement.
+#
+# "Cloak of the Hakkari Worshipers" avec un seul P manquait a cinq listes.
+# L'entree 22711 s'appelle "Cloak of the Hakkari Worshippers", deux P.
+NOMS_CORRIGES = {
+    "Cloak of the Hakkari Worshipers": "Cloak of the Hakkari Worshippers",
+}
+
+# Objets que les pages listent et qui n'existent dans AUCUNE base monde 3.3.5.
+# wowtbc.gg couvre Classic et TBC ; tout ce qu'il nomme n'a pas forcement
+# traverse jusqu'a la version que ce module sert.
+#
+# "Lizardscale Eyepatch" manquait a sept listes. Une recherche large sur la
+# base du joueur - %Eyepatch% et %Lizardscale% - ne rend aucune piece de ce
+# nom, seulement Ragefury Eyepatch, Foror's Eyepatch et Glowing Lizardscale
+# Cloak. Le rabattre sur l'un d'eux serait inventer une entree de liste.
+ABSENTS_DE_335 = {
+    "Lizardscale Eyepatch",
+}
+
+# Deux objets peuvent porter le MEME nom, et le JOIN par nom resout par
+# MIN(entry) : il prendrait donc toujours le meme des deux.
+#
+# Warblade of the Hakkari existe en main droite (19865, InventoryType 21) et
+# en main gauche (19866, type 22). MIN(entry) donne 19865, la main droite -
+# juste la ou la page le met au creneau 15, faux la ou elle le met au 16.
+# Pour ces noms, l'entree est ecrite en dur, choisie par le CRENEAU.
+ENTREES_FORCEES = {
+    ("Warblade of the Hakkari", 15): 19865,
+    ("Warblade of the Hakkari", 16): 19866,
+}
+
 # Certaines pages suffixent un objet par la classe a qui il revient :
 # "Royal Seal of Eldre'Thalas (Warlock)". item_template ne connait que le nom
 # nu, donc le suffixe est retire - sinon la ligne finit en "nom non resolu".
@@ -115,7 +162,8 @@ QUALIFICATIF = re.compile(
 
 
 def nettoyer(nom):
-    return QUALIFICATIF.sub("", nom).strip()
+    nu = QUALIFICATIF.sub("", nom).strip()
+    return NOMS_CORRIGES.get(nu, nu)
 
 
 def lire_blocs(lignes):
@@ -212,6 +260,10 @@ def main():
             ecartes.append((nom, "ecarte nommement (--exclut)"))
             continue
 
+        if nom in ABSENTS_DE_335:
+            ecartes.append((nom, "n'existe pas en 3.3.5 - verifie dans item_template"))
+            continue
+
         if EXCLUS.search(source) and nom.lower() not in gardes:
             ecartes.append((nom, source.strip()))
             continue
@@ -252,11 +304,20 @@ def main():
     out.append("CREATE TEMPORARY TABLE `bis_seed_wowtbc` (")
     out.append("    `slot`      TINYINT UNSIGNED NOT NULL,")
     out.append("    `rank`      TINYINT UNSIGNED NOT NULL,")
-    out.append("    `item_name` VARCHAR(100) NOT NULL")
+    out.append("    `item_name` VARCHAR(100) NOT NULL,")
+    # Renseignee seulement pour les noms que DEUX objets partagent, ou le nom
+    # seul ne suffit donc pas a designer la piece. NULL partout ailleurs, et
+    # c'est le JOIN qui tranche comme avant.
+    out.append("    `entry`     INT UNSIGNED NULL")
     out.append(") ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;")
     out.append("")
-    out.append("INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`) VALUES")
-    lignes_sql = ["(%2d, %d, '%s')" % (s, r, n.replace("'", "''")) for n, s, r in retenus]
+    out.append("INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`, `entry`) VALUES")
+    lignes_sql = []
+    for n, slot, r in retenus:
+        entree = ENTREES_FORCEES.get((n, slot))
+        lignes_sql.append("(%2d, %d, '%s', %s)"
+                          % (slot, r, n.replace("'", "''"),
+                             str(entree) if entree else "NULL"))
     out.append(",\n".join(lignes_sql) + ";")
     out.append("")
     # Une seule table de depart, posee autant de fois qu'il y a de spes : quand
@@ -275,12 +336,13 @@ def main():
 
         out.append("INSERT IGNORE INTO `playerbots_bis_item`")
         out.append("    (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)")
-        out.append("SELECT %d, %d, s.`slot`, 0, %d, r.entry, s.`rank`,"
+        out.append("SELECT %d, %d, s.`slot`, 0, %d, COALESCE(s.`entry`, r.entry), s.`rank`,"
                    % (args.classe, spec, args.palier))
         out.append("       CONCAT('%s - ', s.`item_name`)" % etiquette.replace("'", "''"))
         out.append("FROM `bis_seed_wowtbc` s")
-        out.append("JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r")
-        out.append("  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci;")
+        out.append("LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r")
+        out.append("  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci")
+        out.append("WHERE COALESCE(s.`entry`, r.entry) IS NOT NULL;")
         out.append("")
 
     out.append("-- VERIFICATION 1 - noms non resolus (aucune ligne = bon).")
@@ -288,7 +350,7 @@ def main():
     out.append("FROM `bis_seed_wowtbc` s")
     out.append("LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r")
     out.append("  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci")
-    out.append("WHERE r.entry IS NULL;")
+    out.append("WHERE COALESCE(s.`entry`, r.entry) IS NULL;")
     out.append("")
     out.append("-- VERIFICATION 2 - couverture obtenue.")
     out.append("SELECT `spec`, `slot`, `rank`, COUNT(*) AS objets FROM `playerbots_bis_item`")

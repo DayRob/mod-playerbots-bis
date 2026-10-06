@@ -7,78 +7,80 @@ DROP TEMPORARY TABLE IF EXISTS `bis_seed_wowtbc`;
 CREATE TEMPORARY TABLE `bis_seed_wowtbc` (
     `slot`      TINYINT UNSIGNED NOT NULL,
     `rank`      TINYINT UNSIGNED NOT NULL,
-    `item_name` VARCHAR(100) NOT NULL
+    `item_name` VARCHAR(100) NOT NULL,
+    `entry`     INT UNSIGNED NULL
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`) VALUES
-( 0, 1, 'Crown of Destruction'),
-( 0, 2, 'Lizardscale Eyepatch'),
-( 0, 3, 'Bloodstained Coif'),
-( 0, 3, 'Eye of Rend'),
-( 0, 3, 'Blooddrenched Mask'),
-( 0, 3, 'Mask of the Unforgiven'),
-( 1, 1, 'The Eye of Hakkar'),
-( 1, 2, 'Onyxia Tooth Pendant'),
-( 1, 3, 'Prestor''s Talisman of Connivery'),
-( 1, 3, 'Mark of Fordring'),
-( 1, 3, 'Beads of Ogre Might'),
-( 2, 1, 'Taut Dragonhide Shoulderpads'),
-( 2, 2, 'Truestrike Shoulders'),
-( 2, 3, 'Wyrmhide Spaulders'),
-( 2, 3, 'Flamescarred Shoulders'),
-( 2, 3, 'Black Dragonscale Shoulders'),
-( 2, 3, 'Failed Flying Experiment'),
-(14, 1, 'Cloak of Draconic Might'),
-(14, 2, 'Puissant Cape'),
-(14, 3, 'Cloak of Firemaw'),
-(14, 3, 'Cape of the Black Baron'),
-(14, 3, 'Zulian Tigerhide Cloak'),
-( 4, 1, 'Savage Gladiator Chain'),
-( 4, 2, 'Cadaverous Armor'),
-( 4, 3, 'Runed Bloodstained Hauberk'),
-( 4, 3, 'Malfurion''s Blessed Bulwark'),
-( 4, 3, 'Breastplate of Bloodthirst'),
-( 4, 3, 'Tombstone Breastplate'),
-( 8, 1, 'Wristguards of Stability'),
-( 8, 2, 'Wristguards of True Flight'),
-( 8, 3, 'Primal Batskin Bracers'),
-( 8, 3, 'Bracers of the Eclipse'),
-( 9, 1, 'Blooddrenched Grips'),
-( 9, 2, 'Doomhide Gauntlets'),
-( 9, 3, 'Aged Core Leather Gloves'),
-( 9, 3, 'Devilsaur Gauntlets'),
-( 9, 3, 'Gargoyle Slashers'),
-( 5, 1, 'Therazane''s Link'),
-( 5, 2, 'Belt of Preserved Heads'),
-( 5, 3, 'Taut Dragonhide Belt'),
-( 5, 3, 'Cloudrunner Girdle'),
-( 5, 3, 'Primalist''s Linked Waistguard'),
-( 6, 1, 'Devilsaur Leggings'),
-( 6, 2, 'Dark Heart Pants'),
-( 6, 3, 'Legguards of the Chromatic Defier'),
-( 6, 3, 'Plaguehound Leggings'),
-( 6, 3, 'Bloodstained Legplates'),
-( 7, 1, 'Boots of the Shadow Flame'),
-( 7, 2, 'Bloodmail Boots'),
-( 7, 3, 'Blooddrenched Footpads'),
-( 7, 3, 'Windreaver Greaves'),
-( 7, 3, 'Savage Gladiator Greaves'),
-(10, 1, 'Master Dragonslayer''s Ring'),
-(10, 2, 'Quick Strike Ring'),
-(10, 3, 'Band of Accuria'),
-(10, 3, 'Circle of Applied Force'),
-(10, 3, 'Seal of Jin'),
-(12, 1, 'Blackhand''s Breadth'),
-(12, 2, 'Drake Fang Talisman'),
-(12, 3, 'Hand of Justice'),
-(12, 3, 'Rune of the Guard Captain'),
-(12, 3, 'Counterattack Lodestone'),
-(12, 3, 'Briarwood Reed'),
-(15, 1, 'Drake Talon Cleaver'),
-(15, 2, 'Spinal Reaper'),
-(15, 3, 'Draconic Avenger'),
-(15, 3, 'Arcanite Reaper'),
-(15, 3, 'Dreadforge Retaliator');
+INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`, `entry`) VALUES
+( 0, 1, 'Crown of Destruction', NULL),
+( 0, 2, 'Bloodstained Coif', NULL),
+( 0, 3, 'Eye of Rend', NULL),
+( 0, 3, 'Blooddrenched Mask', NULL),
+( 0, 3, 'Mask of the Unforgiven', NULL),
+( 1, 1, 'The Eye of Hakkar', NULL),
+( 1, 2, 'Onyxia Tooth Pendant', NULL),
+( 1, 3, 'Prestor''s Talisman of Connivery', NULL),
+( 1, 3, 'Mark of Fordring', NULL),
+( 1, 3, 'Beads of Ogre Might', NULL),
+( 2, 1, 'Taut Dragonhide Shoulderpads', NULL),
+( 2, 2, 'Truestrike Shoulders', NULL),
+( 2, 3, 'Wyrmhide Spaulders', NULL),
+( 2, 3, 'Flamescarred Shoulders', NULL),
+( 2, 3, 'Black Dragonscale Shoulders', NULL),
+( 2, 3, 'Failed Flying Experiment', NULL),
+(14, 1, 'Cloak of Draconic Might', NULL),
+(14, 2, 'Puissant Cape', NULL),
+(14, 3, 'Cloak of Firemaw', NULL),
+(14, 3, 'Cape of the Black Baron', NULL),
+(14, 3, 'Zulian Tigerhide Cloak', NULL),
+( 4, 1, 'Savage Gladiator Chain', NULL),
+( 4, 2, 'Cadaverous Armor', NULL),
+( 4, 3, 'Runed Bloodstained Hauberk', NULL),
+( 4, 3, 'Malfurion''s Blessed Bulwark', NULL),
+( 4, 3, 'Breastplate of Bloodthirst', NULL),
+( 4, 3, 'Tombstone Breastplate', NULL),
+( 8, 1, 'Wristguards of Stability', NULL),
+( 8, 2, 'Wristguards of True Flight', NULL),
+( 8, 3, 'Primal Batskin Bracers', NULL),
+( 8, 3, 'Bracers of the Eclipse', NULL),
+( 9, 1, 'Chromatic Gauntlets', NULL),
+( 9, 2, 'Blooddrenched Grips', NULL),
+( 9, 3, 'Doomhide Gauntlets', NULL),
+( 9, 3, 'Aged Core Leather Gloves', NULL),
+( 9, 3, 'Devilsaur Gauntlets', NULL),
+( 9, 3, 'Gargoyle Slashers', NULL),
+( 5, 1, 'Therazane''s Link', NULL),
+( 5, 2, 'Belt of Preserved Heads', NULL),
+( 5, 3, 'Taut Dragonhide Belt', NULL),
+( 5, 3, 'Cloudrunner Girdle', NULL),
+( 5, 3, 'Primalist''s Linked Waistguard', NULL),
+( 6, 1, 'Devilsaur Leggings', NULL),
+( 6, 2, 'Dark Heart Pants', NULL),
+( 6, 3, 'Legguards of the Chromatic Defier', NULL),
+( 6, 3, 'Plaguehound Leggings', NULL),
+( 6, 3, 'Bloodstained Legplates', NULL),
+( 7, 1, 'Boots of the Shadow Flame', NULL),
+( 7, 2, 'Bloodmail Boots', NULL),
+( 7, 3, 'Blooddrenched Footpads', NULL),
+( 7, 3, 'Windreaver Greaves', NULL),
+( 7, 3, 'Savage Gladiator Greaves', NULL),
+(10, 1, 'Master Dragonslayer''s Ring', NULL),
+(10, 2, 'Quick Strike Ring', NULL),
+(10, 3, 'Band of Accuria', NULL),
+(10, 3, 'Circle of Applied Force', NULL),
+(10, 3, 'Seal of Jin', NULL),
+(12, 1, 'Blackhand''s Breadth', NULL),
+(12, 2, 'Drake Fang Talisman', NULL),
+(12, 3, 'Hand of Justice', NULL),
+(12, 3, 'Rune of the Guard Captain', NULL),
+(12, 3, 'Counterattack Lodestone', NULL),
+(12, 3, 'Briarwood Reed', NULL),
+(15, 1, 'Drake Talon Cleaver', NULL),
+(15, 2, 'Nightfall', NULL),
+(15, 3, 'Spinal Reaper', NULL),
+(15, 3, 'Draconic Avenger', NULL),
+(15, 3, 'Arcanite Reaper', NULL),
+(15, 3, 'Dreadforge Retaliator', NULL);
 
 -- REMPLACE : la liste existante de ce couple classe/spe/palier part
 -- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
@@ -89,18 +91,19 @@ WHERE `class` = 7 AND `spec` = 1 AND `tier_id` = 40;
 
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
-SELECT 7, 1, s.`slot`, 0, 40, r.entry, s.`rank`,
+SELECT 7, 1, s.`slot`, 0, 40, COALESCE(s.`entry`, r.entry), s.`rank`,
        CONCAT('Vanilla P4 ZG (wowtbc.gg) - ', s.`item_name`)
 FROM `bis_seed_wowtbc` s
-JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
-  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci;
+LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
+  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci
+WHERE COALESCE(s.`entry`, r.entry) IS NOT NULL;
 
 -- VERIFICATION 1 - noms non resolus (aucune ligne = bon).
 SELECT s.`slot`, s.`rank`, s.`item_name` AS nom_non_resolu
 FROM `bis_seed_wowtbc` s
 LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci
-WHERE r.entry IS NULL;
+WHERE COALESCE(s.`entry`, r.entry) IS NULL;
 
 -- VERIFICATION 2 - couverture obtenue.
 SELECT `spec`, `slot`, `rank`, COUNT(*) AS objets FROM `playerbots_bis_item`
