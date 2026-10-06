@@ -1,5 +1,5 @@
 -- mod-playerbots-bis : GENERE par tools/convert_wowtbc_bis.py
--- Source : Vanilla P4 ZG (wowtbc.gg). Classe 9, spe 0, palier 40.
+-- Source : Vanilla P4 ZG (wowtbc.gg). Classe 9, spe 0,2, palier 40.
 -- Les rangs viennent de l'ordre d'apparition dans la page.
 -- PvP et reputation ecartes a la generation.
 
@@ -102,6 +102,21 @@ FROM `bis_seed_wowtbc` s
 JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci;
 
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 9 AND `spec` = 2 AND `tier_id` = 40;
+
+INSERT IGNORE INTO `playerbots_bis_item`
+    (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
+SELECT 9, 2, s.`slot`, 0, 40, r.entry, s.`rank`,
+       CONCAT('Vanilla P4 ZG (wowtbc.gg) - ', s.`item_name`)
+FROM `bis_seed_wowtbc` s
+JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
+  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci;
+
 -- VERIFICATION 1 - noms non resolus (aucune ligne = bon).
 SELECT s.`slot`, s.`rank`, s.`item_name` AS nom_non_resolu
 FROM `bis_seed_wowtbc` s
@@ -111,7 +126,7 @@ WHERE r.entry IS NULL;
 
 -- VERIFICATION 2 - couverture obtenue.
 SELECT `spec`, `slot`, `rank`, COUNT(*) AS objets FROM `playerbots_bis_item`
-WHERE `class` = 9 AND `spec` IN (0) AND `tier_id` = 40
+WHERE `class` = 9 AND `spec` IN (0,2) AND `tier_id` = 40
 GROUP BY `spec`, `slot`, `rank` ORDER BY `spec`, `slot`, `rank`;
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed_wowtbc`;
