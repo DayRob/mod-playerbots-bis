@@ -57,31 +57,78 @@ $base = (Resolve-Path (Join-Path $PSScriptRoot '..\data\sql\db-world\base')).Pat
 # ---------------------------------------------------------------------------
 # Les noms, lus dans les fichiers.
 #
-# La ligne a la forme : ( 0, 1, 'Nom de l''objet', NULL),
-# L'apostrophe est deja doublee pour SQL ; on la laisse telle quelle, puisque
-# le nom repart dans une requete.
+# C'est l'EN-TETE de chaque INSERT qui decide, pas la forme des lignes. Deux
+# raisons, et les deux ont mordu :
 #
-# La quatrieme colonne - l'entree forcee - n'existe que depuis que deux objets
-# se sont reveles partager un nom. Elle est OPTIONNELLE dans le motif, sinon ce
-# script devient aveugle a tous les fichiers regeneres : il a repondu "aucun
-# nom trouve" sur les seize fichiers ZG avant que ce point ne soit corrige.
+#   - 01_playerbots_bis_tier.sql insere des PALIERS, pas des objets. Un motif
+#     qui se contente de reconnaitre "(nombre, nombre, 'texte')" y voit dix-huit
+#     noms d'objets introuvables - "Vanilla Pre-Raid", "WotLK Phase 2 - Ulduar".
+#     Faux positifs purs.
+#
+#   - Les fichiers cures 03 a 16 ecrivent "(1, 1, 0, 0, 1, 'Nom')", avec CINQ
+#     nombres. Le meme motif ne les voyait pas du tout : les listes ecrites a la
+#     main, celles qui risquent le plus une faute de frappe, echappaient
+#     entierement au controle.
+#
+# On lit donc la liste de colonnes de l'INSERT en cours. S'il n'y a pas de
+# colonne item_name, les lignes qui suivent ne sont pas des objets et on les
+# saute. Le nom lui-meme est la seule chaine entre apostrophes de la ligne, ce
+# qui evite d'avoir a decouper sur des virgules dont certaines sont DANS le nom
+# ("Mish'undare, Circlet of the Mind Flayer").
 # ---------------------------------------------------------------------------
 $paires = New-Object System.Collections.Generic.List[string]
 $total = 0
+$ignores = 0
 
 foreach ($f in (Get-ChildItem (Join-Path $base '*.sql') | Sort-Object Name)) {
     if ($f.Name -notmatch '^(\d+)_') { continue }
     if ([int]$Matches[1] -lt $Depuis) { continue }
 
     $vus = @{}
+    $dansObjets = $false
+    $attendColonnes = $false
+
     foreach ($ligne in (Get-Content $f.FullName)) {
-        if ($ligne -notmatch "^\(\s*\d+,\s*\d+,\s*'(.*)'(?:,\s*[^,)]+)?\)[,;]?\s*$") { continue }
-        $nom = $Matches[1]
+        # La liste de colonnes est tantot sur la ligne de l'INSERT, tantot sur
+        # la suivante. Sans ce second cas, onze en-tetes etaient pris pour des
+        # lignes d'objet illisibles.
+        if ($ligne -match '^\s*INSERT\s+(?:IGNORE\s+)?INTO\s+`?\w+`?\s*(.*)$') {
+            $reste = $Matches[1]
+            if ($reste -match '^\(([^)]*)\)') {
+                $dansObjets = $Matches[1] -match 'item_name'
+                $attendColonnes = $false
+            } else {
+                $dansObjets = $false
+                $attendColonnes = $true
+            }
+            continue
+        }
+        if ($attendColonnes) {
+            if ($ligne -match '^\s*\(([^)]*)\)') {
+                $dansObjets = $Matches[1] -match 'item_name'
+                $attendColonnes = $false
+                continue
+            }
+        }
+        if ($ligne -match '^\s*(SELECT|DELETE|UPDATE|CREATE|DROP)\b') {
+            $dansObjets = $false; $attendColonnes = $false; continue
+        }
+        if (-not $dansObjets) { continue }
+        if ($ligne -notmatch "^\s*\(") { continue }
+
+        $chaines = [regex]::Matches($ligne, "'((?:[^']|'')*)'")
+        if ($chaines.Count -ne 1) { $ignores++; continue }
+
+        $nom = $chaines[0].Groups[1].Value
         if ($vus.ContainsKey($nom)) { continue }
         $vus[$nom] = $true
         $paires.Add("('$($f.Name)','$nom')")
         $total++
     }
+}
+
+if ($ignores -gt 0) {
+    Write-Host "$ignores ligne(s) d'objet non analysee(s) - signale-le, le motif est a revoir." -ForegroundColor Yellow
 }
 
 if ($total -eq 0) {

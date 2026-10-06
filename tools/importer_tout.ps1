@@ -156,9 +156,17 @@ Write-Host ""
 $echecs    = New-Object System.Collections.Generic.List[string]
 $nonResolus = @{}
 
+# Au-dela, un fichier merite qu'on dise combien de temps il a pris : sans ca,
+# un fichier lent et un fichier BLOQUE se ressemblent exactement - le nom
+# s'affiche, et plus rien ne bouge.
+$SECONDES_LENTES = 10
+
 foreach ($f in $ordre) {
     Write-Host ("  {0,-40}" -f $f.Name) -NoNewline
+    $chrono = [System.Diagnostics.Stopwatch]::StartNew()
     $r = Invoke-SqlFile $f
+    $chrono.Stop()
+    $duree = [math]::Round($chrono.Elapsed.TotalSeconds, 1)
 
     if ($r.Code -ne 0) {
         Write-Host " ECHEC" -ForegroundColor Red
@@ -172,11 +180,13 @@ foreach ($f in $ordre) {
     # @() force le tableau : PowerShell deroule une liste d'un seul element
     # en une simple chaine, qui n'a pas le .Count attendu plus bas.
     $manquants = @(Get-NomsNonResolus $r.Lignes)
+    $temps = if ($duree -ge $SECONDES_LENTES) { "  [$duree s]" } else { "" }
+
     if ($manquants.Count -gt 0) {
-        Write-Host " ok, $($manquants.Count) nom(s) non resolu(s)" -ForegroundColor Yellow
+        Write-Host " ok, $($manquants.Count) nom(s) non resolu(s)$temps" -ForegroundColor Yellow
         $nonResolus[$f.Name] = $manquants
     } else {
-        Write-Host " ok" -ForegroundColor Green
+        Write-Host " ok$temps" -ForegroundColor Green
     }
 }
 
