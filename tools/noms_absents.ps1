@@ -57,9 +57,14 @@ $base = (Resolve-Path (Join-Path $PSScriptRoot '..\data\sql\db-world\base')).Pat
 # ---------------------------------------------------------------------------
 # Les noms, lus dans les fichiers.
 #
-# La ligne a la forme : ( 0, 1, 'Nom de l''objet'),
+# La ligne a la forme : ( 0, 1, 'Nom de l''objet', NULL),
 # L'apostrophe est deja doublee pour SQL ; on la laisse telle quelle, puisque
 # le nom repart dans une requete.
+#
+# La quatrieme colonne - l'entree forcee - n'existe que depuis que deux objets
+# se sont reveles partager un nom. Elle est OPTIONNELLE dans le motif, sinon ce
+# script devient aveugle a tous les fichiers regeneres : il a repondu "aucun
+# nom trouve" sur les seize fichiers ZG avant que ce point ne soit corrige.
 # ---------------------------------------------------------------------------
 $paires = New-Object System.Collections.Generic.List[string]
 $total = 0
@@ -70,7 +75,7 @@ foreach ($f in (Get-ChildItem (Join-Path $base '*.sql') | Sort-Object Name)) {
 
     $vus = @{}
     foreach ($ligne in (Get-Content $f.FullName)) {
-        if ($ligne -notmatch "^\(\s*\d+,\s*\d+,\s*'(.*)'\),?\s*$") { continue }
+        if ($ligne -notmatch "^\(\s*\d+,\s*\d+,\s*'(.*)'(?:,\s*[^,)]+)?\)[,;]?\s*$") { continue }
         $nom = $Matches[1]
         if ($vus.ContainsKey($nom)) { continue }
         $vus[$nom] = $true
