@@ -48,7 +48,10 @@ ORDER BY `name`;
 --     tools/ou_tombe_cet_objet.sql.
 -- ---------------------------------------------------------------------
 SELECT 'Quetes Paragons of Power : ce qu elles rendent' AS section;
-SELECT q.`ID` AS quete, q.`LogTitle` AS titre, q.`AllowableClasses`,
+-- q.AllowableClasses n'existe PAS dans cette version de quest_template : la
+-- requete tombait dessus. Les classes se lisent de toute facon sur le JETON,
+-- par item_template.AllowableClass, qui lui a repondu.
+SELECT q.`ID` AS quete, q.`LogTitle` AS titre,
        COALESCE(c1.`name`, r1.`name`) AS piece,
        COALESCE(q.`RewardChoiceItemID1`, q.`RewardItem1`) AS piece_entry,
        COALESCE(c1.`InventoryType`, r1.`InventoryType`) AS type_emplacement
