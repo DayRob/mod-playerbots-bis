@@ -144,6 +144,13 @@ namespace
         if (priority <= wornPriority)
             return ITEM_USAGE_NONE;
 
+        // Et le refus que la comparaison de priorites ne peut pas voir sur un
+        // creneau appaire : un exemplaire deja porte a l'autre doigt, d'une
+        // piece unique-equipee. Sans ce test, le bot annonce une amelioration
+        // que le coeur refusera, a chaque tick.
+        if (sBisPriorityMgr->UniqueAlreadyWorn(bot, proto, targetSlot))
+            return ITEM_USAGE_NONE;
+
         // What it costs, named here rather than at the equip. The equip that
         // follows a roll is playerbots' own EquipAction, which answers with its
         // "Equipping ..." and knows nothing of this module - only a sweep over

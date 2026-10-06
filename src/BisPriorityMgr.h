@@ -109,6 +109,10 @@ public:
     // picks up a one-hander.
     bool OffHandClosed(Player* bot, uint8 slot);
 
+    // Vrai quand le coeur refusera cette piece au creneau vise parce que le bot
+    // en porte deja un exemplaire ailleurs et qu'elle est unique-equipee.
+    bool UniqueAlreadyWorn(Player* bot, ItemTemplate const* proto, uint8 targetSlot);
+
     // What this item would push out if the bot put it on: the piece worn in the
     // slot the list assigns it, or nullptr when that slot is empty. Pairs are
     // resolved first, so on a ring or a trinket it names WHICH of the two goes -

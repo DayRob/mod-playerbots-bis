@@ -612,6 +612,29 @@ ItemTemplate const* BisPriorityMgr::WouldReplace(Player* bot, uint32 itemId)
     return worn ? worn->GetTemplate() : nullptr;
 }
 
+// Un creneau APPARIE - doigts, bijoux - rend le plus FAIBLE de ses deux cotes,
+// pour que la nouvelle piece remplace la moins bonne. Il ne regarde donc pas ce
+// que porte le cote le plus fort, et c'est exactement la que ca casse : un bot
+// portant deja Band of Dark Dominion au doigt 1 et un anneau pre-raid au doigt 2
+// voyait une amelioration au doigt 2, l'annoncait, et le coeur refusait
+// l'equipement - l'anneau est UNIQUE-EQUIPE. A chaque tick, indefiniment.
+//
+// CanEquipUniqueItem est le test juste, et non l'egalite des identifiants : deux
+// anneaux IDENTIQUES mais NON uniques sont parfaitement legitimes en 3.3.5 - un
+// pretre portait volontiers deux Ring of Spell Power. Le creneau vise est exclu
+// du compte, pour que la piece qu'on s'apprete a retirer n'y figure pas.
+//
+// Une seule fonction pour les DEUX chemins : l'avis qui annonce et la
+// reclamation qui jette. Divergents, ils produisaient precisement ce bogue - une
+// annonce repetee sans jamais d'equipement.
+bool BisPriorityMgr::UniqueAlreadyWorn(Player* bot, ItemTemplate const* proto, uint8 targetSlot)
+{
+    if (!bot || !proto)
+        return false;
+
+    return bot->CanEquipUniqueItem(proto, targetSlot) != EQUIP_ERR_OK;
+}
+
 bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId, bool* outTooLowLevel)
 {
     if (outTooLowLevel)
@@ -656,8 +679,12 @@ bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierI
             *outTooLowLevel = true;
     }
 
-    if (priority <= GetWornPriorityPaired(bot, slot))
+    uint8 targetSlot = slot;
+    if (priority <= GetWornPriorityPaired(bot, slot, &targetSlot))
         return false;  // already wearing this piece, or something better
+
+    if (UniqueAlreadyWorn(bot, proto, targetSlot))
+        return false;
 
     if (outTierId)
         *outTierId = tierId;
