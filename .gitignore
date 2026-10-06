@@ -1,3 +1,9 @@
 
 # Genere par tools/extraire_classloot.ps1 depuis les fichiers de l addon.
 data/sql/db-world/base/21_classloot_seed.sql
+
+# Cache de l interpreteur Python : regenere a chaque import, binaire, et
+# different selon la version de Python. Il n a rien a faire dans le depot -
+# il est entre un jour par accident et salissait chaque "git status".
+__pycache__/
+*.pyc
