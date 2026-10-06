@@ -76,6 +76,22 @@ function Trouver-Conf {
     foreach ($p in $pistes) {
         if (Test-Path $p) { return (Resolve-Path $p).Path }
     }
+
+    # Les quatre chemins ci-dessus sont les dispositions habituelles
+    # d'AzerothCore, et aucune n'est universelle : build hors arborescence,
+    # installation par docker, dossier etc deplace. Plutot que d'abandonner, on
+    # fouille la racine du serveur - en general deux niveaux au-dessus du module
+    # - sur une profondeur bornee. Un fichier de configuration ne se cache
+    # jamais bien loin, et chercher cinq secondes vaut mieux que rendre une
+    # valeur fausse en silence.
+    $racine = Join-Path $PSScriptRoot '..\..\..'
+    if (Test-Path $racine) {
+        $trouve = Get-ChildItem -Path $racine -Filter 'playerbots_bis.conf' `
+                                -Recurse -Depth 5 -File -ErrorAction SilentlyContinue |
+                  Select-Object -First 1
+        if ($trouve) { return $trouve.FullName }
+    }
+
     return $null
 }
 
