@@ -536,6 +536,7 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
         Print("/pbbis raids - quel raid rapporte quoi, et a quels bots (aussi /pbbisraids)")
         Print("/pbbis compo - enregistre et reapplique une repartition de raid")
+        Print("/pbbis jets - jets automatiques sur les bijoux de Zul'Gurub")
         Print("/pbbis minimap - affiche ou masque le bouton de minicarte")
         Print("/pbbis info - ce resume")
     end
