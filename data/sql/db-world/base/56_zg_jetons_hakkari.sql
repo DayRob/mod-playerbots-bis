@@ -74,8 +74,13 @@ INSERT INTO `bis_jetons_zg` (`jeton`, `nom_jeton`, `classe`, `piece`) VALUES
 (19719, 'Primal Hakkari Girdle',     7, 'Zandalar Augur''s Belt'),
 (19719, 'Primal Hakkari Girdle',     1, 'Zandalar Vindicator''s Belt'),
 
-(19723, 'Primal Hakkari Kossack',    8, 'Zandalar Illusionist''s Robes'),
-(19723, 'Primal Hakkari Kossack',    9, 'Zandalar Demoniac''s Robes'),
+-- Robe au SINGULIER pour ces deux-la, alors que la quete s'intitule
+-- "...'s Robes" au pluriel. Les vingt-cinq autres pieces portent exactement le
+-- nom de leur quete ; ces deux seules font exception, et je les avais deduites
+-- du titre comme les autres. La base du joueur l'a montre : entrees 20034 et
+-- 20033, "Zandalar Illusionist's Robe" et "Zandalar Demoniac's Robe".
+(19723, 'Primal Hakkari Kossack',    8, 'Zandalar Illusionist''s Robe'),
+(19723, 'Primal Hakkari Kossack',    9, 'Zandalar Demoniac''s Robe'),
 (19723, 'Primal Hakkari Kossack',    1, 'Zandalar Vindicator''s Breastplate'),
 
 (19720, 'Primal Hakkari Sash',      11, 'Zandalar Haruspex''s Belt'),
@@ -114,7 +119,11 @@ JOIN `playerbots_bis_item` b
 -- VERIFICATION 1 - pieces dont le nom ne tombe pas juste (aucune ligne = bon).
 -- C'est le seul pas que la base n'a pas confirme : la deduction du nom d'objet
 -- depuis le titre de quete.
-SELECT j.`nom_jeton`, j.`classe`, j.`piece` AS nom_introuvable
+-- L'alias s'appelle nom_non_resolu, comme dans les fichiers generes, et non
+-- "nom_introuvable" : importer_tout.ps1 repere les noms perdus par CE libelle.
+-- Avec un alias different, les deux erreurs ci-dessus sont passees a l'import
+-- sans que rien ne les signale.
+SELECT j.`nom_jeton`, j.`classe`, j.`piece` AS nom_non_resolu
 FROM `bis_jetons_zg` j
 LEFT JOIN `item_template` i
   ON i.`name` COLLATE utf8mb4_general_ci = j.`piece` COLLATE utf8mb4_general_ci
