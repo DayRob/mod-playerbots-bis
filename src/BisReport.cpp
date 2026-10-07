@@ -130,6 +130,21 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
             if (sBisPriorityMgr->OffHandClosed(bot, row.slot))
                 continue;
 
+            // Les JETONS DE QUETE ne voyagent pas. Ils portent le creneau, le
+            // palier et le RANG de la piece qu'ils achetent - c'est voulu, c'est
+            // ce qui les fait reclamer a leur juste valeur - mais la fenetre
+            // renumerote les rangs par creneau, donc le jeton et sa piece
+            // sortaient en deux lignes voisines. Aux poignets d'un guerrier ca
+            // donnait "rang 4 Brachiales primordiales hakkari - manquant" juste
+            // au-dessus de "rang 5 Garde-bras zandalar - equipe" : le jeton de
+            // la piece qu'il porte deja, compte comme un rang a prendre.
+            //
+            // TargetsPerSlot les ecarte deja, donc le rapport chiffre etait
+            // juste ; seule la liste depliee les montrait. CanBeWorn est le meme
+            // test, pour que les deux ne puissent pas diverger.
+            if (!CanBeWorn(row.itemId))
+                continue;
+
             uint8 const state = ResolveState(bot, row.itemId);
 
             auto target = targets.find(row.slot);
