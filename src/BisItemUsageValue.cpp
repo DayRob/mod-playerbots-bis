@@ -95,10 +95,19 @@ namespace
             {
                 Item const* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, claimSlot);
 
-                // Said out loud, because this claim has no list behind it:
-                // without a word, a bot rolling on a piece absent from every
-                // table looks like a bug rather than the rule it is.
-                if (sBisPriorityMgr->AnnounceOwnBis())
+                // Dit a voix haute, parce que cette reclamation n'a aucune
+                // liste derriere elle : sans un mot, un bot qui porte une piece
+                // qu'aucune table ne nomme ressemble a un bogue plutot qu'a la
+                // regle que c'est.
+                //
+                // Seulement si le bot DETIENT la piece. Un jet de butin fait
+                // evaluer l'objet par tous les bots presents, et chacun
+                // annoncait alors ce qu'il comptait en faire : quatre lignes
+                // identiques avant meme que le de ne tombe, pour un objet qu'un
+                // seul emportera. Quand le bot l'a dans ses sacs, il l'a gagne,
+                // et la phrase arrive au seul moment ou elle apprend quelque
+                // chose - juste avant l'equipement.
+                if (sBisPriorityMgr->AnnounceOwnBis() && bot->GetItemCount(itemId, true) > 0)
                 {
                     std::ostringstream out;
                     out << ChatHelper::FormatItem(proto) << " - je le prends";
@@ -158,7 +167,10 @@ namespace
         // moment where this module can say what leaves.
         Item const* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, targetSlot);
 
-        if (sBisPriorityMgr->AnnounceOwnBis() && botAI)
+        // Meme regle : le bot parle quand il TIENT la piece, pas quand il la
+        // convoite. C'est aussi le seul moment ou "a la place de" est vrai -
+        // l'equipement suit immediatement.
+        if (sBisPriorityMgr->AnnounceOwnBis() && botAI && bot->GetItemCount(itemId, true) > 0)
         {
             std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
             std::ostringstream out;
