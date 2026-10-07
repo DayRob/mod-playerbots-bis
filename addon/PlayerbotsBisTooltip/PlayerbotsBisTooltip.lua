@@ -500,6 +500,12 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         else
             Print("fenetre des raids indisponible - PlayerbotsBisRaids.lua n'est pas charge.")
         end
+    elseif cmd == "bilan" then
+        if PlayerbotsBisRoster_Bilan then
+            PlayerbotsBisRoster_Bilan(string.lower(arg or ""))
+        else
+            Print("bilan indisponible - PlayerbotsBisRoster.lua n'est pas charge.")
+        end
     elseif cmd == "minimap" then
         local said = false
         if PlayerbotsBisBrowser_ToggleMinimap then
@@ -564,6 +570,7 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
               .. (plafond == 0 and "aucun plafond" or plafond)
               .. ", " .. (db.maxTierManuel and "regle ici" or "repris du serveur") .. ")")
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
+        Print("/pbbis bilan - ce que les bots ont gagne depuis le releve precedent")
         Print("/pbbis raids - quel raid rapporte quoi, et a quels bots (aussi /pbbisraids)")
         Print("/pbbis compo - enregistre et reapplique une repartition de raid")
         Print("/pbbis jets - jets automatiques sur les bijoux de Zul'Gurub")

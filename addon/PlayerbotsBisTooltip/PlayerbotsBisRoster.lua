@@ -104,6 +104,136 @@ local function RequestItem(id)
 end
 
 --------------------------------------------------------------------------------
+-- Bilan : ce que les bots ont gagne entre deux releves
+--------------------------------------------------------------------------------
+--
+-- POURQUOI DEUX INSTANTANES ET PAS UN JOURNAL. Une piece peut etre equipee par
+-- trois chemins : la passe de ce module, l'action d'equipement de playerbots
+-- apres un jet gagne, et la refonte d'equipement d'un bot qui monte de niveau.
+-- Un journal ne verrait que le premier. Comparer deux etats les voit tous, quel
+-- que soit le chemin, parce qu'il ne regarde que le resultat.
+--
+-- QUAND ILS SONT PRIS. A chaque releve complet, automatiquement : le courant
+-- devient le precedent, et l'etat recu devient le courant. Il n'y a donc rien a
+-- declencher avant un raid - lance ".playerbotsbis report" en partant et en
+-- revenant, et "/pbbis bilan" tient exactement le raid.
+
+local function Snapshot()
+    local etat = { quand = date("%d/%m %H:%M"), bots = {} }
+
+    for _, bot in ipairs(roster.bots) do
+        local porte = {}
+        for _, item in ipairs(bot.items) do
+            if item.state == STATE_EQUIPPED then
+                -- La valeur porte la cible : une piece de repli qui devient la
+                -- cible du creneau est un progres, meme sans changement d'objet.
+                porte[item.id] = item.target and 2 or 1
+            end
+        end
+        etat.bots[bot.name] = { cls = bot.cls, porte = porte }
+    end
+
+    return etat
+end
+
+-- Appelee a la fin de chaque releve. Silencieuse : le bilan se lit sur demande,
+-- sinon chaque releve en recracherait un.
+local function StoreSnapshot()
+    local db = PlayerbotsBisTooltipDB
+    if not db then return end
+
+    db.bilan = db.bilan or {}
+    db.bilan.precedent = db.bilan.courant
+    db.bilan.courant = Snapshot()
+end
+
+local function ItemText(id)
+    local name, link, quality = GetItemInfo(id)
+    if link then return link end
+    RequestItem(id)
+    return "objet " .. tostring(id)
+end
+
+function PlayerbotsBisRoster_Bilan(arg)
+    local db = PlayerbotsBisTooltipDB
+    local bilan = db and db.bilan
+
+    if arg == "raz" then
+        if db then db.bilan = nil end
+        Print("bilan remis a zero : le prochain releve repart d'une page blanche.")
+        return
+    end
+
+    if not bilan or not bilan.courant then
+        Print("aucun releve en memoire. Lance |cffffd100.playerbotsbis report|r une"
+              .. " premiere fois, puis une seconde apres le raid.")
+        return
+    end
+
+    if not bilan.precedent then
+        Print("un seul releve en memoire (" .. bilan.courant.quand .. "). Il en faut"
+              .. " deux pour comparer : relance |cffffd100.playerbotsbis report|r"
+              .. " apres le raid.")
+        return
+    end
+
+    Print("nouveautes entre le " .. bilan.precedent.quand .. " et le "
+          .. bilan.courant.quand .. " :")
+
+    local lignes, nouveauxBots = 0, 0
+
+    -- Ordre stable : les bots par nom, pour que deux appels se ressemblent.
+    local noms = {}
+    for nom in pairs(bilan.courant.bots) do table.insert(noms, nom) end
+    table.sort(noms)
+
+    for _, nom in ipairs(noms) do
+        local apres = bilan.courant.bots[nom]
+        local avant = bilan.precedent.bots[nom]
+
+        if not avant then
+            -- Un bot absent du premier releve n'a rien "gagne" : il etait
+            -- deconnecte, et tout son equipement passerait pour du neuf.
+            nouveauxBots = nouveauxBots + 1
+        else
+            local gains = {}
+            for id, cible in pairs(apres.porte) do
+                if not avant.porte[id] then
+                    table.insert(gains, { id = id, cible = cible == 2 })
+                end
+            end
+
+            if #gains > 0 then
+                table.sort(gains, function(a, b)
+                    if a.cible ~= b.cible then return a.cible end
+                    return a.id < b.id
+                end)
+
+                local c = CLASS_COLOR[apres.cls] or { 0.8, 0.8, 0.8 }
+                local entete = string.format("|cff%02x%02x%02x%s|r",
+                    c[1] * 255, c[2] * 255, c[3] * 255, nom)
+
+                for _, g in ipairs(gains) do
+                    Print("  " .. entete .. " : " .. ItemText(g.id)
+                          .. (g.cible and " |cff1eff00(rang 1)|r" or " |cff808080(repli)|r"))
+                    lignes = lignes + 1
+                end
+            end
+        end
+    end
+
+    if lignes == 0 then
+        Print("  rien de neuf.")
+    end
+
+    if nouveauxBots > 0 then
+        Print(string.format("  (%d bot(s) absent(s) du premier releve, ignore(s) :"
+                            .. " tout leur equipement aurait compte pour du neuf.)",
+                            nouveauxBots))
+    end
+end
+
+--------------------------------------------------------------------------------
 -- Stream
 --------------------------------------------------------------------------------
 
@@ -686,7 +816,8 @@ local function Dispatch(payload, raw)
         if not win then win = BuildWindow() end
         win.Refresh(true)
         win:Show()
-        Print(string.format("%d bots recus.", #roster.bots))
+        StoreSnapshot()
+        Print(string.format("%d bots recus. |cff808080/pbbis bilan|r pour les nouveautes.", #roster.bots))
     end
 end
 
