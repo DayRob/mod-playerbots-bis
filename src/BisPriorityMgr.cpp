@@ -71,6 +71,7 @@ void BisPriorityMgr::LoadTables()
     _items.clear();
     _minTierByCombo.clear();
     _bisOwners.clear();
+    _questTokens.clear();
     _itemCount = 0;
     _loaded = false;
 
@@ -165,9 +166,42 @@ void BisPriorityMgr::LoadTables()
         LOG_WARN("server.loading", "[mod-playerbots-bis] {} item rows reference an undefined tier and were ignored",
                  skipped);
 
+    LoadQuestTokens();
+
     _loaded = true;
-    LOG_INFO("server.loading", "[mod-playerbots-bis] Loaded {} tiers and {} item rows",
-             static_cast<uint32>(_tiers.size()), static_cast<uint32>(_itemCount));
+    LOG_INFO("server.loading", "[mod-playerbots-bis] Loaded {} tiers, {} item rows and {} quest-token conversions",
+             static_cast<uint32>(_tiers.size()), static_cast<uint32>(_itemCount),
+             static_cast<uint32>(_questTokens.size()));
+}
+
+// La table est FACULTATIVE. Une base ou le fichier 56 n'a jamais tourne reste
+// une base valide : les bots ne reclameront simplement aucun jeton, et aucun
+// n'aura a etre converti. Un ERROR ici ferait croire a une installation cassee.
+void BisPriorityMgr::LoadQuestTokens()
+{
+    QueryResult result = WorldDatabase.Query(
+        "SELECT `token_id`, `class`, `piece_id` FROM `playerbots_bis_quest_token`");
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 const tokenId = fields[0].Get<uint32>();
+        uint8 const cls = fields[1].Get<uint8>();
+        uint32 const pieceId = fields[2].Get<uint32>();
+
+        if (!tokenId || !pieceId)
+            continue;
+
+        _questTokens[(tokenId << 8) | cls] = pieceId;
+    } while (result->NextRow());
+}
+
+uint32 BisPriorityMgr::QuestTokenReward(uint32 tokenId, uint8 cls) const
+{
+    auto const it = _questTokens.find((tokenId << 8) | cls);
+    return it == _questTokens.end() ? 0 : it->second;
 }
 
 uint8 BisPriorityMgr::ResolveSpec(Player* bot)
@@ -643,10 +677,11 @@ bool BisPriorityMgr::UniqueAlreadyWorn(Player* bot, ItemTemplate const* proto, u
 // jet, lui, doit avoir lieu : un jeton hakkari vaut une piece de rang 1, et
 // avec tous les bots qui passent il ne revenait a personne.
 //
-// Et les bots SAVENT rendre une quete : TalkToQuestGiverAction::TurnInQuest
-// s'en charge des que le bot parle au donneur avec la quete complete. Le jeton
-// n'est donc pas perdu pour un bot qui le gagne - il faut l'amener au donneur,
-// qui pour Zul'Gurub se tient sur l'ile de Yojamba, a cote de l'entree.
+// Et le jeton gagne ne dort pas dans le sac : BisEquipUpgradesAction::
+// ConvertQuestTokens l'echange contre la piece des que le bot le tient. Le
+// chemin du jeu - l'ile de Yojamba et la reputation Zandalar, jusqu'a 21000
+// Revere pour certaines pieces - est hors de portee de bots qui ne montent
+// aucune reputation, donc l'echange est direct.
 bool BisPriorityMgr::WantsQuestToken(Player* bot, uint32 itemId, uint16* outTierId)
 {
     if (!AppliesTo(bot))

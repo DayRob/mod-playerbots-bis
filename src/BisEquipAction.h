@@ -56,6 +56,14 @@ public:
     // the packet path wants; with it the command can say why nothing moved,
     // instead of leaving "0 ont equipe" to be guessed at.
     bool EquipBisFromBags(ChatHandler* report = nullptr);
+
+    // Echange chaque jeton de quete des sacs contre la piece qu'il achete pour
+    // la classe du bot, quand la liste nomme cette piece a son palier. Renvoie
+    // vrai des qu'un echange a eu lieu.
+    //
+    // Appelee par EquipBisFromBags avant sa propre passe, donc les deux chemins
+    // - l'arrivee d'un objet et ".playerbotsbis equipe" - la declenchent.
+    bool ConvertQuestTokens(ChatHandler* report = nullptr);
 };
 
 namespace BisEquipCommand

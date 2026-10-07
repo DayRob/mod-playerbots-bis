@@ -14,6 +14,7 @@
 #include "Item.h"
 #include "ItemPackets.h"
 #include "ItemVisitors.h"
+#include "Log.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
@@ -36,8 +37,98 @@ bool BisEquipUpgradesAction::Execute(Event event)
     return EquipBisFromBags() || acted;
 }
 
+// Les jetons de quete deviennent la piece qu'ils achetent.
+//
+// POURQUOI ICI. Un jeton hakkari n'est ni arme ni armure : la passe
+// d'equipement ci-dessous l'ecarte, a juste titre - il ne s'equipe pas. Le bot
+// le gagnait donc au jet, puis le gardait pour toujours, et la ceinture rang 1
+// qu'il achete n'arrivait jamais. Le vrai chemin du jeu passe par l'ile de
+// Yojamba et demande une reputation Zandalar que les bots ne montent pas, donc
+// l'echange se fait ici, directement.
+//
+// L'ORDRE compte deux fois. Avant la collecte des sacs, pour que la piece
+// obtenue entre dans la passe du meme coup au lieu d'attendre l'objet suivant.
+// Et l'emplacement est reserve AVANT de detruire le jeton : un echange qui
+// echouerait entre les deux aurait detruit du butin.
+bool BisEquipUpgradesAction::ConvertQuestTokens(ChatHandler* report)
+{
+    CollectItemsVisitor visitor;
+    IterateItems(&visitor, ITERATE_ITEMS_IN_BAGS);
+
+    bool converted = false;
+
+    for (Item* item : visitor.items)
+    {
+        if (!item)
+            continue;
+
+        ItemTemplate const* const proto = item->GetTemplate();
+        if (!proto || proto->Class != ITEM_CLASS_QUEST)
+            continue;
+
+        uint32 const pieceId = sBisPriorityMgr->QuestTokenReward(proto->ItemId, bot->getClass());
+        if (!pieceId)
+            continue;
+
+        ItemTemplate const* const piece = sObjectMgr->GetItemTemplate(pieceId);
+        if (!piece)
+            continue;
+
+        // La piece doit etre sur la liste du bot A SON PALIER. C'est la meme
+        // condition que celle qui lui a fait reclamer le jeton; si le plafond a
+        // baisse depuis, le jeton reste un objet de quete ordinaire que le
+        // maitre peut toujours rendre lui-meme.
+        if (!sBisPriorityMgr->GetItemPriority(bot, pieceId))
+            continue;
+
+        if (bot->CanUseItem(piece) != EQUIP_ERR_OK)
+            continue;
+
+        // Deja porte, en sac ou en banque : un second exemplaire ne sert a
+        // rien. Le bot ne peut pas s'etre reclame ce jeton dans cet etat -
+        // WantsQuestToken exige de faire MIEUX que le creneau - mais un jeton
+        // donne par un maitre de jeu arrive ici sans etre passe par la.
+        // GetItemCount part de EQUIPMENT_SLOT_START, donc la piece sur le dos
+        // compte aussi.
+        if (bot->GetItemCount(pieceId, true) > 0)
+            continue;
+
+        ItemPosCountVec dest;
+        if (bot->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, pieceId, 1) != EQUIP_ERR_OK)
+        {
+            if (report)
+                report->PSendSysMessage("  {} : sacs pleins, echange remis a plus tard",
+                                        ChatHelper::FormatItem(proto));
+            continue;
+        }
+
+        bot->DestroyItemCount(proto->ItemId, 1, true);
+
+        Item* const reward = bot->StoreNewItem(dest, pieceId, true);
+        if (!reward)
+        {
+            LOG_ERROR("playerbots", "[mod-playerbots-bis] {} : jeton {} detruit mais piece {} non remise",
+                      bot->GetName(), proto->ItemId, pieceId);
+            continue;
+        }
+
+        bot->SendNewItem(reward, 1, true, false);
+        converted = true;
+
+        if (report)
+            report->PSendSysMessage("  {} echange contre {}",
+                                    ChatHelper::FormatItem(proto), ChatHelper::FormatItem(piece));
+    }
+
+    return converted;
+}
+
 bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
 {
+    // Les jetons d'abord : la piece qu'ils donnent est alors dans les sacs
+    // quand la collecte ci-dessous a lieu, et s'equipe dans la meme passe.
+    bool const convertedToken = ConvertQuestTokens(report);
+
     CollectItemsVisitor visitor;
     IterateItems(&visitor, ITERATE_ITEMS_IN_BAGS);
 
@@ -254,7 +345,9 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         equipped = true;
     }
 
-    return equipped;
+    // Un jeton echange est un acte, meme quand la piece obtenue ne se revele
+    // pas meilleure que ce que le bot porte deja.
+    return equipped || convertedToken;
 }
 
 // ---------------------------------------------------------------------------

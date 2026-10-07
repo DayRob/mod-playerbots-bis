@@ -148,4 +148,52 @@ LEFT JOIN `playerbots_bis_item` b
 WHERE b.`item_id` IS NULL
 ORDER BY j.`classe`, j.`nom_jeton`;
 
+-- LA CONVERSION : CE QUE LE JETON DEVIENT
+-- ---------------------------------------
+-- Les lignes ci-dessus font qu'un bot RECLAME le jeton. Elles ne disent pas ce
+-- qu'il en fait ensuite, et un jeton n'est ni arme ni armure : il dormait dans
+-- le sac pour toujours. Cette table repond a la seule question qui manquait -
+-- ce jeton, pour cette classe, donne quelle piece - et le module s'en sert pour
+-- echanger l'un contre l'autre des que le bot le tient.
+--
+-- Pourquoi une table et pas une deduction : la piece se devine sinon en
+-- cherchant une ligne de meme classe, spe, creneau, palier et rang, ce qui
+-- tombe juste aujourd'hui et faux le jour ou deux pieces partagent un rang.
+-- L'identifiant ecrit noir sur blanc ne se trompe pas.
+CREATE TABLE IF NOT EXISTS `playerbots_bis_quest_token` (
+    `token_id` INT UNSIGNED NOT NULL COMMENT 'objet de quete tenu par le bot',
+    `class`    TINYINT UNSIGNED NOT NULL COMMENT 'classe du bot',
+    `piece_id` INT UNSIGNED NOT NULL COMMENT 'piece que le jeton achete',
+    `comment`  VARCHAR(120) NOT NULL DEFAULT '',
+    PRIMARY KEY (`token_id`, `class`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  COMMENT='mod-playerbots-bis : jeton de quete -> piece, par classe';
+
+-- Rejouable, comme le bloc precedent.
+DELETE FROM `playerbots_bis_quest_token`
+WHERE `token_id` IN (SELECT DISTINCT `jeton` FROM `bis_jetons_zg`);
+
+-- La MEME condition que l'INSERT precedent : seules les pieces que les listes
+-- classent pour cette classe entrent ici. Un jeton reclamable sans conversion,
+-- ou une conversion vers une piece que personne ne reclame, seraient deux
+-- facons de se contredire.
+INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `piece_id`, `comment`)
+SELECT j.`jeton`, j.`classe`, i.`entry`,
+       CONCAT(j.`nom_jeton`, ' -> ', j.`piece`)
+FROM `bis_jetons_zg` j
+JOIN `item_template` i
+  ON i.`name` COLLATE utf8mb4_general_ci = j.`piece` COLLATE utf8mb4_general_ci
+JOIN `playerbots_bis_item` b
+  ON b.`item_id` = i.`entry` AND b.`class` = j.`classe`;
+
+-- VERIFICATION 4 - un jeton reclamable DOIT avoir sa conversion, sinon le bot
+-- le gagne et ne peut rien en faire (aucune ligne = bon).
+SELECT DISTINCT b.`item_id` AS jeton_sans_conversion, b.`class`, b.`comment`
+FROM `playerbots_bis_item` b
+LEFT JOIN `playerbots_bis_quest_token` t
+  ON t.`token_id` = b.`item_id` AND t.`class` = b.`class`
+WHERE b.`item_id` IN (SELECT DISTINCT `jeton` FROM `bis_jetons_zg`)
+  AND t.`piece_id` IS NULL
+ORDER BY b.`item_id`, b.`class`;
+
 DROP TEMPORARY TABLE IF EXISTS `bis_jetons_zg`;

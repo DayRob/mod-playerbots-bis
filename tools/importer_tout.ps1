@@ -123,17 +123,30 @@ function Invoke-SqlFile([System.IO.FileInfo] $fichier) {
 # VERIFICATION 1 renvoie trois colonnes (slot, rank, nom_non_resolu),
 # VERIFICATION 2 en renvoie quatre. Le nombre de colonnes suffit donc a savoir
 # ou s'arrete le premier resultat, sans deviner sur le contenu.
-function Get-NomsNonResolus([string[]] $lignes) {
+function Get-ColonneSignalee([string[]] $lignes, [string] $entete, [int] $colonne) {
     $trouves = New-Object System.Collections.Generic.List[string]
     for ($i = 0; $i -lt $lignes.Count; $i++) {
-        if ($lignes[$i] -notmatch 'nom_non_resolu') { continue }
+        if ($lignes[$i] -notmatch $entete) { continue }
         for ($j = $i + 1; $j -lt $lignes.Count; $j++) {
             $champs = $lignes[$j] -split "`t"
             if ($champs.Count -ne 3) { break }
-            $trouves.Add($champs[2])
+            $trouves.Add($champs[$colonne])
         }
     }
     return $trouves
+}
+
+function Get-NomsNonResolus([string[]] $lignes) {
+    return Get-ColonneSignalee $lignes 'nom_non_resolu' 2
+}
+
+# Un jeton que les listes reclament mais que le fichier 56 ne sait pas
+# convertir : le bot le gagnerait et ne pourrait rien en faire. Detecte ici
+# pour la meme raison que les noms non resolus - une VERIFICATION qui defile
+# sans que rien ne la lise ne verifie rien. C'est exactement l'erreur commise
+# avec l'alias "nom_introuvable", qui a laisse passer deux noms de piece faux.
+function Get-JetonsSansConversion([string[]] $lignes) {
+    return Get-ColonneSignalee $lignes 'jeton_sans_conversion' 0
 }
 
 # ---------------------------------------------------------------------------
@@ -155,6 +168,7 @@ Write-Host ""
 
 $echecs    = New-Object System.Collections.Generic.List[string]
 $nonResolus = @{}
+$jetonsOrphelins = @{}
 
 # Au-dela, un fichier merite qu'on dise combien de temps il a pris : sans ca,
 # un fichier lent et un fichier BLOQUE se ressemblent exactement - le nom
@@ -180,11 +194,21 @@ foreach ($f in $ordre) {
     # @() force le tableau : PowerShell deroule une liste d'un seul element
     # en une simple chaine, qui n'a pas le .Count attendu plus bas.
     $manquants = @(Get-NomsNonResolus $r.Lignes)
+    $sansConv  = @(Get-JetonsSansConversion $r.Lignes)
     $temps = if ($duree -ge $SECONDES_LENTES) { "  [$duree s]" } else { "" }
 
+    $alertes = New-Object System.Collections.Generic.List[string]
     if ($manquants.Count -gt 0) {
-        Write-Host " ok, $($manquants.Count) nom(s) non resolu(s)$temps" -ForegroundColor Yellow
+        $alertes.Add("$($manquants.Count) nom(s) non resolu(s)")
         $nonResolus[$f.Name] = $manquants
+    }
+    if ($sansConv.Count -gt 0) {
+        $alertes.Add("$($sansConv.Count) jeton(s) sans conversion")
+        $jetonsOrphelins[$f.Name] = $sansConv
+    }
+
+    if ($alertes.Count -gt 0) {
+        Write-Host " ok, $($alertes -join ', ')$temps" -ForegroundColor Yellow
     } else {
         Write-Host " ok$temps" -ForegroundColor Green
     }
@@ -208,6 +232,18 @@ if ($nonResolus.Count -gt 0) {
         Write-Host ""
         Write-Host "  $fichier" -ForegroundColor Yellow
         $nonResolus[$fichier] | ForEach-Object { Write-Host "    - $_" }
+    }
+}
+
+if ($jetonsOrphelins.Count -gt 0) {
+    Write-Host ""
+    Write-Host "JETONS SANS CONVERSION" -ForegroundColor Yellow
+    Write-Host "Un bot peut reclamer ces jetons mais rien ne les echange contre" -ForegroundColor Yellow
+    Write-Host "une piece : il les gagnerait pour rien." -ForegroundColor Yellow
+    foreach ($fichier in ($jetonsOrphelins.Keys | Sort-Object)) {
+        Write-Host ""
+        Write-Host "  $fichier" -ForegroundColor Yellow
+        $jetonsOrphelins[$fichier] | ForEach-Object { Write-Host "    - objet $_" }
     }
 }
 

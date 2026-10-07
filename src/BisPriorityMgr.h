@@ -120,6 +120,16 @@ public:
     // les chemins d'equipement les ecartent avant d'en arriver la.
     bool WantsQuestToken(Player* bot, uint32 itemId, uint16* outTierId = nullptr);
 
+    // La piece que ce jeton de quete achete pour cette classe, ou 0 quand la
+    // table n'en connait pas - un jeton qu'aucune liste ne reclame pour elle,
+    // ou l'Idole primordiale hakkari, dont les quetes rendent des enchantements
+    // et qui n'a donc aucune piece a donner.
+    //
+    // La correspondance vient de playerbots_bis_quest_token (fichier 56), pas
+    // d'une deduction : chercher la piece par creneau, palier et rang tomberait
+    // juste aujourd'hui et faux le jour ou deux pieces partagent un rang.
+    uint32 QuestTokenReward(uint32 tokenId, uint8 cls) const;
+
     // What this item would push out if the bot put it on: the piece worn in the
     // slot the list assigns it, or nullptr when that slot is empty. Pairs are
     // resolved first, so on a ring or a trinket it names WHICH of the two goes -
@@ -213,6 +223,9 @@ private:
         return (uint32(cls) << 16) | (uint32(spec) << 8) | faction;
     }
 
+    // Remplit _questTokens depuis playerbots_bis_quest_token, si la table existe.
+    void LoadQuestTokens();
+
     // Resolves the bot's spec, including the Druid Bear sentinel.
     static uint8 ResolveSpec(Player* bot);
 
@@ -236,6 +249,9 @@ private:
     // itemId -> every (cls<<8|spec) that lists it. Backs IsBisForAnotherSpec
     // without scanning the whole table on each decision.
     std::unordered_map<uint32, std::vector<uint16>> _bisOwners;
+    // (tokenId<<8|cls) -> piece achetee. Plat plutot qu'imbrique : la table
+    // compte quelques dizaines de lignes, et une classe tient sur huit bits.
+    std::unordered_map<uint32, uint32> _questTokens;
     size_t _itemCount = 0;
     bool _loaded = false;
 
