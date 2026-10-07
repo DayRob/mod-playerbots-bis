@@ -56,6 +56,20 @@ PlayerbotsBis.LeaveOtherSpecsBis = 1
 # Defaut : 1 (active)
 PlayerbotsBis.AnnounceOwnBis = 1
 
+# QUAND l'annonce ci-dessus a lieu. Sans effet si AnnounceOwnBis = 0.
+#
+# A 1, des le JET : chaque bot qui convoite la piece parle avant que le de ne
+# tombe. Plusieurs lignes pour un objet qu'un seul emportera, mais tu vois qui
+# la veut - ce qui compte si tu arbitres toi-meme, ou si tu veux simplement
+# savoir que tes bots ont reconnu la piece.
+#
+# A 0, le bot attend de DETENIR la piece : une seule ligne, par le gagnant,
+# juste avant qu'il ne l'equipe. C'est aussi le seul instant ou le "a la place
+# de <piece portee>" est certain. En contrepartie les jetons de quete, qui ne
+# s'equipent jamais, ne sont plus annonces du tout.
+# Defaut : 1 (des le jet)
+PlayerbotsBis.AnnounceOnRoll = 1
+
 # En butin de maitre (master loot), quand TU ouvres le cadavre d'un boss, chaque
 # bot du groupe regarde le butin et te chuchote ce qu'il y reconnait comme son
 # BiS : "Je need cet objet : <objet> (<phase>)".

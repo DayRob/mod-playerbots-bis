@@ -100,14 +100,14 @@ namespace
                 // qu'aucune table ne nomme ressemble a un bogue plutot qu'a la
                 // regle que c'est.
                 //
-                // Seulement si le bot DETIENT la piece. Un jet de butin fait
-                // evaluer l'objet par tous les bots presents, et chacun
-                // annoncait alors ce qu'il comptait en faire : quatre lignes
-                // identiques avant meme que le de ne tombe, pour un objet qu'un
-                // seul emportera. Quand le bot l'a dans ses sacs, il l'a gagne,
-                // et la phrase arrive au seul moment ou elle apprend quelque
-                // chose - juste avant l'equipement.
-                if (sBisPriorityMgr->AnnounceOwnBis() && bot->GetItemCount(itemId, true) > 0)
+                // AnnounceOnRoll decide QUAND. A 1, des le jet : tous les
+                // pretendants parlent, donc plusieurs lignes pour une piece
+                // qu'un seul emportera - mais on voit qui la convoite, et c'est
+                // le moment utile si on arbitre soi-meme. A 0, le bot attend de
+                // DETENIR la piece : une seule ligne, par le gagnant, juste
+                // avant l'equipement.
+                if (sBisPriorityMgr->AnnounceOwnBis() &&
+                    (sBisPriorityMgr->AnnounceOnRoll() || bot->GetItemCount(itemId, true) > 0))
                 {
                     std::ostringstream out;
                     out << ChatHelper::FormatItem(proto) << " - je le prends";
@@ -167,10 +167,10 @@ namespace
         // moment where this module can say what leaves.
         Item const* const worn = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, targetSlot);
 
-        // Meme regle : le bot parle quand il TIENT la piece, pas quand il la
-        // convoite. C'est aussi le seul moment ou "a la place de" est vrai -
-        // l'equipement suit immediatement.
-        if (sBisPriorityMgr->AnnounceOwnBis() && botAI && bot->GetItemCount(itemId, true) > 0)
+        // Meme reglage. A 0, le bot attend de TENIR la piece, ce qui est aussi
+        // le seul moment ou "a la place de" est certain - l'equipement suit.
+        if (sBisPriorityMgr->AnnounceOwnBis() && botAI &&
+            (sBisPriorityMgr->AnnounceOnRoll() || bot->GetItemCount(itemId, true) > 0))
         {
             std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
             std::ostringstream out;

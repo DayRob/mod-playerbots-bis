@@ -54,6 +54,11 @@ public:
     bool LeaveOtherSpecsBis() const { return _leaveOtherSpecsBis; }
     bool AnnounceOwnBis() const { return _announceOwnBis; }
 
+    // Vrai quand le bot annonce des le JET, avant de savoir s'il emporte la
+    // piece. A faux, il attend de la detenir - une seule ligne, par le gagnant,
+    // juste avant l'equipement.
+    bool AnnounceOnRoll() const { return _announceOnRoll; }
+
     // True when this bot's gear decisions get the BiS layer on top of
     // playerbots' own logic. False when the feature is off or the bot is a type
     // the server excluded; there is no level gate, because the BiS layer only
@@ -270,6 +275,7 @@ private:
     bool _applyToAltBots = false;
     bool _leaveOtherSpecsBis = true;
     bool _announceOwnBis = true;
+    bool _announceOnRoll = true;
     bool _announceMasterLoot = true;
     bool _claimBelowRequiredLevel = true;
     bool _forceNeedForBis = true;

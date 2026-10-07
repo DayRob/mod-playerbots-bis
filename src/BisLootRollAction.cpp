@@ -99,9 +99,29 @@ bool BisLootRollAction::Execute(Event event)
         // quel bot qui cupidite au hasard.
         if (proto->Class == ITEM_CLASS_QUEST)
         {
-            if (forceNeed && sBisPriorityMgr->WantsQuestToken(bot, roll->itemid))
+            uint16 tierId = 0;
+            if (forceNeed && sBisPriorityMgr->WantsQuestToken(bot, roll->itemid, &tierId))
             {
                 need.push_back(roll->itemGUID);
+
+                // Dit a voix haute, comme les autres reclamations : un bot qui
+                // jette BESOIN sur un objet de quete est surprenant tant qu'on
+                // ne sait pas ce qu'il en fera.
+                //
+                // Sous AnnounceOnRoll seulement, et sans repli possible : un
+                // jeton ne s'equipe jamais, donc il n'y a pas d'autre instant
+                // ou le dire. A 0, le client dit deja "X a choisi Besoin pour
+                // [objet]", ce qui porte l'essentiel.
+                if (sBisPriorityMgr->AnnounceOwnBis() && sBisPriorityMgr->AnnounceOnRoll() && botAI)
+                {
+                    std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
+                    std::ostringstream out;
+                    out << ChatHelper::FormatItem(proto) << " - j'en ai besoin";
+                    if (!tierName.empty())
+                        out << " (" << tierName << ")";
+                    out << " : il me donne une piece de ma liste";
+                    botAI->TellMaster(out.str());
+                }
 
                 // Rien n'est dit ici, et c'est voulu. Un jet de butin fait
                 // evaluer l'objet par tous les bots presents : chaque phrase
