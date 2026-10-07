@@ -53,7 +53,11 @@ SELECT 'Quetes Paragons of Power : ce qu elles rendent' AS section;
 -- par item_template.AllowableClass, qui lui a repondu.
 SELECT q.`ID` AS quete, q.`LogTitle` AS titre,
        COALESCE(c1.`name`, r1.`name`) AS piece,
-       COALESCE(q.`RewardChoiceItemID1`, q.`RewardItem1`) AS piece_entry,
+       -- NULLIF avant COALESCE : RewardChoiceItemID1 vaut 0 - et non NULL -
+       -- sur ces quetes, donc un COALESCE nu rendait 0 en s'arretant au
+       -- premier terme non nul. La piece, elle, se resolvait par l'autre
+       -- jointure : la colonne affichait 0 a cote d'un nom correct.
+       COALESCE(NULLIF(q.`RewardChoiceItemID1`, 0), NULLIF(q.`RewardItem1`, 0)) AS piece_entry,
        COALESCE(c1.`InventoryType`, r1.`InventoryType`) AS type_emplacement
 FROM `quest_template` q
 LEFT JOIN `item_template` c1 ON c1.`entry` = q.`RewardChoiceItemID1`
@@ -66,14 +70,25 @@ ORDER BY q.`LogTitle`;
 --     precedente : sans elle on sait ce que la quete rend, pas ce
 --     qu'elle coute.
 -- ---------------------------------------------------------------------
--- RequiredMinRepFaction / RequiredMinRepValue : les quetes de la tribu
--- Zandalar exigent souvent une REPUTATION en plus du jeton. Un bot qui gagne
--- le jeton ne pourra rendre la quete qu'une fois ce seuil atteint - et les
--- bots gagnent bien cette reputation en raidant Zul'Gurub.
---   0 = aucune exigence. Sinon : 3000 Amical, 9000 Honore, 21000 Revere.
+-- La REPUTATION exigee en plus du jeton. Un bot qui gagne le jeton ne pourra
+-- rendre la quete qu'une fois le seuil atteint - et les bots gagnent bien cette
+-- reputation en raidant Zul'Gurub.
+--
+-- Les colonnes s'appellent RequiredFactionId / RequiredFactionValue, releves
+-- dans la definition de quest_template. J'avais d'abord ecrit
+-- RequiredMinRepFaction, qui est le nom du MEMBRE C++ dans QuestDef.h : les
+-- deux ne coincident pas, et la requete tombait sur ERROR 1054.
 SELECT 'Quetes Paragons of Power : le jeton demande, et la reputation exigee' AS section;
-SELECT q.`ID` AS quete, q.`LogTitle` AS titre, j.`entry` AS jeton_entry, j.`name` AS jeton,
-       q.`RequiredMinRepFaction` AS faction_exigee, q.`RequiredMinRepValue` AS seuil
+SELECT q.`ID` AS quete, q.`LogTitle` AS titre, j.`name` AS jeton,
+       q.`RequiredFactionId1` AS faction, q.`RequiredFactionValue1` AS seuil,
+       CASE
+           WHEN q.`RequiredFactionValue1` = 0     THEN 'aucune'
+           WHEN q.`RequiredFactionValue1` < 3000  THEN 'Neutre'
+           WHEN q.`RequiredFactionValue1` < 9000  THEN 'Amical'
+           WHEN q.`RequiredFactionValue1` < 21000 THEN 'Honore'
+           WHEN q.`RequiredFactionValue1` < 42000 THEN 'Revere'
+           ELSE 'Exalte'
+       END AS niveau_exige
 FROM `quest_template` q
 JOIN `item_template` j
   ON j.`entry` IN (q.`RequiredItemId1`, q.`RequiredItemId2`, q.`RequiredItemId3`,
