@@ -66,8 +66,14 @@ ORDER BY q.`LogTitle`;
 --     precedente : sans elle on sait ce que la quete rend, pas ce
 --     qu'elle coute.
 -- ---------------------------------------------------------------------
-SELECT 'Quetes Paragons of Power : le jeton demande' AS section;
-SELECT q.`ID` AS quete, q.`LogTitle` AS titre, j.`entry` AS jeton_entry, j.`name` AS jeton
+-- RequiredMinRepFaction / RequiredMinRepValue : les quetes de la tribu
+-- Zandalar exigent souvent une REPUTATION en plus du jeton. Un bot qui gagne
+-- le jeton ne pourra rendre la quete qu'une fois ce seuil atteint - et les
+-- bots gagnent bien cette reputation en raidant Zul'Gurub.
+--   0 = aucune exigence. Sinon : 3000 Amical, 9000 Honore, 21000 Revere.
+SELECT 'Quetes Paragons of Power : le jeton demande, et la reputation exigee' AS section;
+SELECT q.`ID` AS quete, q.`LogTitle` AS titre, j.`entry` AS jeton_entry, j.`name` AS jeton,
+       q.`RequiredMinRepFaction` AS faction_exigee, q.`RequiredMinRepValue` AS seuil
 FROM `quest_template` q
 JOIN `item_template` j
   ON j.`entry` IN (q.`RequiredItemId1`, q.`RequiredItemId2`, q.`RequiredItemId3`,

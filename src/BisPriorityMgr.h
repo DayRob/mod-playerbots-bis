@@ -113,6 +113,13 @@ public:
     // en porte deja un exemplaire ailleurs et qu'elle est unique-equipee.
     bool UniqueAlreadyWorn(Player* bot, ItemTemplate const* proto, uint8 targetSlot);
 
+    // Vrai quand cet objet de QUETE achete une piece que la liste du bot nomme,
+    // et qu'il n'en a pas encore. Les jetons de Zul'Gurub sont poses aux
+    // creneau, palier et rang de la piece qu'ils donnent (fichier 56), donc la
+    // meme echelle les departage - mais ils ne sont ni arme ni armure, et tous
+    // les chemins d'equipement les ecartent avant d'en arriver la.
+    bool WantsQuestToken(Player* bot, uint32 itemId, uint16* outTierId = nullptr);
+
     // What this item would push out if the bot put it on: the piece worn in the
     // slot the list assigns it, or nullptr when that slot is empty. Pairs are
     // resolved first, so on a ring or a trinket it names WHICH of the two goes -

@@ -635,6 +635,50 @@ bool BisPriorityMgr::UniqueAlreadyWorn(Player* bot, ItemTemplate const* proto, u
     return bot->CanEquipUniqueItem(proto, targetSlot) != EQUIP_ERR_OK;
 }
 
+// Un jeton de quete que la liste du bot reclame.
+//
+// Pourquoi ce chemin separe : WantsAsUpgrade, l'avis d'usage et la passe
+// d'equipement ecartent tous ce qui n'est ni ITEM_CLASS_WEAPON ni
+// ITEM_CLASS_ARMOR - a juste titre, un objet de quete ne s'equipe pas. Mais le
+// jet, lui, doit avoir lieu : un jeton hakkari vaut une piece de rang 1, et
+// avec tous les bots qui passent il ne revenait a personne.
+//
+// Et les bots SAVENT rendre une quete : TalkToQuestGiverAction::TurnInQuest
+// s'en charge des que le bot parle au donneur avec la quete complete. Le jeton
+// n'est donc pas perdu pour un bot qui le gagne - il faut l'amener au donneur,
+// qui pour Zul'Gurub se tient sur l'ile de Yojamba, a cote de l'entree.
+bool BisPriorityMgr::WantsQuestToken(Player* bot, uint32 itemId, uint16* outTierId)
+{
+    if (!AppliesTo(bot))
+        return false;
+
+    ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemId);
+    if (!proto || proto->Class != ITEM_CLASS_QUEST)
+        return false;
+
+    uint8 slot = 0;
+    uint16 tierId = 0;
+    uint32 const priority = GetItemPriority(bot, itemId, &slot, &tierId);
+    if (!priority)
+        return false;
+
+    // Un second exemplaire ne vaut rien : une quete, un jeton. Le prendre
+    // retirerait le jet a un bot qui n'en a pas.
+    if (bot->GetItemCount(itemId, true) > 0)
+        return false;
+
+    // Et rien a reclamer si le creneau porte deja aussi bien. La piece que le
+    // jeton achete partage sa priorite, donc la comparaison est la meme que
+    // pour une piece d'equipement.
+    if (priority <= GetWornPriorityPaired(bot, slot))
+        return false;
+
+    if (outTierId)
+        *outTierId = tierId;
+
+    return true;
+}
+
 bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId, bool* outTooLowLevel)
 {
     if (outTooLowLevel)

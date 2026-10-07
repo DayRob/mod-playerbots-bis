@@ -6,6 +6,7 @@
 
 #include "BisLootRollAction.h"
 #include "BisPriorityMgr.h"
+#include "ChatHelper.h"
 #include "Event.h"
 #include "Group.h"
 #include "ItemUsageValue.h"
@@ -13,6 +14,8 @@
 #include "ObjectMgr.h"
 #include "PlayerbotAIConfig.h"
 #include "Playerbots.h"
+#include <sstream>
+#include <string>
 #include <vector>
 
 bool BisLootRollAction::Execute(Event event)
@@ -81,6 +84,40 @@ bool BisLootRollAction::Execute(Event event)
         ItemTemplate const* proto = sObjectMgr->GetItemTemplate(roll->itemid);
         if (!proto)
             continue;
+
+        // Les JETONS DE QUETE, d'abord, parce qu'ils ne survivraient pas au
+        // filtre suivant. Un jeton hakkari n'est ni arme ni armure, donc tous
+        // les chemins d'equipement l'ecartent - a juste titre, il ne s'equipe
+        // pas. Mais il achete une piece que la liste nomme, et sans ce branchement
+        // TOUS les bots passaient : l'objet ne revenait a personne.
+        //
+        // NEED et non GREED : le jeton vaut exactement la piece qu'il donne,
+        // et celle-ci est souvent rang 1. Un GREED le laisserait a n'importe
+        // quel bot qui cupidite au hasard.
+        if (proto->Class == ITEM_CLASS_QUEST)
+        {
+            uint16 tierId = 0;
+            if (forceNeed && sBisPriorityMgr->WantsQuestToken(bot, roll->itemid, &tierId))
+            {
+                need.push_back(roll->itemGUID);
+
+                // Dit a voix haute, comme les autres reclamations : un bot qui
+                // jette BESOIN sur un objet de quete est surprenant tant qu'on
+                // ne sait pas ce qu'il en fera.
+                if (sBisPriorityMgr->AnnounceOwnBis() && botAI)
+                {
+                    std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
+                    std::ostringstream out;
+                    out << ChatHelper::FormatItem(proto) << " - j'en ai besoin";
+                    if (!tierName.empty())
+                        out << " (" << tierName << ")";
+                    out << " : il me donne une piece de ma liste, a rendre au"
+                           " donneur de quete";
+                    botAI->TellMaster(out.str());
+                }
+            }
+            continue;
+        }
 
         // Only gear is arbitrated. Recipes, armor tokens, trade goods and the
         // rest keep playerbots' own vote.
