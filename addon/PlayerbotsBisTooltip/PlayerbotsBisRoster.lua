@@ -113,10 +113,12 @@ end
 -- Un journal ne verrait que le premier. Comparer deux etats les voit tous, quel
 -- que soit le chemin, parce qu'il ne regarde que le resultat.
 --
--- QUAND ILS SONT PRIS. A chaque releve complet, automatiquement : le courant
--- devient le precedent, et l'etat recu devient le courant. Il n'y a donc rien a
--- declencher avant un raid - lance ".playerbotsbis report" en partant et en
--- revenant, et "/pbbis bilan" tient exactement le raid.
+-- UN REPERE, PAS "LES DEUX DERNIERS". La premiere version comparait le dernier
+-- releve a l'avant-dernier, et un ".playerbotsbis report" lance au milieu du
+-- raid - pour voir ou on en est, ce qui est l'usage normal de cette commande -
+-- ramenait la fenetre a ce qui suivait ce releve-la. Le bilan compare donc a un
+-- REPERE que tu poses, et que rien d'autre ne deplace. Entre les deux, relance
+-- le releve autant de fois que tu veux : seul le cote "maintenant" bouge.
 
 local function Snapshot()
     local etat = { quand = date("%d/%m %H:%M"), bots = {} }
@@ -143,8 +145,18 @@ local function StoreSnapshot()
     if not db then return end
 
     db.bilan = db.bilan or {}
-    db.bilan.precedent = db.bilan.courant
     db.bilan.courant = Snapshot()
+
+    -- Reprise des sauvegardes de la version precedente, qui ne connaissait que
+    -- "precedent" / "courant" : son avant-dernier releve devient le repere.
+    db.bilan.depart = db.bilan.depart or db.bilan.precedent
+    db.bilan.precedent = nil
+
+    -- Tout premier releve : le repere se pose tout seul, sinon le premier bilan
+    -- n'aurait rien a quoi se comparer.
+    if not db.bilan.depart then
+        db.bilan.depart = db.bilan.courant
+    end
 end
 
 local function ItemText(id)
@@ -165,19 +177,27 @@ function PlayerbotsBisRoster_Bilan(arg)
     end
 
     if not bilan or not bilan.courant then
-        Print("aucun releve en memoire. Lance |cffffd100.playerbotsbis report|r une"
-              .. " premiere fois, puis une seconde apres le raid.")
+        Print("aucun releve en memoire. Lance |cffffd100.playerbotsbis report|r"
+              .. " une premiere fois.")
         return
     end
 
-    if not bilan.precedent then
-        Print("un seul releve en memoire (" .. bilan.courant.quand .. "). Il en faut"
-              .. " deux pour comparer : relance |cffffd100.playerbotsbis report|r"
-              .. " apres le raid.")
+    if arg == "depart" or arg == "debut" then
+        bilan.depart = bilan.courant
+        Print("repere pose sur le releve du " .. bilan.courant.quand
+              .. ". Relance |cffffd100.playerbotsbis report|r apres le raid, puis"
+              .. " |cffffd100/pbbis bilan|r.")
         return
     end
 
-    Print("nouveautes entre le " .. bilan.precedent.quand .. " et le "
+    if bilan.depart == bilan.courant then
+        Print("le repere est sur le dernier releve (" .. bilan.courant.quand
+              .. ") : il n'y a rien a comparer. Relance"
+              .. " |cffffd100.playerbotsbis report|r apres le raid.")
+        return
+    end
+
+    Print("nouveautes entre le " .. bilan.depart.quand .. " et le "
           .. bilan.courant.quand .. " :")
 
     local lignes, nouveauxBots = 0, 0
@@ -189,10 +209,10 @@ function PlayerbotsBisRoster_Bilan(arg)
 
     for _, nom in ipairs(noms) do
         local apres = bilan.courant.bots[nom]
-        local avant = bilan.precedent.bots[nom]
+        local avant = bilan.depart.bots[nom]
 
         if not avant then
-            -- Un bot absent du premier releve n'a rien "gagne" : il etait
+            -- Un bot absent du releve-repere n'a rien "gagne" : il etait
             -- deconnecte, et tout son equipement passerait pour du neuf.
             nouveauxBots = nouveauxBots + 1
         else
@@ -227,7 +247,7 @@ function PlayerbotsBisRoster_Bilan(arg)
     end
 
     if nouveauxBots > 0 then
-        Print(string.format("  (%d bot(s) absent(s) du premier releve, ignore(s) :"
+        Print(string.format("  (%d bot(s) absent(s) du releve-repere, ignore(s) :"
                             .. " tout leur equipement aurait compte pour du neuf.)",
                             nouveauxBots))
     end
