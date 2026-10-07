@@ -136,7 +136,7 @@ namespace
         // own level 60 best in slot and let the piece go.
         bool tooLowLevel = false;
         {
-            InventoryResult const canUse = bot->BotCanUseItem(proto);
+            InventoryResult const canUse = bot->CanUseItem(proto);
             if (canUse != EQUIP_ERR_OK)
             {
                 if (canUse != EQUIP_ERR_CANT_EQUIP_LEVEL_I || !sBisPriorityMgr->ClaimBelowRequiredLevel())

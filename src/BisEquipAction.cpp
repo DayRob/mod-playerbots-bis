@@ -103,7 +103,7 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         // Unlike the claim made at loot time, a missing level is disqualifying
         // here: the core refuses the equip outright, so forcing it would only
         // spend a packet per tick until the bot grows into the piece.
-        if (InventoryResult const canUse = bot->BotCanUseItem(proto); canUse != EQUIP_ERR_OK)
+        if (InventoryResult const canUse = bot->CanUseItem(proto); canUse != EQUIP_ERR_OK)
         {
             if (report)
                 report->PSendSysMessage("  {} : ne peut pas l'equiper (code {})",

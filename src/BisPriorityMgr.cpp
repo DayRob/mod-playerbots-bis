@@ -556,7 +556,7 @@ bool BisPriorityMgr::ClaimsClassRestricted(PlayerbotAI* botAI, Player* bot, uint
     // claim exists to fill an empty slot now; holding a piece for a level the
     // bot has not reached, on nobody's authority but item level, would just
     // park loot in a bag.
-    if (bot->BotCanUseItem(proto) != EQUIP_ERR_OK)
+    if (bot->CanUseItem(proto) != EQUIP_ERR_OK)
         return false;
 
     uint8 const dstSlot = botAI->FindEquipSlot(proto, NULL_SLOT, true);
@@ -713,7 +713,7 @@ bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierI
     // EQUIP_ERR_CANT_EQUIP_LEVEL_I for it, and that obstacle disappears on its
     // own as the bot levels. Treating it like the others made a level 57 bot
     // stay silent in front of its own level 60 best in slot and let it go.
-    InventoryResult const canUse = bot->BotCanUseItem(proto);
+    InventoryResult const canUse = bot->CanUseItem(proto);
     if (canUse != EQUIP_ERR_OK)
     {
         if (canUse != EQUIP_ERR_CANT_EQUIP_LEVEL_I || !_claimBelowRequiredLevel)
