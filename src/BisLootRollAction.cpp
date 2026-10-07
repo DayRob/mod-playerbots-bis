@@ -72,7 +72,10 @@ bool BisLootRollAction::Execute(Event event)
     std::vector<ObjectGuid> claim;
     std::vector<ObjectGuid> need;
 
-    for (Roll* roll : group->GetRolls())
+    // Roll const* et non Roll* : selon la revision du coeur, GetRolls() rend
+    // soit std::vector<Roll*>, soit std::vector<Roll const*>. Le pointeur
+    // constant accepte les deux, et la boucle ne fait que des lectures.
+    for (Roll const* roll : group->GetRolls())
     {
         if (!roll)
             continue;
