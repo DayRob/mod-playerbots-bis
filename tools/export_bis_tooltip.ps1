@@ -68,6 +68,10 @@ function Trouver-Conf {
     }
     # Les emplacements habituels d'AzerothCore, relatifs au depot du module.
     $pistes = @(
+        # Disposition rencontree en vrai : AzerothCore\configs\modules\.
+        # Elle ne figurait dans aucune des trois suivantes, et seule la
+        # recherche recursive l'avait trouvee.
+        (Join-Path $PSScriptRoot '..\..\..\configs\modules\playerbots_bis.conf'),
         (Join-Path $PSScriptRoot '..\..\..\env\dist\etc\playerbots_bis.conf'),
         (Join-Path $PSScriptRoot '..\..\..\etc\playerbots_bis.conf'),
         (Join-Path $PSScriptRoot '..\..\..\bin\etc\playerbots_bis.conf'),
