@@ -139,11 +139,46 @@ foreach ($entry in $listed) {
     Write-Host ("   {0,-32} {1}" -f $name, $mark) -ForegroundColor $colour
 }
 
+# "NOUVEAU" comparait le fichier au DOSSIER, pas a ce que le client a
+# reellement charge. Une fois le fichier copie une premiere fois, toutes les
+# copies suivantes disaient "mis a jour, /reload suffit" - alors qu'un client
+# jamais quitte depuis son apparition ne l'a toujours pas dans sa liste de
+# chargement, et ne l'aura jamais par un /reload.
+#
+# La date de CREATION dans le dossier du client repond a la vraie question :
+# ce fichier existait-il quand le client a demarre ? Copy-Item -Force conserve
+# la creation d'un fichier ecrase, donc elle marque bien sa premiere apparition.
+function Get-ClientWow {
+    if ($env:PBBIS_FAUX_DEMARRAGE) {
+        return [pscustomobject]@{ StartTime = [datetime]$env:PBBIS_FAUX_DEMARRAGE }
+    }
+    return Get-Process -Name 'Wow' -ErrorAction SilentlyContinue | Select-Object -First 1
+}
+
 $anyNew = $copied | Where-Object { $_.Etat -eq 'NOUVEAU' }
+$wow = Get-ClientWow
+
+$inconnusDuClient = @()
+if ($wow) {
+    $inconnusDuClient = @(Get-ChildItem -Path $target -Filter '*.lua' -ErrorAction SilentlyContinue |
+        Where-Object { $_.CreationTime -gt $wow.StartTime } |
+        ForEach-Object { $_.Name })
+}
+
 Write-Host ""
-if ($anyNew) {
-    Write-Host "Un fichier NOUVEAU a ete installe : quitte le client entierement et relance-le." -ForegroundColor Yellow
-    Write-Host "/reload ne suffit pas, il ne relit que les fichiers deja charges." -ForegroundColor Yellow
+if ($anyNew -or $inconnusDuClient.Count -gt 0) {
+    Write-Host "QUITTE LE CLIENT ENTIEREMENT ET RELANCE-LE." -ForegroundColor Yellow
+    if ($anyNew) {
+        Write-Host "Un fichier vient d'etre installe pour la premiere fois." -ForegroundColor Yellow
+    }
+    if ($inconnusDuClient.Count -gt 0) {
+        Write-Host ("Le client tourne depuis {0:HH:mm:ss} et ces fichiers sont apparus apres :" -f $wow.StartTime) -ForegroundColor Yellow
+        $inconnusDuClient | ForEach-Object { Write-Host "   $_" -ForegroundColor Yellow }
+    }
+    Write-Host "/reload ne suffit pas : il reexecute les fichiers deja charges, mais la" -ForegroundColor Yellow
+    Write-Host "liste du .toc n'est lue qu'au LANCEMENT du client." -ForegroundColor Yellow
+} elseif ($wow) {
+    Write-Host "Tous les fichiers existaient deja au lancement du client : /reload suffit." -ForegroundColor Green
 } else {
-    Write-Host "Aucun fichier nouveau : /reload suffit." -ForegroundColor Green
+    Write-Host "Client arrete : tout sera pris en compte a son prochain lancement." -ForegroundColor Green
 }
