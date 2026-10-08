@@ -515,8 +515,20 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
                   .. " relancer le client apres la copie de l'addon.")
         end
     elseif cmd == "bilan" then
-        if PlayerbotsBisRoster_Bilan then
-            PlayerbotsBisRoster_Bilan(string.lower(arg or ""))
+        local sousCmd = string.lower(arg or "")
+        -- "texte" garde l'ancien affichage dans le tchat : utile pour coller un
+        -- bilan ailleurs, et seul recours si la fenetre manque.
+        if sousCmd == "texte" or sousCmd == "tchat" then
+            if PlayerbotsBisRoster_Bilan then
+                PlayerbotsBisRoster_Bilan("")
+            else
+                Print("bilan indisponible - PlayerbotsBisRoster.lua n'est pas charge.")
+            end
+        elseif sousCmd == "" and PlayerbotsBisBilan_Toggle then
+            PlayerbotsBisBilan_Toggle()
+        elseif PlayerbotsBisRoster_Bilan then
+            PlayerbotsBisRoster_Bilan(sousCmd)
+            if PlayerbotsBisBilan_Refresh then PlayerbotsBisBilan_Refresh() end
         else
             Print("bilan indisponible - PlayerbotsBisRoster.lua n'est pas charge.")
         end
@@ -586,7 +598,7 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
         Print("/pbbis inspect - pourquoi le compte BiS ne s'affiche pas a l'inspection")
         Print("/pbbis menu - debut de raid, bilan, compositions (aussi : clic droit sur la minicarte)")
-        Print("/pbbis bilan - ce que les bots ont gagne depuis le repere")
+        Print("/pbbis bilan - la fenetre du bilan (|cffffd100texte|r pour le tchat)")
         Print("/pbbis bilan depart - pose le repere ici (avant de partir en raid)")
         Print("/pbbis raids - quel raid rapporte quoi, et a quels bots (aussi /pbbisraids)")
         Print("/pbbis compo - enregistre et reapplique une repartition de raid")

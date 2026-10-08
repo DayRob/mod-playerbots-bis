@@ -175,38 +175,43 @@ local function ItemText(id)
     return "objet " .. tostring(id)
 end
 
-function PlayerbotsBisRoster_Bilan(arg)
+-- silencieux : appelee depuis la fenetre, qui affiche deja tout. Sans ca,
+-- chaque clic doublerait le bilan dans le tchat.
+function PlayerbotsBisRoster_Bilan(arg, silencieux)
     local db = PlayerbotsBisTooltipDB
     local bilan = db and db.bilan
 
+    local Dire = Print
+    if silencieux then Dire = function() end end
+
     if arg == "raz" then
         if db then db.bilan = nil end
-        Print("bilan remis a zero : le prochain releve repart d'une page blanche.")
+        Dire("bilan remis a zero : le prochain releve repart d'une page blanche.")
         return
     end
 
     if not bilan or not bilan.courant then
-        Print("aucun releve en memoire. Lance |cffffd100.playerbotsbis report|r"
+        Dire("aucun releve en memoire. Lance |cffffd100.playerbotsbis report|r"
               .. " une premiere fois.")
         return
     end
 
     if arg == "depart" or arg == "debut" then
         bilan.depart = bilan.courant
-        Print("repere pose sur le releve du " .. bilan.courant.quand
+        Dire("repere pose sur le releve du " .. bilan.courant.quand
               .. ". Relance |cffffd100.playerbotsbis report|r apres le raid, puis"
               .. " |cffffd100/pbbis bilan|r.")
         return
     end
 
     if bilan.depart == bilan.courant then
-        Print("le repere est sur le dernier releve (" .. bilan.courant.quand
+        Dire("le repere est sur le dernier releve (" .. bilan.courant.quand
               .. ") : il n'y a rien a comparer. Relance"
               .. " |cffffd100.playerbotsbis report|r apres le raid.")
         return
     end
 
-    Print("nouveautes entre le " .. bilan.depart.quand .. " et le "
+    Dire("nouveautes entre le " .. bilan.depart.quand .. " et le "
           .. bilan.courant.quand .. " :")
 
     local lignes, nouveauxBots = 0, 0
@@ -243,7 +248,7 @@ function PlayerbotsBisRoster_Bilan(arg)
                     c[1] * 255, c[2] * 255, c[3] * 255, nom)
 
                 for _, g in ipairs(gains) do
-                    Print("  " .. entete .. " : " .. ItemText(g.id)
+                    Dire("  " .. entete .. " : " .. ItemText(g.id)
                           .. (g.cible and " |cff1eff00(rang 1)|r" or " |cff808080(repli)|r"))
                     lignes = lignes + 1
                 end
@@ -252,11 +257,11 @@ function PlayerbotsBisRoster_Bilan(arg)
     end
 
     if lignes == 0 then
-        Print("  rien de neuf.")
+        Dire("  rien de neuf.")
     end
 
     if nouveauxBots > 0 then
-        Print(string.format("  (%d bot(s) absent(s) du releve-repere, ignore(s) :"
+        Dire(string.format("  (%d bot(s) absent(s) du releve-repere, ignore(s) :"
                             .. " tout leur equipement aurait compte pour du neuf.)",
                             nouveauxBots))
     end
@@ -614,12 +619,16 @@ local function BuildWindow()
     bilanBtn:SetHeight(20)
     bilanBtn:SetPoint("LEFT", expandBtn, "RIGHT", 8, 0)
     bilanBtn:SetText("Bilan")
-    bilanBtn:SetScript("OnClick", function(self)
-        if OuvrirMenuBilan then OuvrirMenuBilan(self) end
+    bilanBtn:SetScript("OnClick", function()
+        if PlayerbotsBisBilan_Toggle then
+            PlayerbotsBisBilan_Toggle()
+        else
+            Print("fenetre du bilan indisponible - PlayerbotsBisBilan.lua n'est pas charge.")
+        end
     end)
     bilanBtn:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("Debut de raid, fin de raid, compositions")
+        GameTooltip:SetText("Ce que les bots ont gagne depuis le repere")
         GameTooltip:Show()
     end)
     bilanBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -870,6 +879,7 @@ local function Dispatch(payload, raw)
         -- La fenetre d'inspection peut etre ouverte pendant le releve : sans ce
         -- rappel elle garderait le chiffre d'avant jusqu'a sa reouverture.
         if PlayerbotsBisInspect_Refresh then PlayerbotsBisInspect_Refresh() end
+        if PlayerbotsBisBilan_Refresh then PlayerbotsBisBilan_Refresh() end
         Print(string.format("%d bots recus. |cff808080/pbbis bilan|r pour les nouveautes.", #roster.bots))
     end
 end
@@ -949,7 +959,8 @@ TenirPromesses = function()
     for _, fn in ipairs(aFaire) do pcall(fn) end
 end
 
-local function ReleveEtPuis(fn, libelle)
+local ReleveEtPuis
+ReleveEtPuis = function(fn, libelle)
     if not RequestReport() then
         Print("impossible d'envoyer la commande - tape |cffffd100.playerbotsbis report|r"
               .. " toi-meme, puis recommence.")
@@ -993,14 +1004,27 @@ local function EntreesMenu()
 
     ajoute("Debut de raid : poser le repere", function()
         ReleveEtPuis(function()
-            if PlayerbotsBisRoster_Bilan then PlayerbotsBisRoster_Bilan("depart") end
+            PlayerbotsBisRoster_Bilan("depart")
+            if PlayerbotsBisBilan_Refresh then PlayerbotsBisBilan_Refresh() end
         end, "Debut de raid")
     end)
 
     ajoute("Fin de raid : voir le bilan", function()
         ReleveEtPuis(function()
-            if PlayerbotsBisRoster_Bilan then PlayerbotsBisRoster_Bilan("") end
+            if PlayerbotsBisBilan_Toggle then
+                if not (_G.PlayerbotsBisBilanFrame and _G.PlayerbotsBisBilanFrame:IsShown()) then
+                    PlayerbotsBisBilan_Toggle()
+                else
+                    PlayerbotsBisBilan_Refresh()
+                end
+            else
+                PlayerbotsBisRoster_Bilan("")
+            end
         end, "Fin de raid")
+    end)
+
+    ajoute("Bilan du raid (fenetre)", function()
+        if PlayerbotsBisBilan_Toggle then PlayerbotsBisBilan_Toggle() end
     end)
 
     ajoute("Actualiser le releve", function()
@@ -1141,6 +1165,11 @@ local function BuildMinimapButton()
 
     PlaceOnRing(btn, PlayerbotsBisTooltipDB.rosterAngle or DEFAULT_ANGLE)
     return btn
+end
+
+-- Lue par la fenetre du bilan, qui enchaine les memes deux gestes.
+function PlayerbotsBisRoster_ReleveEtPuis(fn, libelle)
+    ReleveEtPuis(fn, libelle)
 end
 
 -- Appelee par "/pbbis menu". Un sac a boutons de minicarte ne transmet pas
