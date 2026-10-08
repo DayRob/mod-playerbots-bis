@@ -837,6 +837,10 @@ local function Dispatch(payload, raw)
         win.Refresh(true)
         win:Show()
         StoreSnapshot()
+
+        -- La fenetre d'inspection peut etre ouverte pendant le releve : sans ce
+        -- rappel elle garderait le chiffre d'avant jusqu'a sa reouverture.
+        if PlayerbotsBisInspect_Refresh then PlayerbotsBisInspect_Refresh() end
         Print(string.format("%d bots recus. |cff808080/pbbis bilan|r pour les nouveautes.", #roster.bots))
     end
 end
