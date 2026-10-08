@@ -94,6 +94,11 @@ local function Rafraichir(force)
     ligne:SetTextColor(r, g, b)
 end
 
+-- Appelee a CHAQUE evenement, pas seulement au chargement de Blizzard_InspectUI.
+-- Elle ne fait rien une fois la ligne creee, et ca evite de dependre d'un ordre
+-- d'evenements precis : selon les addons installes, l'interface d'inspection
+-- peut etre chargee avant nous, apres nous, ou a la premiere inspection. Un
+-- seul point d'entree rate laissait la fenetre muette sans rien signaler.
 local function Installer()
     local frame = _G.InspectFrame
     if not frame or ligne then return end
@@ -119,23 +124,64 @@ local ecoute = CreateFrame("Frame")
 ecoute:RegisterEvent("ADDON_LOADED")
 ecoute:RegisterEvent("INSPECT_READY")
 ecoute:RegisterEvent("PLAYER_TARGET_CHANGED")
-ecoute:SetScript("OnEvent", function(_, event, arg1)
-    if event == "ADDON_LOADED" then
-        if arg1 == "Blizzard_InspectUI" then
-            Installer()
-        elseif arg1 == ADDON_NAME and _G.InspectFrame then
-            -- L'interface d'inspection etait deja chargee avant nous.
-            Installer()
-        end
-        return
-    end
+ecoute:RegisterEvent("PLAYER_ENTERING_WORLD")
+ecoute:SetScript("OnEvent", function(_, event)
+    Installer()
 
     -- INSPECT_READY arrive APRES l'ouverture : c'est lui qui porte les donnees,
     -- donc le premier affichage serait vide sans ce second passage.
-    Rafraichir(true)
+    if event ~= "ADDON_LOADED" then
+        Rafraichir(true)
+    end
 end)
 
 -- Appelable depuis le repartiteur /pbbis, et apres un nouveau releve.
 function PlayerbotsBisInspect_Refresh()
+    Installer()
     Rafraichir(true)
+end
+
+-- "/pbbis inspect" : pourquoi la ligne ne s'affiche pas.
+--
+-- Elle depend de trois choses qu'on ne peut pas voir de l'exterieur - le
+-- fichier charge, l'interface d'inspection chargee, un releve en memoire - et
+-- sans ce diagnostic il n'y a aucun moyen de savoir laquelle manque.
+function PlayerbotsBisInspect_Diag()
+    local function dire(m)
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99BiS|r: " .. m)
+    end
+
+    dire("PlayerbotsBisInspect.lua : |cff1eff00charge|r.")
+
+    local frame = _G.InspectFrame
+    if not frame then
+        dire("InspectFrame : |cffff2020absent|r - Blizzard_InspectUI n'est pas"
+             .. " encore charge. Inspecte un bot une fois, puis retape"
+             .. " |cffffd100/pbbis inspect|r.")
+        return
+    end
+    dire("InspectFrame : |cff1eff00present|r"
+         .. (frame:IsShown() and ", ouverte" or ", fermee"))
+
+    Installer()
+    dire("ligne d'affichage : " .. (ligne and "|cff1eff00creee|r" or "|cffff2020absente|r"))
+    dire("ancrage : " .. (_G.InspectLevelText and "InspectLevelText"
+         or (_G.InspectNameText and "InspectNameText" or "repli sur le cadre")))
+
+    local roster = Roster()
+    if not roster or not roster.byName then
+        dire("releve : |cffff2020aucun|r - lance |cffffd100.playerbotsbis report|r.")
+        return
+    end
+
+    local n = 0
+    for _ in pairs(roster.byName) do n = n + 1 end
+    dire(string.format("releve : |cff1eff00%d bots|r, de %s", n, roster.when or "?"))
+
+    local nom = Cible()
+    if not nom then
+        dire("cible : aucune - ouvre l'inspection sur un bot d'abord.")
+        return
+    end
+    dire("cible : " .. nom .. " -> " .. (Texte(nom)))
 end
