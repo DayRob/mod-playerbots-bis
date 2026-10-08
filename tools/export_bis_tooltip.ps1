@@ -11,6 +11,12 @@
 
       .\export_bis_tooltip.ps1 -WowPath "C:\Wow335"
 
+    Avec -WowPath, le script fait DEUX choses : il ecrit BisData.lua dans le
+    dossier du client, puis il y recopie l'addon entier via install_addon.ps1.
+    Les deux sont necessaires - les donnees seules laissent le CODE en arriere,
+    et c'est invisible : le jeu affiche alors une date d'export fraiche avec des
+    commandes d'une vieille version.
+
     Sans -WowPath ni -Out, le fichier du DEPOT est mis a jour ; install_addon.ps1
     le recopiera ensuite vers le client.
 
@@ -24,6 +30,7 @@ param(
     [string] $Password = "admin",
     [string] $Database = "acore_world",
     [string] $WowPath  = "",
+    [switch] $SansCopie,
     # Le plafond de palier du serveur. -1 signifie "a deduire du fichier de
     # configuration", 0 "aucun plafond", et toute autre valeur s'impose.
     [int]    $MaxTier  = -1,
@@ -40,9 +47,18 @@ if ($WowPath -and -not $PSBoundParameters.ContainsKey('Out')) {
         throw "Dossier AddOns introuvable : $addons`n-WowPath doit pointer sur le dossier contenant Wow.exe."
     }
     $folder = Join-Path $addons 'PlayerbotsBisTooltip'
-    if (-not (Test-Path $folder)) {
+
+    # La copie des .lua passe AVANT l'ecriture des donnees, pour deux raisons.
+    # Elle cree le dossier s'il manque, donc une premiere installation n'a plus
+    # a etre faite a part. Et elle ne peut pas ecraser le BisData.lua qu'on
+    # vient d'ecrire, ce qu'un ordre inverse ferait si le depot en contenait un.
+    if (-not $SansCopie) {
+        & (Join-Path $PSScriptRoot 'install_addon.ps1') -WowPath $WowPath
+        Write-Host ""
+    } elseif (-not (Test-Path $folder)) {
         throw "L'addon n'est pas installe : $folder`nLance d'abord .\tools\install_addon.ps1 -WowPath ""$WowPath""."
     }
+
     $Out = Join-Path $folder 'BisData.lua'
 }
 
