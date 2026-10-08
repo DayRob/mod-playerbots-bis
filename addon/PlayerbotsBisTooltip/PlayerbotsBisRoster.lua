@@ -84,6 +84,7 @@ local roster = { scope = "", when = "", bots = {}, byName = {} }
 local promesses = {}
 local chrono
 local TenirPromesses
+local OuvrirMenuBilan   -- le menu, utilisable depuis la fenetre comme depuis la minicarte
 
 local wearers = {}
 local collapsed = {}       -- bot name -> true when its items are hidden
@@ -604,6 +605,25 @@ local function BuildWindow()
         f.Refresh(true)
     end)
 
+    -- Le bilan a sa place ICI aussi, et pas seulement sur la minicarte : cette
+    -- fenetre est deja ouverte quand on se demande ce que le raid a rapporte,
+    -- et beaucoup de joueurs rangent leurs boutons de minicarte dans un sac a
+    -- boutons qui ne transmet pas toujours le clic droit.
+    local bilanBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    bilanBtn:SetWidth(70)
+    bilanBtn:SetHeight(20)
+    bilanBtn:SetPoint("LEFT", expandBtn, "RIGHT", 8, 0)
+    bilanBtn:SetText("Bilan")
+    bilanBtn:SetScript("OnClick", function(self)
+        if OuvrirMenuBilan then OuvrirMenuBilan(self) end
+    end)
+    bilanBtn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText("Debut de raid, fin de raid, compositions")
+        GameTooltip:Show()
+    end)
+    bilanBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
     local scroll = CreateFrame("ScrollFrame", "PlayerbotsBisRosterScroll", f, "FauxScrollFrameTemplate")
     scroll:SetWidth(530)
     scroll:SetHeight(VISIBLE_ROWS * ROW_HEIGHT)
@@ -1022,7 +1042,7 @@ local function EntreesMenu()
     return e
 end
 
-local function OuvrirMenu(ancre)
+OuvrirMenuBilan = function(ancre)
     if not CreateFrame or not UIDropDownMenu_Initialize or not ToggleDropDownMenu then
         Print("menu indisponible sur ce client - utilise |cffffd100/pbbis bilan|r.")
         return
@@ -1092,7 +1112,7 @@ local function BuildMinimapButton()
 
     btn:SetScript("OnClick", function(self, button)
         if button == "RightButton" then
-            OuvrirMenu(self)
+            OuvrirMenuBilan(self)
         else
             Toggle()
         end
@@ -1121,6 +1141,12 @@ local function BuildMinimapButton()
 
     PlaceOnRing(btn, PlayerbotsBisTooltipDB.rosterAngle or DEFAULT_ANGLE)
     return btn
+end
+
+-- Appelee par "/pbbis menu". Un sac a boutons de minicarte ne transmet pas
+-- toujours le clic droit, et dans ce cas le menu serait inatteignable.
+function PlayerbotsBisRoster_Menu()
+    OuvrirMenuBilan(_G.PlayerbotsBisRosterMinimapButton or UIParent)
 end
 
 function PlayerbotsBisRoster_ToggleMinimap()

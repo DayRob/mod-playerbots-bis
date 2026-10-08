@@ -500,6 +500,12 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         else
             Print("fenetre des raids indisponible - PlayerbotsBisRaids.lua n'est pas charge.")
         end
+    elseif cmd == "menu" then
+        if PlayerbotsBisRoster_Menu then
+            PlayerbotsBisRoster_Menu()
+        else
+            Print("menu indisponible - PlayerbotsBisRoster.lua n'est pas charge.")
+        end
     elseif cmd == "inspect" then
         if PlayerbotsBisInspect_Diag then
             PlayerbotsBisInspect_Diag()
@@ -579,6 +585,7 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
               .. ", " .. (db.maxTierManuel and "regle ici" or "repris du serveur") .. ")")
         Print("/pbbis roster - etat BiS des bots (rempli par .playerbotsbis report)")
         Print("/pbbis inspect - pourquoi le compte BiS ne s'affiche pas a l'inspection")
+        Print("/pbbis menu - debut de raid, bilan, compositions (aussi : clic droit sur la minicarte)")
         Print("/pbbis bilan - ce que les bots ont gagne depuis le repere")
         Print("/pbbis bilan depart - pose le repere ici (avant de partir en raid)")
         Print("/pbbis raids - quel raid rapporte quoi, et a quels bots (aussi /pbbisraids)")
