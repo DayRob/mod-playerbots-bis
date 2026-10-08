@@ -136,9 +136,11 @@ local function Snapshot()
         local porte = {}
         for _, item in ipairs(bot.items) do
             if item.state == STATE_EQUIPPED then
-                -- La valeur porte la cible : une piece de repli qui devient la
-                -- cible du creneau est un progres, meme sans changement d'objet.
-                porte[item.id] = item.target and 2 or 1
+                -- Le CRENEAU est retenu a cote de la cible. Sans lui on sait
+                -- qu'une piece est arrivee, mais pas ce qu'elle a chasse : la
+                -- piece remplacee est celle qui occupait le MEME creneau au
+                -- repere et qui n'est plus portee.
+                porte[item.id] = { cible = item.target and true or false, slot = item.slot }
             end
         end
         etat.bots[bot.name] = { cls = bot.cls, porte = porte }
@@ -177,6 +179,79 @@ end
 
 -- silencieux : appelee depuis la fenetre, qui affiche deja tout. Sans ca,
 -- chaque clic doublerait le bilan dans le tchat.
+-- Lecture d'une entree d'instantane, ancienne forme comprise.
+--
+-- Les sauvegardes d'avant cette version stockaient un NOMBRE (1 repli, 2
+-- cible) sans creneau. Elles restent lisibles : la piece remplacee y est
+-- simplement inconnue, et l'affichage se tait plutot que de deviner. Le repere
+-- suivant repart sur la forme complete.
+local function LireEntree(v)
+    if type(v) == "table" then return v end
+    return { cible = (v == 2), slot = nil }
+end
+
+-- LA comparaison, et la seule. La fenetre et le tchat l'appellent tous les
+-- deux : deux calculs separes finiraient par ne plus dire la meme chose.
+--
+-- Renvoie la liste des gains, le nombre de bots absents du repere, et les deux
+-- instantanes compares.
+function PlayerbotsBisRoster_Gains()
+    local db = PlayerbotsBisTooltipDB
+    local bilan = db and db.bilan
+    if not bilan or not bilan.courant or not bilan.depart then
+        return nil, 0, bilan and bilan.depart, bilan and bilan.courant
+    end
+
+    local gains, absents = {}, 0
+    local noms = {}
+    for nom in pairs(bilan.courant.bots) do table.insert(noms, nom) end
+    table.sort(noms)
+
+    for _, nom in ipairs(noms) do
+        local apres = bilan.courant.bots[nom]
+        local avant = bilan.depart.bots[nom]
+
+        if not avant then
+            absents = absents + 1
+        else
+            for id, brut in pairs(apres.porte) do
+                if not avant.porte[id] then
+                    local e = LireEntree(brut)
+
+                    -- Ce qui a quitte le meme creneau. Les anneaux et les
+                    -- bijoux partagent un numero de creneau dans les listes,
+                    -- donc deux pieces peuvent en sortir a la fois : on les
+                    -- nomme toutes plutot que d'en choisir une au hasard.
+                    local sortis = {}
+                    if e.slot then
+                        for ancien, brutAncien in pairs(avant.porte) do
+                            local a = LireEntree(brutAncien)
+                            if a.slot == e.slot and not apres.porte[ancien] then
+                                table.insert(sortis, ancien)
+                            end
+                        end
+                        table.sort(sortis)
+                    end
+
+                    table.insert(gains, {
+                        nom = nom, cls = apres.cls, id = id,
+                        cible = e.cible, slot = e.slot, remplace = sortis,
+                    })
+                end
+            end
+        end
+    end
+
+    -- Les cibles d'abord : c'est ce qu'on veut voir en haut d'un bilan.
+    table.sort(gains, function(a, b)
+        if a.cible ~= b.cible then return a.cible end
+        if a.nom ~= b.nom then return a.nom < b.nom end
+        return a.id < b.id
+    end)
+
+    return gains, absents, bilan.depart, bilan.courant
+end
+
 function PlayerbotsBisRoster_Bilan(arg, silencieux)
     local db = PlayerbotsBisTooltipDB
     local bilan = db and db.bilan
@@ -214,49 +289,30 @@ function PlayerbotsBisRoster_Bilan(arg, silencieux)
     Dire("nouveautes entre le " .. bilan.depart.quand .. " et le "
           .. bilan.courant.quand .. " :")
 
-    local lignes, nouveauxBots = 0, 0
+    -- Meme comparaison que la fenetre, au mot pres.
+    local gains, nouveauxBots = PlayerbotsBisRoster_Gains()
+    gains = gains or {}
 
-    -- Ordre stable : les bots par nom, pour que deux appels se ressemblent.
-    local noms = {}
-    for nom in pairs(bilan.courant.bots) do table.insert(noms, nom) end
-    table.sort(noms)
+    for _, g in ipairs(gains) do
+        local c = CLASS_COLOR[g.cls] or { 0.8, 0.8, 0.8 }
+        local entete = string.format("|cff%02x%02x%02x%s|r",
+            c[1] * 255, c[2] * 255, c[3] * 255, g.nom)
 
-    for _, nom in ipairs(noms) do
-        local apres = bilan.courant.bots[nom]
-        local avant = bilan.depart.bots[nom]
-
-        if not avant then
-            -- Un bot absent du releve-repere n'a rien "gagne" : il etait
-            -- deconnecte, et tout son equipement passerait pour du neuf.
-            nouveauxBots = nouveauxBots + 1
-        else
-            local gains = {}
-            for id, cible in pairs(apres.porte) do
-                if not avant.porte[id] then
-                    table.insert(gains, { id = id, cible = cible == 2 })
-                end
-            end
-
-            if #gains > 0 then
-                table.sort(gains, function(a, b)
-                    if a.cible ~= b.cible then return a.cible end
-                    return a.id < b.id
-                end)
-
-                local c = CLASS_COLOR[apres.cls] or { 0.8, 0.8, 0.8 }
-                local entete = string.format("|cff%02x%02x%02x%s|r",
-                    c[1] * 255, c[2] * 255, c[3] * 255, nom)
-
-                for _, g in ipairs(gains) do
-                    Dire("  " .. entete .. " : " .. ItemText(g.id)
-                          .. (g.cible and " |cff1eff00(rang 1)|r" or " |cff808080(repli)|r"))
-                    lignes = lignes + 1
-                end
-            end
+        local sortie = ""
+        if g.remplace and #g.remplace > 0 then
+            local noms = {}
+            for _, id in ipairs(g.remplace) do table.insert(noms, ItemText(id)) end
+            sortie = " a la place de " .. table.concat(noms, " et ")
+        elseif g.slot then
+            sortie = " |cff808080(creneau vide)|r"
         end
+
+        Dire("  " .. entete .. " : " .. ItemText(g.id)
+              .. (g.cible and " |cff1eff00(rang 1)|r" or " |cff808080(repli)|r")
+              .. sortie)
     end
 
-    if lignes == 0 then
+    if #gains == 0 then
         Dire("  rien de neuf.")
     end
 

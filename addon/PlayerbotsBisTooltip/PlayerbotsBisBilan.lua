@@ -30,44 +30,12 @@ local CLASS_COLOR = {
     [11] = { 1.00, 0.49, 0.04 },
 }
 
--- Le calcul, repris tel quel de la comparaison du tchat : tout gain present
--- dans l'etat courant et absent du repere. Un bot qui n'etait pas la au moment
--- du repere est compte a part et jamais credite - son equipement entier
--- passerait pour du butin du soir.
+-- La comparaison est celle de PlayerbotsBisRoster, pas une copie : deux
+-- calculs separes finiraient par ne plus dire la meme chose, et c'est
+-- exactement ce qui commencait a arriver.
 local function Comparer()
-    local db = PlayerbotsBisTooltipDB
-    local bilan = db and db.bilan
-    if not bilan or not bilan.courant or not bilan.depart then
-        return nil, 0
-    end
-
-    local gains, absents = {}, 0
-    local noms = {}
-    for nom in pairs(bilan.courant.bots) do table.insert(noms, nom) end
-    table.sort(noms)
-
-    for _, nom in ipairs(noms) do
-        local apres = bilan.courant.bots[nom]
-        local avant = bilan.depart.bots[nom]
-        if not avant then
-            absents = absents + 1
-        else
-            for id, cible in pairs(apres.porte) do
-                if not avant.porte[id] then
-                    table.insert(gains, { nom = nom, cls = apres.cls, id = id, cible = cible == 2 })
-                end
-            end
-        end
-    end
-
-    -- Les cibles d'abord : c'est ce qu'on veut voir en haut d'un bilan.
-    table.sort(gains, function(a, b)
-        if a.cible ~= b.cible then return a.cible end
-        if a.nom ~= b.nom then return a.nom < b.nom end
-        return a.id < b.id
-    end)
-
-    return gains, absents
+    if not PlayerbotsBisRoster_Gains then return nil, 0 end
+    return PlayerbotsBisRoster_Gains()
 end
 
 local function Rafraichir()
@@ -108,11 +76,30 @@ local function Rafraichir()
             if not lien and PlayerbotsBis_RequestItem then
                 PlayerbotsBis_RequestItem(g.id)
             end
+            -- Ce que la piece a chasse. Sans ca le bilan dit ce qui est
+            -- arrive mais pas ce que ca valait : remplacer du vide et
+            -- remplacer un rang 2 ne sont pas le meme soir.
+            local sortie = ""
+            if g.remplace and #g.remplace > 0 then
+                local noms = {}
+                for _, ancien in ipairs(g.remplace) do
+                    local _, l = GetItemInfo(ancien)
+                    if not l and PlayerbotsBis_RequestItem then
+                        PlayerbotsBis_RequestItem(ancien)
+                    end
+                    table.insert(noms, l or ("objet " .. ancien))
+                end
+                sortie = "  |cff808080<-|r " .. table.concat(noms, " |cff808080et|r ")
+            elseif g.slot then
+                sortie = "  |cff808080<- creneau vide|r"
+            end
+
             ligne.itemId = g.id
-            ligne.texte:SetText(string.format("|cff%02x%02x%02x%s|r   %s   %s",
+            ligne.texte:SetText(string.format("|cff%02x%02x%02x%s|r   %s   %s%s",
                 c[1] * 255, c[2] * 255, c[3] * 255, g.nom,
                 lien or ("|cff808080objet " .. g.id .. "|r"),
-                g.cible and "|cff1eff00(rang 1)|r" or "|cff808080(repli)|r"))
+                g.cible and "|cff1eff00(rang 1)|r" or "|cff808080(repli)|r",
+                sortie))
             ligne:Show()
         else
             ligne.itemId = nil
@@ -130,7 +117,7 @@ end
 
 local function Construire()
     local f = CreateFrame("Frame", "PlayerbotsBisBilanFrame", UIParent)
-    f:SetWidth(520)
+    f:SetWidth(680)
     f:SetHeight(400)
     f:SetPoint("CENTER", UIParent, "CENTER", 120, 0)
     f:SetBackdrop({
@@ -157,7 +144,7 @@ local function Construire()
 
     f.entete = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     f.entete:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -46)
-    f.entete:SetWidth(470)
+    f.entete:SetWidth(620)
     f.entete:SetJustifyH("LEFT")
 
     local poser = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
@@ -198,7 +185,7 @@ local function Construire()
     maj:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     f.scroll = CreateFrame("ScrollFrame", "PlayerbotsBisBilanScroll", f, "FauxScrollFrameTemplate")
-    f.scroll:SetWidth(455)
+    f.scroll:SetWidth(620)
     f.scroll:SetHeight(LIGNES_VISIBLES * HAUTEUR_LIGNE)
     f.scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -96)
     f.scroll:SetScript("OnVerticalScroll", function(self, offset)
@@ -207,7 +194,7 @@ local function Construire()
 
     for i = 1, LIGNES_VISIBLES do
         local l = CreateFrame("Button", nil, f)
-        l:SetWidth(455)
+        l:SetWidth(620)
         l:SetHeight(HAUTEUR_LIGNE)
         l:SetPoint("TOPLEFT", f.scroll, "TOPLEFT", 0, -(i - 1) * HAUTEUR_LIGNE)
         l.texte = l:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -236,7 +223,7 @@ local function Construire()
 
     local pied = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     pied:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 26, 20)
-    pied:SetText("Maj+clic sur une ligne : inserer le lien  -  /pbbis bilan texte : dans le tchat")
+    pied:SetText("Maj+clic sur une ligne : inserer le lien  -  |cff808080<-|r : la piece remplacee  -  /pbbis bilan texte : dans le tchat")
 
     return f
 end
