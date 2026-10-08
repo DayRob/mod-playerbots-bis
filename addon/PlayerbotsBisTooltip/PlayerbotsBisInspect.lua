@@ -17,8 +17,6 @@
   fenetre d'inspection.
 ]]
 
-local ADDON_NAME = "PlayerbotsBisTooltip"
-
 local ligne          -- la FontString, creee une seule fois
 local dernierNom     -- evite de refaire le texte a chaque evenement
 
@@ -121,10 +119,32 @@ local function Installer()
 end
 
 local ecoute = CreateFrame("Frame")
-ecoute:RegisterEvent("ADDON_LOADED")
-ecoute:RegisterEvent("INSPECT_READY")
-ecoute:RegisterEvent("PLAYER_TARGET_CHANGED")
-ecoute:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+-- CE QUI A FAIT ECHOUER LA PREMIERE VERSION. RegisterEvent leve une erreur sur
+-- un evenement que le client ne connait pas, et une erreur ici - au premier
+-- niveau du fichier - interrompt tout le reste : aucune fonction n'est definie,
+-- et "/pbbis inspect" repondait "fichier pas charge" alors qu'il etait bien
+-- copie, a jour, et sans faute de syntaxe. INSPECT_READY n'existe qu'a partir
+-- de la 4.0 ; en 3.3.5 c'est INSPECT_TALENT_READY.
+--
+-- Le pcall ne sert pas a masquer la faute : il garantit qu'aucun evenement mal
+-- nomme, aujourd'hui ou apres une mise a jour du client, ne puisse plus tuer le
+-- fichier en silence. Ceux qui passent sont retenus, et "/pbbis inspect" les
+-- affiche - une liste courte vaut mieux qu'une supposition.
+local ecoutes = {}
+
+local function Ecouter(nom)
+    if pcall(function() ecoute:RegisterEvent(nom) end) then
+        table.insert(ecoutes, nom)
+    end
+end
+
+Ecouter("ADDON_LOADED")
+Ecouter("PLAYER_ENTERING_WORLD")
+Ecouter("PLAYER_TARGET_CHANGED")
+Ecouter("INSPECT_TALENT_READY")   -- 3.3.5
+Ecouter("INSPECT_READY")          -- 4.0 et au-dela
+Ecouter("UNIT_INVENTORY_CHANGED")
 ecoute:SetScript("OnEvent", function(_, event)
     Installer()
 
@@ -167,6 +187,7 @@ function PlayerbotsBisInspect_Diag()
     dire("ligne d'affichage : " .. (ligne and "|cff1eff00creee|r" or "|cffff2020absente|r"))
     dire("ancrage : " .. (_G.InspectLevelText and "InspectLevelText"
          or (_G.InspectNameText and "InspectNameText" or "repli sur le cadre")))
+    dire("evenements ecoutes : " .. table.concat(ecoutes, ", "))
 
     local roster = Roster()
     if not roster or not roster.byName then
