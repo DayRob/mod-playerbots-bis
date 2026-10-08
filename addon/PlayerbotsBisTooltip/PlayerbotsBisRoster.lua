@@ -77,6 +77,14 @@ local roster = { scope = "", when = "", bots = {}, byName = {} }
 -- Ne couvre que les pieces des listes : ce sont les seules que le releve
 -- transporte. Une piece hors liste ne peut donc pas etre tracee, et c'est
 -- assumee - c'est aussi la seule que personne ne convoite.
+-- Declarees ici, remplies plus bas : Dispatch tient les promesses a la fin du
+-- releve, et il est ecrit AVANT le code qui les pose. Un "local function" plus
+-- loin ne serait pas visible depuis Dispatch - l'appel y deviendrait une
+-- globale nil, et chaque releve se terminerait par une erreur.
+local promesses = {}
+local chrono
+local TenirPromesses
+
 local wearers = {}
 local collapsed = {}       -- bot name -> true when its items are hidden
 local display = {}
@@ -837,6 +845,7 @@ local function Dispatch(payload, raw)
         win.Refresh(true)
         win:Show()
         StoreSnapshot()
+        TenirPromesses()
 
         -- La fenetre d'inspection peut etre ouverte pendant le releve : sans ce
         -- rappel elle garderait le chiffre d'avant jusqu'a sa reouverture.
@@ -900,6 +909,157 @@ local function RequestReport()
     return ok
 end
 
+-- "Demande un releve, PUIS fais ceci."
+--
+-- Un releve n'est pas instantane : la commande part, le serveur repond en
+-- plusieurs messages, et le dernier porte le "E". Enchainer a l'aveugle - poser
+-- le repere juste apres avoir tape la commande - le poserait sur l'etat
+-- PRECEDENT, et le bilan serait decale d'un raid entier.
+--
+-- Le delai d'abandon existe parce que le silence est un resultat possible :
+-- module desactive, aucun bot connecte, droits insuffisants. Sans lui, un clic
+-- resterait en attente pour toujours sans rien dire.
+local ATTENTE_MAX = 20
+
+TenirPromesses = function()
+    if #promesses == 0 then return end
+    local aFaire = promesses
+    promesses = {}
+    if chrono then chrono:SetScript("OnUpdate", nil) end
+    for _, fn in ipairs(aFaire) do pcall(fn) end
+end
+
+local function ReleveEtPuis(fn, libelle)
+    if not RequestReport() then
+        Print("impossible d'envoyer la commande - tape |cffffd100.playerbotsbis report|r"
+              .. " toi-meme, puis recommence.")
+        return
+    end
+
+    table.insert(promesses, fn)
+    Print(libelle .. " - releve demande, patiente...")
+
+    if not chrono then chrono = CreateFrame("Frame") end
+    local ecoule = 0
+    chrono:SetScript("OnUpdate", function(self, delta)
+        ecoule = ecoule + delta
+        if ecoule < ATTENTE_MAX then return end
+        self:SetScript("OnUpdate", nil)
+        promesses = {}
+        Print("|cffff2020aucun releve recu en " .. ATTENTE_MAX .. " s.|r Le module est-il"
+              .. " actif, et des bots connectes ?")
+    end)
+end
+
+-- Le menu du bouton de minicarte.
+--
+-- CE QU'IL APPORTE QUE LES COMMANDES N'APPORTENT PAS : l'enchainement. Un soir
+-- de raid se joue en deux gestes - "on part" et "on rentre" - et chacun demande
+-- un releve suivi d'une action qui ne vaut que sur ce releve-la. Les taper a la
+-- main veut dire attendre, voir passer le flux, puis se souvenir de la seconde
+-- commande. Ici c'est un clic, et le reste suit tout seul.
+--
+-- UIDropDownMenu_Initialize et UIDropDownMenu_AddButton existent depuis
+-- longtemps et sont presents en 3.3.5 ; EasyMenu, lui, ne l'est pas partout,
+-- d'ou la construction a la main.
+local menu
+
+local function EntreesMenu()
+    local e = {}
+
+    local function ajoute(texte, fn, desactive)
+        table.insert(e, { texte = texte, fn = fn, desactive = desactive })
+    end
+
+    ajoute("Debut de raid : poser le repere", function()
+        ReleveEtPuis(function()
+            if PlayerbotsBisRoster_Bilan then PlayerbotsBisRoster_Bilan("depart") end
+        end, "Debut de raid")
+    end)
+
+    ajoute("Fin de raid : voir le bilan", function()
+        ReleveEtPuis(function()
+            if PlayerbotsBisRoster_Bilan then PlayerbotsBisRoster_Bilan("") end
+        end, "Fin de raid")
+    end)
+
+    ajoute("Actualiser le releve", function()
+        if not RequestReport() then
+            Print("tape |cffffd100.playerbotsbis report|r pour actualiser.")
+        end
+    end)
+
+    ajoute(nil)   -- separateur
+
+    ajoute("Etat des bots", Toggle)
+
+    if PlayerbotsBisRaids_Toggle then
+        ajoute("Quel raid rapporte quoi", PlayerbotsBisRaids_Toggle)
+    end
+    if PlayerbotsBisBrowser_Toggle then
+        ajoute("Navigateur des listes", PlayerbotsBisBrowser_Toggle)
+    end
+
+    -- Les compositions enregistrees, s'il y en a : inviter un raid complet
+    -- depuis la minicarte est exactement le geste d'un debut de soiree.
+    local compos = PlayerbotsBisTooltipDB and PlayerbotsBisTooltipDB.compo
+    if compos then
+        local noms = {}
+        for nom in pairs(compos) do table.insert(noms, nom) end
+        table.sort(noms)
+        if #noms > 0 then
+            ajoute(nil)
+            for _, nom in ipairs(noms) do
+                ajoute("Inviter la compo " .. nom, function()
+                    if PlayerbotsBisCompo_Command then
+                        PlayerbotsBisCompo_Command("invite " .. nom)
+                    end
+                end)
+            end
+        end
+    end
+
+    return e
+end
+
+local function OuvrirMenu(ancre)
+    if not CreateFrame or not UIDropDownMenu_Initialize or not ToggleDropDownMenu then
+        Print("menu indisponible sur ce client - utilise |cffffd100/pbbis bilan|r.")
+        return
+    end
+
+    if not menu then
+        menu = CreateFrame("Frame", "PlayerbotsBisRosterMenu", UIParent, "UIDropDownMenuTemplate")
+    end
+
+    UIDropDownMenu_Initialize(menu, function()
+        local info = UIDropDownMenu_CreateInfo()
+        info.text = "Playerbots BiS"
+        info.isTitle = 1
+        info.notCheckable = 1
+        UIDropDownMenu_AddButton(info)
+
+        for _, entree in ipairs(EntreesMenu()) do
+            info = UIDropDownMenu_CreateInfo()
+            if not entree.texte then
+                -- Un separateur est un bouton desactive sans texte : c'est la
+                -- seule facon d'en obtenir un avec ce menu.
+                info.disabled = 1
+                info.notCheckable = 1
+                info.text = " "
+            else
+                info.text = entree.texte
+                info.notCheckable = 1
+                info.func = entree.fn
+                info.disabled = entree.desactive
+            end
+            UIDropDownMenu_AddButton(info)
+        end
+    end, "MENU")
+
+    ToggleDropDownMenu(1, nil, menu, ancre, 0, 0)
+end
+
 local function BuildMinimapButton()
     if _G.PlayerbotsBisRosterMinimapButton then return _G.PlayerbotsBisRosterMinimapButton end
 
@@ -930,11 +1090,9 @@ local function BuildMinimapButton()
     btn:SetScript("OnDragStart", function(self) self:SetScript("OnUpdate", DragToRing) end)
     btn:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
 
-    btn:SetScript("OnClick", function(_, button)
+    btn:SetScript("OnClick", function(self, button)
         if button == "RightButton" then
-            if not RequestReport() then
-                Print("tape |cffffd100.playerbotsbis report|r pour actualiser.")
-            end
+            OuvrirMenu(self)
         else
             Toggle()
         end
@@ -944,7 +1102,7 @@ local function BuildMinimapButton()
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
         GameTooltip:AddLine("Etat BiS des bots")
         GameTooltip:AddLine("Clic gauche : ouvrir la fenetre", 1, 1, 1)
-        GameTooltip:AddLine("Clic droit : actualiser le releve", 1, 1, 1)
+        GameTooltip:AddLine("Clic droit : menu (debut de raid, bilan, compos)", 1, 1, 1)
         if roster.bots and #roster.bots > 0 then
             local eq, tot = 0, 0
             for _, bot in ipairs(roster.bots) do
