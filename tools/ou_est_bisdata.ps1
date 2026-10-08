@@ -62,13 +62,31 @@ foreach ($r in $Racine) {
             } else {
                 $stamp = 'BisData.lua ABSENT'
             }
+            # La date de BisData.lua ne dit RIEN des autres fichiers : l'export
+            # la reecrit a chaque passage, meme quand la copie des .lua a
+            # echoue ou que le depot n'etait pas a jour. On regarde donc aussi
+            # ce que le code CONTIENT - la presence d'une commande recente est
+            # une preuve directe, une date ne l'est pas.
+            $principal = Join-Path $_.FullName 'PlayerbotsBisTooltip.lua'
+            $commandes = @()
+            if (Test-Path $principal) {
+                $corps = Get-Content $principal -Raw
+                foreach ($c in 'jets', 'bilan', 'inspect') {
+                    if ($corps -match ('Print\("/pbbis ' + $c)) { $commandes += $c }
+                }
+            } else {
+                $commandes += 'FICHIER ABSENT'
+            }
+
             $trouves += [pscustomobject]@{
-                Date    = $stamp
-                Objets  = $objets
-                Version = (Get-Content (Join-Path $_.FullName 'PlayerbotsBisTooltip.toc') -ErrorAction SilentlyContinue |
-                           Where-Object { $_ -match '^##\s*Version\s*:\s*(.+)$' } |
-                           ForEach-Object { $Matches[1].Trim() } | Select-Object -First 1)
-                Chemin  = $_.FullName
+                Date      = $stamp
+                Objets    = $objets
+                Version   = (Get-Content (Join-Path $_.FullName 'PlayerbotsBisTooltip.toc') -ErrorAction SilentlyContinue |
+                             Where-Object { $_ -match '^##\s*Version\s*:\s*(.+)$' } |
+                             ForEach-Object { $Matches[1].Trim() } | Select-Object -First 1)
+                Commandes = ($commandes -join ',')
+                Inspect   = (Test-Path (Join-Path $_.FullName 'PlayerbotsBisInspect.lua'))
+                Chemin    = $_.FullName
             }
         }
 }
@@ -91,4 +109,30 @@ if (($trouves | Select-Object -ExpandProperty Date -Unique).Count -gt 1) {
 } else {
     Write-Host "Une seule date : il n'y a pas de doublon. Si le jeu en affiche une autre," -ForegroundColor Green
     Write-Host "c'est qu'il n'a pas ete quitte depuis la copie." -ForegroundColor Green
+}
+
+# La colonne Commandes tranche ce que la date ne peut pas trancher.
+Write-Host ""
+$vieux = @($trouves | Where-Object { $_.Commandes -notmatch 'inspect' })
+if ($vieux.Count -gt 0) {
+    Write-Host "CODE EN RETARD" -ForegroundColor Yellow
+    Write-Host "Ces copies n'ont pas la commande /pbbis inspect, donc leur" -ForegroundColor Yellow
+    Write-Host "PlayerbotsBisTooltip.lua est anterieur a la version qui l'ajoute :" -ForegroundColor Yellow
+    $vieux | ForEach-Object { Write-Host ("  {0}  [{1}]" -f $_.Chemin, $_.Commandes) }
+    Write-Host ""
+    Write-Host "Une date de BisData.lua recente ne prouve rien la-dessus : l'export la" -ForegroundColor Yellow
+    Write-Host "reecrit meme quand le depot n'etait pas a jour. Fais, dans cet ordre :" -ForegroundColor Yellow
+    Write-Host "  1. git pull        dans C:\Azerothcore\modules\mod-playerbots-bis" -ForegroundColor Yellow
+    Write-Host "  2. l'export avec -WowPath" -ForegroundColor Yellow
+    Write-Host "  3. QUITTER le client et le relancer (PlayerbotsBisInspect.lua est neuf)" -ForegroundColor Yellow
+} else {
+    Write-Host "Toutes les copies ont /pbbis inspect : le code est a jour sur le disque." -ForegroundColor Green
+    Write-Host "Si le jeu ne la propose pas, c'est que le client n'a pas ete quitte." -ForegroundColor Green
+}
+
+$sansFichier = @($trouves | Where-Object { -not $_.Inspect })
+if ($sansFichier.Count -gt 0) {
+    Write-Host ""
+    Write-Host "PlayerbotsBisInspect.lua manque dans :" -ForegroundColor Red
+    $sansFichier | ForEach-Object { Write-Host "  $($_.Chemin)" -ForegroundColor Red }
 }
