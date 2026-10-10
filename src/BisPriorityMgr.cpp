@@ -199,6 +199,44 @@ void BisPriorityMgr::LoadQuestTokens()
     } while (result->NextRow());
 }
 
+// Duree pendant laquelle une meme phrase ne sera pas repetee. Assez longue
+// pour couvrir jet, reception et equipement - les trois moments ou la valeur
+// est recalculee pour un meme objet - et assez courte pour qu'un objet reperdu
+// puis retrouve plus tard soit annonce de nouveau.
+namespace { constexpr time_t ANNONCE_FENETRE = 120; }
+
+bool BisPriorityMgr::AnnounceOnce(Player* bot, uint32 itemId)
+{
+    if (!bot)
+        return false;
+
+    uint64 const cle = (uint64(bot->GetGUID().GetCounter()) << 32) | itemId;
+    time_t const maintenant = time(nullptr);
+
+    std::lock_guard<std::mutex> verrou(_annonceMutex);
+
+    auto const it = _dejaAnnonce.find(cle);
+    if (it != _dejaAnnonce.end() && maintenant - it->second < ANNONCE_FENETRE)
+        return false;
+
+    _dejaAnnonce[cle] = maintenant;
+
+    // Purge opportuniste : sans elle la table grossirait pour toute la duree de
+    // vie du serveur, un couple par objet convoite et par bot.
+    if (_dejaAnnonce.size() > 4096)
+    {
+        for (auto i = _dejaAnnonce.begin(); i != _dejaAnnonce.end(); )
+        {
+            if (maintenant - i->second >= ANNONCE_FENETRE)
+                i = _dejaAnnonce.erase(i);
+            else
+                ++i;
+        }
+    }
+
+    return true;
+}
+
 uint32 BisPriorityMgr::QuestTokenReward(uint32 tokenId, uint8 cls) const
 {
     auto const it = _questTokens.find((tokenId << 8) | cls);

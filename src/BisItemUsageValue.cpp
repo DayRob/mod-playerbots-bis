@@ -107,7 +107,8 @@ namespace
                 // DETENIR la piece : une seule ligne, par le gagnant, juste
                 // avant l'equipement.
                 if (sBisPriorityMgr->AnnounceOwnBis() &&
-                    (sBisPriorityMgr->AnnounceOnRoll() || bot->GetItemCount(itemId, true) > 0))
+                    (sBisPriorityMgr->AnnounceOnRoll() || bot->GetItemCount(itemId, true) > 0) &&
+                    sBisPriorityMgr->AnnounceOnce(bot, itemId))
                 {
                     std::ostringstream out;
                     out << ChatHelper::FormatItem(proto) << " - je le prends";
@@ -170,7 +171,8 @@ namespace
         // Meme reglage. A 0, le bot attend de TENIR la piece, ce qui est aussi
         // le seul moment ou "a la place de" est certain - l'equipement suit.
         if (sBisPriorityMgr->AnnounceOwnBis() && botAI &&
-            (sBisPriorityMgr->AnnounceOnRoll() || bot->GetItemCount(itemId, true) > 0))
+            (sBisPriorityMgr->AnnounceOnRoll() || bot->GetItemCount(itemId, true) > 0) &&
+            sBisPriorityMgr->AnnounceOnce(bot, itemId))
         {
             std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
             std::ostringstream out;

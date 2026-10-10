@@ -59,6 +59,17 @@ public:
     // juste avant l'equipement.
     bool AnnounceOnRoll() const { return _announceOnRoll; }
 
+    // Vrai UNE SEULE FOIS par couple (bot, objet) dans une courte fenetre.
+    //
+    // L'avis d'usage est une VALEUR : playerbots la recalcule a chaque fois
+    // qu'une decision la touche, et il y en a plusieurs pour un seul objet -
+    // au jet, a l'arrivee dans les sacs, puis a l'equipement. Chaque calcul
+    // parlait, donc le gagnant annoncait deux ou trois fois la meme phrase.
+    //
+    // La fenetre ne s'etend pas a la session : un objet reperdu puis retrouve
+    // des heures plus tard merite d'etre annonce de nouveau.
+    bool AnnounceOnce(Player* bot, uint32 itemId);
+
     // True when this bot's gear decisions get the BiS layer on top of
     // playerbots' own logic. False when the feature is off or the bot is a type
     // the server excluded; there is no level gate, because the BiS layer only
@@ -276,6 +287,10 @@ private:
     bool _leaveOtherSpecsBis = true;
     bool _announceOwnBis = true;
     bool _announceOnRoll = true;
+
+    // (guid bas << 32 | itemId) -> instant de la derniere annonce.
+    std::unordered_map<uint64, time_t> _dejaAnnonce;
+    std::mutex _annonceMutex;
     bool _announceMasterLoot = true;
     bool _claimBelowRequiredLevel = true;
     bool _forceNeedForBis = true;

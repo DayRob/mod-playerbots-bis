@@ -112,7 +112,8 @@ bool BisLootRollAction::Execute(Event event)
                 // jeton ne s'equipe jamais, donc il n'y a pas d'autre instant
                 // ou le dire. A 0, le client dit deja "X a choisi Besoin pour
                 // [objet]", ce qui porte l'essentiel.
-                if (sBisPriorityMgr->AnnounceOwnBis() && sBisPriorityMgr->AnnounceOnRoll() && botAI)
+                if (sBisPriorityMgr->AnnounceOwnBis() && sBisPriorityMgr->AnnounceOnRoll() && botAI &&
+                    sBisPriorityMgr->AnnounceOnce(bot, roll->itemid))
                 {
                     std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
                     std::ostringstream out;
