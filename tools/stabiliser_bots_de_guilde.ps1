@@ -13,11 +13,26 @@
         Playerbots.MinRandomBotInWorldTime =   600   (10 minutes)
         Playerbots.MaxRandomBotInWorldTime = 28800   (8 heures)
 
-    Passe ce delai, le bot se deconnecte et un autre prend sa place. C'est
-    voulu : ca imite une population qui va et vient. Mais l'appartenance a une
-    guilde n'entre pas dans le tirage du remplacant, et quand le vivier de
-    personnages rndbot est plus grand que MaxRandomBots, le sortant retombe
-    dans la file d'attente avec tous les autres.
+    Passe ce delai, le bot se deconnecte et un autre prend sa place. Mais
+    l'appartenance a une guilde n'entre pas dans le tirage du remplacant.
+
+    ATTENTION, ET C'EST LE PIEGE DE CE SCRIPT : ces deux reglages ne servent
+    QUE si Playerbots.EnablePeriodicOnlineOffline vaut 1. Le coeur en decide
+    ainsi, dans RandomPlayerbotMgr::AddRandomBots :
+
+        uint32 add_time = enablePeriodicOnlineOffline
+                            ? urand(minRandomBotInWorldTime, maxRandomBotInWorldTime)
+                            : permanentlyInWorldTime;
+
+    A 0 - le defaut - c'est Playerbots.PermanentlyInWorldTime qui s'applique,
+    soit un an, soit deja l'absence de rotation. Ecrire Min/Max dans ce cas ne
+    change strictement rien, et le log du serveur le montre : les lignes
+    INSERT INTO playerbots_random_bots portent validIn = 31104000.
+
+    Le script verifie donc EnablePeriodicOnlineOffline et le dit en clair
+    plutot que de laisser croire a un effet qu'il n'a pas. Pour garantir la
+    presence des bots de la guilde quelle que soit la rotation, c'est
+    bots_de_guilde_en_premier.ps1 qu'il faut, pas celui-ci.
 
     Deux reglages suffisent a l'arreter, mais ils doivent etre faits ENSEMBLE :
 
@@ -136,6 +151,22 @@ foreach ($c in $voulu.Keys) {
     Write-Host ("  {0,-$large}   {1,12}  ->  {2}" -f $c, $actuelle, $voulu[$c]) -ForegroundColor $couleur
 }
 Write-Host ''
+
+# La duree de vie en ligne n'est lue que sous EnablePeriodicOnlineOffline = 1.
+# Le dire ici evite de croire a un effet qui n'aura pas lieu.
+$periodique = $null
+foreach ($l in $lignes) {
+    if ($l -match '^\s*Playerbots\.EnablePeriodicOnlineOffline\s*=\s*(.*?)\s*$') { $periodique = $Matches[1]; break }
+}
+if ($periodique -ne '1') {
+    $vu = if ($null -eq $periodique) { 'absent, donc 0 par defaut' } else { $periodique }
+    Write-Host ("Playerbots.EnablePeriodicOnlineOffline = {0}" -f $vu) -ForegroundColor Yellow
+    Write-Host 'Les deux Min/MaxRandomBotInWorldTime ci-dessus SERONT IGNORES :' -ForegroundColor Yellow
+    Write-Host 'a 0, le coeur applique Playerbots.PermanentlyInWorldTime (un an).' -ForegroundColor Yellow
+    Write-Host 'Pour garantir les bots de la guilde, utilise plutot :' -ForegroundColor Yellow
+    Write-Host '  .\tools\bots_de_guilde_en_premier.ps1' -ForegroundColor Yellow
+    Write-Host ''
+}
 
 if ($Bots -eq 0) {
     Write-Host 'ATTENTION : sans -Bots, le plafond n est pas touche.' -ForegroundColor Red
