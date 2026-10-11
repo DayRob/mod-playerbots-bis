@@ -48,10 +48,6 @@
     Le plafond de bots connectes. Mets-y la taille de ton vivier, que donne la
     requete 3 de qui_manque_a_la_guilde.sql (colonne personnages_rndbot).
 
-.PARAMETER Duree
-    Duree de vie en ligne, en secondes. Defaut 604800 (une semaine), soit en
-    pratique plus aucune rotation.
-
 .PARAMETER Conf
     Le playerbots.conf du serveur. Trouve tout seul s'il est omis.
 
@@ -79,7 +75,6 @@
 [CmdletBinding()]
 param(
     [int]      $Bots = 0,
-    [int]      $Duree = 604800,
     [string]   $Conf,
     [string[]] $Racine = @('C:\Azerothcore', 'C:\AzerothCore', 'C:\azerothcore'),
     [switch]   $Appliquer,
@@ -124,10 +119,22 @@ if ($Restaurer) {
 }
 
 # --- Ce qu'on veut poser ---------------------------------------------------
-$voulu = [ordered]@{
-    'Playerbots.MinRandomBotInWorldTime' = $Duree
-    'Playerbots.MaxRandomBotInWorldTime' = $Duree
-}
+# Ce script a ecrit, dans une version precedente, Min/MaxRandomBotInWorldTime.
+# C'etait une faute, et elle a casse un serveur : la ligne qui les lit est
+# INCONDITIONNELLE, contrairement a celle qui lit "add" -
+#
+#     SetEventValue(bot, "logout", 1,
+#                   urand(minRandomBotInWorldTime, maxRandomBotInWorldTime));
+#
+# - et tryLoginBot refuse tout bot portant un "logout" actif. Les porter a une
+# semaine interdit donc une semaine de connexion a tout bot deconnecte, soit
+# tous apres un arret du serveur. Seuls les personnages jamais connectes
+# restaient eligibles : les comptes neufs, niveau 1.
+#
+# Le script ne touche plus qu'au plafond. Pour garantir les bots de la guilde,
+# c'est bots_de_guilde_en_premier.ps1 ; pour reparer une carence posee trop
+# longue, debloquer_les_bots.ps1.
+$voulu = [ordered]@{}
 if ($Bots -gt 0) {
     $voulu['Playerbots.MinRandomBots'] = $Bots
     $voulu['Playerbots.MaxRandomBots'] = $Bots
@@ -152,27 +159,11 @@ foreach ($c in $voulu.Keys) {
 }
 Write-Host ''
 
-# La duree de vie en ligne n'est lue que sous EnablePeriodicOnlineOffline = 1.
-# Le dire ici evite de croire a un effet qui n'aura pas lieu.
-$periodique = $null
-foreach ($l in $lignes) {
-    if ($l -match '^\s*Playerbots\.EnablePeriodicOnlineOffline\s*=\s*(.*?)\s*$') { $periodique = $Matches[1]; break }
-}
-if ($periodique -ne '1') {
-    $vu = if ($null -eq $periodique) { 'absent, donc 0 par defaut' } else { $periodique }
-    Write-Host ("Playerbots.EnablePeriodicOnlineOffline = {0}" -f $vu) -ForegroundColor Yellow
-    Write-Host 'Les deux Min/MaxRandomBotInWorldTime ci-dessus SERONT IGNORES :' -ForegroundColor Yellow
-    Write-Host 'a 0, le coeur applique Playerbots.PermanentlyInWorldTime (un an).' -ForegroundColor Yellow
-    Write-Host 'Pour garantir les bots de la guilde, utilise plutot :' -ForegroundColor Yellow
-    Write-Host '  .\tools\bots_de_guilde_en_premier.ps1' -ForegroundColor Yellow
-    Write-Host ''
-}
-
 if ($Bots -eq 0) {
-    Write-Host 'ATTENTION : sans -Bots, le plafond n est pas touche.' -ForegroundColor Red
-    Write-Host 'Arreter la rotation SANS monter le plafond fige les absents dehors' -ForegroundColor Red
-    Write-Host 'pour de bon. Relance avec -Bots <taille de ton vivier>.' -ForegroundColor Red
+    Write-Host 'Rien a faire sans -Bots : ce script ne regle plus que le plafond.' -ForegroundColor Red
+    Write-Host 'Relance avec -Bots <nombre de bots connectes voulu>.' -ForegroundColor Red
     Write-Host ''
+    exit 0
 }
 
 if (-not $Appliquer) {
