@@ -380,11 +380,28 @@ local function AddWearersLine(tooltip, itemId)
     if #sorted > SHOWN_MAX then
         text = text .. Tint("808080", " et " .. (#sorted - SHOWN_MAX) .. " autre(s)")
     end
-    if when and when ~= "" then
+    -- L'AGE plutot que l'heure seule. Une liste de porteurs est une photo : si
+    -- elle date d'avant le raid, elle est fausse, et rien ne le disait.
+    local libelle, vieux
+    if PlayerbotsBisRoster_Freshness then
+        local _, _, l, v = PlayerbotsBisRoster_Freshness()
+        libelle, vieux = l, v
+    end
+
+    if libelle then
+        text = text .. Tint(vieux and "ff8020" or "606060", "  (" .. libelle .. ")")
+    elseif when and when ~= "" then
         text = text .. Tint("606060", "  (releve " .. when .. ")")
     end
 
     tooltip:AddLine(text, 1, 1, 1, true)
+
+    -- Dit QUOI FAIRE, pas seulement que c'est vieux. Sans cette ligne, une
+    -- mention orange laisse chercher.
+    if vieux then
+        tooltip:AddLine(Tint("808080", "Liste figee : .playerbotsbis report pour l'actualiser"),
+                        1, 1, 1, true)
+    end
 end
 
 local function AddTooltipLines(tooltip, itemId)

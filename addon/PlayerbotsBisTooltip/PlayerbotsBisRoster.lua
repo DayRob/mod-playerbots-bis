@@ -96,6 +96,14 @@ local function Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99BiS|r: " .. msg)
 end
 
+-- time() existe dans le client, mais une API supposee presente est exactement
+-- ce qui a tue PlayerbotsBisInspect.lua pendant des heures. Ici l'absence ne
+-- coute que l'age du releve : tout le reste continue de fonctionner.
+local function Maintenant()
+    if type(time) == "function" then return time() end
+    return nil
+end
+
 local function ClassName(cls)
     return (PlayerbotsBis_ClassName and PlayerbotsBis_ClassName(cls)) or ("classe " .. tostring(cls))
 end
@@ -328,7 +336,12 @@ end
 --------------------------------------------------------------------------------
 
 local function ResetRoster(count, scope)
-    roster = { scope = scope or "", when = date("%H:%M:%S"), bots = {}, byName = {}, expected = count }
+    -- stamp, en plus de when : l'heure seule ne dit pas l'AGE. "(releve
+    -- 12:04:54)" en gris se lit comme "a jour" alors que ca peut dater de trois
+    -- heures, et c'est exactement ce qui a fait croire que l'infobulle se
+    -- trompait sur les porteurs.
+    roster = { scope = scope or "", when = date("%H:%M:%S"), stamp = Maintenant(),
+               bots = {}, byName = {}, expected = count }
     pending = {}
 
     -- Vide aussi : sans ca un bot qui a change de piece resterait indique comme
@@ -353,6 +366,38 @@ end
 -- que l'appelant puisse dire de quand date l'information.
 function PlayerbotsBisRoster_Wearers(itemId)
     return wearers[itemId], roster.when
+end
+
+-- L'age du releve, pour que chaque affichage puisse le dire au lieu de laisser
+-- croire qu'il est frais. Renvoie l'heure, les secondes ecoulees, et un libelle
+-- deja forme ("il y a 2 h 15").
+--
+-- Le seuil est a un quart d'heure : au-dela, un raid a eu le temps de changer
+-- plusieurs pieces de main, et la liste des porteurs ment forcement.
+local VIEUX = 15 * 60
+
+function PlayerbotsBisRoster_Freshness()
+    if not roster.stamp then
+        return roster.when, nil, roster.when and ("releve " .. roster.when) or nil, false
+    end
+
+    local maintenant = Maintenant()
+    if not maintenant then
+        return roster.when, nil, roster.when and ("releve " .. roster.when) or nil, false
+    end
+
+    local age = maintenant - roster.stamp
+    local libelle
+    if age < 60 then
+        libelle = "a l'instant"
+    elseif age < 3600 then
+        libelle = string.format("il y a %d min", math.floor(age / 60))
+    else
+        libelle = string.format("il y a %d h %02d", math.floor(age / 3600),
+                                math.floor((age % 3600) / 60))
+    end
+
+    return roster.when, age, "releve " .. roster.when .. ", " .. libelle, age >= VIEUX
 end
 
 local function AddItems(name, packed)
@@ -756,7 +801,8 @@ local function BuildWindow()
         else
             head:SetText(string.format("%s  -  %d bots  -  %d/%d pieces equipees (%d%%)  -  releve de %s",
                 roster.scope, bots, eq, tot,
-                tot > 0 and math.floor(eq * 100 / tot) or 0, roster.when))
+                tot > 0 and math.floor(eq * 100 / tot) or 0,
+                select(3, PlayerbotsBisRoster_Freshness()) or roster.when))
         end
 
         FauxScrollFrame_Update(scroll, #display, VISIBLE_ROWS, ROW_HEIGHT)

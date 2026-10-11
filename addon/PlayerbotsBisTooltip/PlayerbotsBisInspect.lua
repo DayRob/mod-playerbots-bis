@@ -61,7 +61,16 @@ local function Texte(nom)
         txt = txt .. string.format(", %d manquants", bot.missing)
     end
 
-    return txt .. "  |cff808080(" .. (roster.when or "?") .. ")|r", r, g, b
+    -- L'age du releve, en orange quand il est trop vieux pour etre cru : un
+    -- bot qui vient de gagner trois pieces affiche encore son compte d'avant.
+    local libelle, vieux = roster.when, false
+    if PlayerbotsBisRoster_Freshness then
+        local _, _, l, v = PlayerbotsBisRoster_Freshness()
+        libelle, vieux = l or libelle, v
+    end
+
+    return txt .. (vieux and "  |cffff8020(" or "  |cff808080(")
+               .. (libelle or "?") .. ")|r", r, g, b
 end
 
 local function Cible()
