@@ -27,8 +27,8 @@ bool BisLootRollAction::Execute(Event event)
     // The second exists because playerbots rewrites its own verdict afterwards:
     //
     //     if (vote == NEED)
-    //         if (lootNeedRollLevel == 0 ...) vote = PASS;
-    //         else if (lootNeedRollLevel == 1) vote = GREED;
+    //         if (LootNeedRollLevel == 0 ...) vote = PASS;
+    //         else if (LootNeedRollLevel == 1) vote = GREED;
     //
     // and that setting ships at 1. Out of the box a bot therefore never needs
     // anything, whatever the ladder says, and a best in slot competes with the
@@ -196,9 +196,15 @@ bool BisLootRollAction::Execute(Event event)
         downgrade.push_back(roll->itemGUID);
     }
 
-    // AiPlayerbot.LootGreedRollLevel still has the last word on a refusal: at 0
-    // the bot is not allowed to greed at all and passes instead.
-    RollVote const vote = sPlayerbotAIConfig.lootGreedRollLevel ? GREED : PASS;
+    // Playerbots.LootGreedRollLevel a toujours le dernier mot sur un refus : a 0
+    // le bot n'a pas le droit de cupidite du tout, et passe.
+    //
+    // Le membre s'appelait lootGreedRollLevel, et le reglage
+    // AiPlayerbot.LootGreedRollLevel, avant la refonte de PlayerbotAIConfig de
+    // mod-playerbots 79bd4281. Les deux ont ete renommes d'un coup ; si une
+    // compilation echoue ici apres une mise a jour, c'est le premier endroit a
+    // regarder.
+    RollVote const vote = sPlayerbotAIConfig.LootGreedRollLevel ? GREED : PASS;
     for (ObjectGuid const& guid : downgrade)
         group->CountRollVote(bot->GetGUID(), guid, vote);
 
