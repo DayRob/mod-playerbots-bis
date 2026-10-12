@@ -36,6 +36,10 @@
 .PARAMETER Bots
     Le plafond d'origine. Defaut 500.
 
+.PARAMETER Niveau
+    Niveau en dessous duquel un randombot est refuse. Defaut 3 : seuls les
+    niveaux 1 et 2 tombent. Les bots qui ont grind gardent leur niveau.
+
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File .\tools\retour_a_la_normale.ps1 -Bots 500
 
@@ -46,6 +50,7 @@
 [CmdletBinding()]
 param(
     [int]    $Bots        = 500,
+    [int]    $Niveau      = 3,
     [string] $Mysql,
     [string] $Utilisateur = 'acore',
     [string] $MotDePasse  = 'admin'
@@ -123,7 +128,7 @@ Write-Host ''
 $etapes = @(
     @{ Nom = '1/3  Configuration : plafond, plancher de niveau, DK'
        Fichier = 'population_des_bots.ps1'
-       Args = @{ Bots = $Bots; Appliquer = $true } },
+       Args = @{ Bots = $Bots; Niveau = $Niveau; Appliquer = $true } },
 
     @{ Nom = '2/3  Vivier : ecarter les comptes jamais joues'
        Fichier = 'pas_de_bots_niveau_1.ps1'

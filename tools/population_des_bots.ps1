@@ -14,9 +14,17 @@
 
       Playerbots.RandomBotMinLevel = <Niveau>
           Le niveau plancher de TOUT tirage. A 1 - le reglage par defaut - un
-          bot peut retomber au niveau 1 a chaque re-randomisation, et c'est la
+          bot peut etre tire au niveau 1 a chaque randomisation, et c'est la
           source permanente des bots niveau 1 qu'on croit voir apparaitre.
-          Le porter a 60 supprime la cause, pas le symptome.
+
+          Le defaut de ce script est 3, et non 60. Un plancher a 60 supprime
+          bien les niveau 1, mais il vide aussi le monde : plus un seul bot de
+          bas niveau nulle part, et la population finit uniformement au niveau
+          maximum. Un serveur ou des bots montent en niveau perd ce qui le
+          rendait vivant.
+
+          A 3, seuls les deux niveaux degeneres disparaissent. Un bot niveau 45
+          qui a grind reste un bot niveau 45.
 
     Le plafond de population est regle au passage, parce qu'il ne faut PAS le
     monter : un plafond plus haut fait creer des comptes, donc des personnages
@@ -27,7 +35,8 @@
     Pour les sortir du vivier tout de suite, c'est pas_de_bots_niveau_1.ps1.
 
 .PARAMETER Niveau
-    Niveau plancher des bots. Defaut 60.
+    Niveau plancher des bots. Defaut 3 : seuls les niveaux 1 et 2 sont
+    refuses, le reste de la population garde ses niveaux.
 
 .PARAMETER Bots
     Playerbots.MinRandomBots et MaxRandomBots. 0 pour ne pas y toucher.
@@ -41,14 +50,14 @@
 .NOTES
     Redemarrer le worldserver ensuite. Un .reload config ne suffit pas.
 
-    ATTENTION : avec Niveau = 60, il n'y a plus un seul bot de bas niveau sur
-    le serveur. Les zones de depart se vident. C'est le but recherche pour un
-    serveur de raid, c'est un appauvrissement pour un serveur de leveling.
+    ATTENTION : -Niveau 60 ne laisse plus un seul bot de bas niveau sur le
+    serveur. Les zones de depart se vident et la population s'uniformise. Ne le
+    demande que si c'est vraiment ce que tu veux.
 #>
 
 [CmdletBinding()]
 param(
-    [int]      $Niveau = 60,
+    [int]      $Niveau = 3,
     [int]      $Bots   = 0,
     [switch]   $AvecDK,
     [string]   $Conf,

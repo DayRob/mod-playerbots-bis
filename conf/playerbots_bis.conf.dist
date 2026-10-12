@@ -262,6 +262,12 @@ PlayerbotsBis.ResetInstancesOnStartup = 0
 #
 #                     Les bots invoques a la main - addclass, alts - ne sont
 #                     jamais concernes : on les a demandes.
+#
+#                     VALEUR CONSEILLEE : 3. Elle ecarte les deux niveaux
+#                     degeneres - un personnage cree et jamais joue - sans
+#                     toucher au reste. Un bot niveau 45 qui a grind pendant un
+#                     mois est un bot legitime, et un plancher haut le
+#                     renverrait avec les autres.
 #        Default:     0 (desactive)
 #
 
