@@ -56,6 +56,8 @@ void BisPriorityMgr::LoadConfig()
     _leaveOtherSpecsBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.LeaveOtherSpecsBis", true);
     _announceOwnBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.AnnounceOwnBis", true);
     _announceOnRoll = sConfigMgr->GetOption<bool>("PlayerbotsBis.AnnounceOnRoll", true);
+    _minBotLevel = sConfigMgr->GetOption<uint32>("PlayerbotsBis.MinBotLevel", 0);
+    _blockDeathKnights = sConfigMgr->GetOption<bool>("PlayerbotsBis.BlockDeathKnights", false);
     _announceMasterLoot = sConfigMgr->GetOption<bool>("PlayerbotsBis.AnnounceMasterLoot", true);
     _claimBelowRequiredLevel = sConfigMgr->GetOption<bool>("PlayerbotsBis.ClaimBelowRequiredLevel", true);
     _needOnlyForBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.NeedOnlyForBis", false);

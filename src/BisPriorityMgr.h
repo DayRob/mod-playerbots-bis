@@ -59,6 +59,17 @@ public:
     // juste avant l'equipement.
     bool AnnounceOnRoll() const { return _announceOnRoll; }
 
+    // Niveau en dessous duquel un randombot se voit refuser la connexion.
+    // 0 desactive le filtre : mod-playerbots n'a aucun reglage de ce genre, et
+    // un module qui renvoie des bots sans qu'on le lui ait demande serait une
+    // mauvaise surprise.
+    uint32 MinBotLevel() const { return _minBotLevel; }
+
+    // Double de Playerbots.DisableDeathKnightLogin, qui suffit dans le cas
+    // normal. Celui-ci tient meme quand l'autre est perdu - un playerbots.conf
+    // au mauvais prefixe, par exemple, laisse tous ses reglages sans effet.
+    bool BlockDeathKnights() const { return _blockDeathKnights; }
+
     // Vrai UNE SEULE FOIS par couple (bot, objet) dans une courte fenetre.
     //
     // L'avis d'usage est une VALEUR : playerbots la recalcule a chaque fois
@@ -287,6 +298,8 @@ private:
     bool _leaveOtherSpecsBis = true;
     bool _announceOwnBis = true;
     bool _announceOnRoll = true;
+    uint32 _minBotLevel = 0;
+    bool _blockDeathKnights = false;
 
     // (guid bas << 32 | itemId) -> instant de la derniere annonce.
     std::unordered_map<uint64, time_t> _dejaAnnonce;

@@ -238,3 +238,46 @@ PlayerbotsBis.ProgressionCacheSeconds = 300
 # 1 = raids seulement
 # 2 = raids et donjons
 PlayerbotsBis.ResetInstancesOnStartup = 0
+
+#
+#    PlayerbotsBis.MinBotLevel
+#        Description: Niveau en dessous duquel un RANDOMBOT se voit refuser la
+#                     connexion. Il est deconnecte dans la seconde qui suit son
+#                     arrivee, et le journal dit pourquoi.
+#
+#                     mod-playerbots n'offre rien de tel : son seul filtre de
+#                     connexion porte sur la CLASSE, et la structure qu'il
+#                     examine ne transporte meme pas le niveau. Playerbots.
+#                     RandomBotMinLevel ne joue qu'a la randomisation, APRES la
+#                     connexion, et la randomisation suivante d'un bot est
+#                     programmee jusqu'a quatorze jours plus tard : un bot tire
+#                     au niveau 1 y reste donc longtemps, visible de tous.
+#
+#                     Ce filtre ne pose aucun delai de carence - seul le coeur
+#                     sait le faire. Un bot renvoye peut etre re-tire au tirage
+#                     suivant et revenir ; il sera renvoye a nouveau, mais la
+#                     place aura ete gachee. La parade est de sortir ces comptes
+#                     du vivier (tools/pas_de_bots_niveau_1.ps1), ce filtre
+#                     restant la garantie de dernier recours.
+#
+#                     Les bots invoques a la main - addclass, alts - ne sont
+#                     jamais concernes : on les a demandes.
+#        Default:     0 (desactive)
+#
+
+PlayerbotsBis.MinBotLevel = 0
+
+#
+#    PlayerbotsBis.BlockDeathKnights
+#        Description: Refuse la connexion aux randombots chevaliers de la mort.
+#
+#                     Double de Playerbots.DisableDeathKnightLogin, qui fait
+#                     deja le travail au bon endroit et qui suffit dans le cas
+#                     normal. Celui-ci tient meme quand l'autre est perdu : un
+#                     playerbots.conf reste au prefixe AiPlayerbot. apres la
+#                     refonte du module laisse TOUS ses reglages sans effet, et
+#                     cela ne se voit pas autrement que dans le journal.
+#        Default:     0 (desactive)
+#
+
+PlayerbotsBis.BlockDeathKnights = 0

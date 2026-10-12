@@ -81,34 +81,97 @@ $voulu = [ordered]@{
     'Playerbots.RandomBotMinLevel'       = $Niveau
     'Playerbots.DisableDeathKnightLogin' = $(if ($AvecDK) { 0 } else { 1 })
 }
+
+# Les deux reglages de mod-playerbots-bis vont dans SON fichier, pas dans
+# playerbots.conf : un module ne lit que le sien. Ils doublent les deux
+# ci-dessus et tiennent meme si ceux-la sont perdus - c'est tout leur interet.
+$vouluBis = [ordered]@{
+    'PlayerbotsBis.MinBotLevel'       = $Niveau
+    'PlayerbotsBis.BlockDeathKnights' = $(if ($AvecDK) { 0 } else { 1 })
+}
 if ($Bots -gt 0) {
     $voulu['Playerbots.MinRandomBots'] = $Bots
     $voulu['Playerbots.MaxRandomBots'] = $Bots
 }
 
-$lignes = Get-Content -LiteralPath $Conf
+# Deux fichiers, deux jeux de reglages, et la meme mecanique : on factorise
+# plutot que de la dupliquer, parce qu'une copie se corrige a moitie.
+function Appliquer-Reglages {
+    param(
+        [string] $Fichier,
+        [System.Collections.Specialized.OrderedDictionary] $Voulu,
+        [string] $Titre,
+        [bool]   $Ecrire
+    )
 
-Write-Host 'Avant / apres :' -ForegroundColor Cyan
-Write-Host ''
-$large = 0
-foreach ($c in $voulu.Keys) { if ($c.Length -gt $large) { $large = $c.Length } }
-$aChanger = 0
-foreach ($c in $voulu.Keys) {
-    $actuelle = '(absent)'
-    foreach ($l in $lignes) {
-        if ($l -match "^\s*$([regex]::Escape($c))\s*=\s*(.*?)\s*$") { $actuelle = $Matches[1]; break }
+    if (-not (Test-Path $Fichier)) {
+        Write-Host ("  {0} : fichier absent, ignore" -f $Fichier) -ForegroundColor DarkGray
+        return 0
     }
-    $change = ($actuelle -ne [string]$voulu[$c])
-    if ($change) { $aChanger++ }
-    Write-Host ("  {0,-$large}   {1,10}  ->  {2}" -f $c, $actuelle, $voulu[$c]) `
-        -ForegroundColor $(if ($change) { 'Yellow' } else { 'DarkGray' })
+
+    $lignes = Get-Content -LiteralPath $Fichier
+    $large = 0
+    foreach ($c in $Voulu.Keys) { if ($c.Length -gt $large) { $large = $c.Length } }
+
+    $aChanger = 0
+    foreach ($c in $Voulu.Keys) {
+        $actuelle = '(absent)'
+        foreach ($l in $lignes) {
+            if ($l -match "^\s*$([regex]::Escape($c))\s*=\s*(.*?)\s*$") { $actuelle = $Matches[1]; break }
+        }
+        $change = ($actuelle -ne [string]$Voulu[$c])
+        if ($change) { $aChanger++ }
+        Write-Host ("  {0,-$large}   {1,10}  ->  {2}" -f $c, $actuelle, $Voulu[$c]) `
+            -ForegroundColor $(if ($change) { 'Yellow' } else { 'DarkGray' })
+    }
+
+    if (-not $Ecrire -or $aChanger -eq 0) { return $aChanger }
+
+    $sortie = New-Object System.Collections.Generic.List[string]
+    $posees = @{}
+    foreach ($l in $lignes) {
+        $remplacee = $false
+        foreach ($c in $Voulu.Keys) {
+            if ($l -match "^\s*$([regex]::Escape($c))\s*=") {
+                $sortie.Add(("{0} = {1}" -f $c, $Voulu[$c]))
+                $posees[$c] = $true
+                $remplacee = $true
+                break
+            }
+        }
+        if (-not $remplacee) { $sortie.Add($l) }
+    }
+    $manquantes = @($Voulu.Keys | Where-Object { -not $posees.ContainsKey($_) })
+    if ($manquantes.Count) {
+        $sortie.Add('')
+        $sortie.Add('####################################################################')
+        $sortie.Add('# ' + $Titre + ' (tools/population_des_bots.ps1)')
+        $sortie.Add('# Ni bot niveau 1, ni chevalier de la mort.')
+        $sortie.Add('####################################################################')
+        foreach ($c in $manquantes) { $sortie.Add(("{0} = {1}" -f $c, $Voulu[$c])) }
+    }
+
+    $sauvegarde = "$Fichier.avant-population-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    Copy-Item -LiteralPath $Fichier -Destination $sauvegarde
+    Write-Host ("  sauvegarde : {0}" -f $sauvegarde) -ForegroundColor DarkGray
+    [System.IO.File]::WriteAllLines($Fichier, $sortie, (New-Object System.Text.UTF8Encoding $false))
+    return $aChanger
 }
+
+# Le fichier du module vit a cote de celui de mod-playerbots.
+$ConfBis = Join-Path (Split-Path $Conf) 'playerbots_bis.conf'
+
+Write-Host 'mod-playerbots (playerbots.conf) :' -ForegroundColor Cyan
+$n1 = Appliquer-Reglages -Fichier $Conf -Voulu $voulu -Titre 'Population des bots' -Ecrire $false
+Write-Host ''
+Write-Host 'mod-playerbots-bis (playerbots_bis.conf) :' -ForegroundColor Cyan
+$n2 = Appliquer-Reglages -Fichier $ConfBis -Voulu $vouluBis -Titre 'Filtre de connexion' -Ecrire $false
 Write-Host ''
 
 # Le plafond ne doit pas MONTER : il ferait creer des comptes, donc des
 # personnages neufs niveau 1 - exactement ce qu'on cherche a eviter ici.
 if ($Bots -gt 0) {
-    foreach ($l in $lignes) {
+    foreach ($l in (Get-Content -LiteralPath $Conf)) {
         if ($l -match '^\s*Playerbots\.MaxRandomBots\s*=\s*(\d+)') {
             if ([int]$Matches[1] -lt $Bots) {
                 Write-Host ("ATTENTION : tu MONTES le plafond de {0} a {1}." -f $Matches[1], $Bots) -ForegroundColor Red
@@ -128,41 +191,16 @@ if (-not $Appliquer) {
     exit 0
 }
 
-if ($aChanger -eq 0) {
+if (($n1 + $n2) -eq 0) {
     Write-Host 'Tout est deja en place. Rien a ecrire.' -ForegroundColor Green
     Write-Host ''
     exit 0
 }
 
-$sortie = New-Object System.Collections.Generic.List[string]
-$posees = @{}
-foreach ($l in $lignes) {
-    $remplacee = $false
-    foreach ($c in $voulu.Keys) {
-        if ($l -match "^\s*$([regex]::Escape($c))\s*=") {
-            $sortie.Add(("{0} = {1}" -f $c, $voulu[$c]))
-            $posees[$c] = $true
-            $remplacee = $true
-            break
-        }
-    }
-    if (-not $remplacee) { $sortie.Add($l) }
-}
-$manquantes = @($voulu.Keys | Where-Object { -not $posees.ContainsKey($_) })
-if ($manquantes.Count) {
-    $sortie.Add('')
-    $sortie.Add('####################################################################')
-    $sortie.Add('# Population des bots (tools/population_des_bots.ps1)')
-    $sortie.Add('# Ni bot niveau 1, ni chevalier de la mort.')
-    $sortie.Add('####################################################################')
-    foreach ($c in $manquantes) { $sortie.Add(("{0} = {1}" -f $c, $voulu[$c])) }
-}
-
-$sauvegarde = "$Conf.avant-population-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-Copy-Item -LiteralPath $Conf -Destination $sauvegarde
-Write-Host ("Sauvegarde : {0}" -f $sauvegarde) -ForegroundColor DarkGray
-
-[System.IO.File]::WriteAllLines($Conf, $sortie, (New-Object System.Text.UTF8Encoding $false))
+Write-Host 'Ecriture :' -ForegroundColor Cyan
+$null = Appliquer-Reglages -Fichier $Conf    -Voulu $voulu    -Titre 'Population des bots' -Ecrire $true
+$null = Appliquer-Reglages -Fichier $ConfBis -Voulu $vouluBis -Titre 'Filtre de connexion' -Ecrire $true
+Write-Host ''
 
 Write-Host ("{0} reglages poses." -f $voulu.Count) -ForegroundColor Green
 Write-Host ''
