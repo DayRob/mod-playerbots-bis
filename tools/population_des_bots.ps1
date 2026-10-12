@@ -41,6 +41,15 @@
 .PARAMETER Bots
     Playerbots.MinRandomBots et MaxRandomBots. 0 pour ne pas y toucher.
 
+.PARAMETER Cadence
+    Playerbots.RandomBotsPerInterval : nombre de bots traites par cycle du
+    gestionnaire (connexion, deconnexion, mise a jour confondues). Defaut du
+    coeur 60. 0 pour ne pas y toucher.
+
+    Monter a 200 multiplie le debit de connexion par un peu plus de trois, au
+    prix d'un pic de travail plus gros a chaque cycle. Au-dela, le serveur
+    passe son temps dans ce traitement et le jeu saccade.
+
 .PARAMETER AvecDK
     Laisse les chevaliers de la mort se connecter. Par defaut ils sont exclus.
 
@@ -58,6 +67,7 @@
 [CmdletBinding()]
 param(
     [int]      $Niveau = 3,
+    [int]      $Cadence = 0,
     [int]      $Bots   = 0,
     [switch]   $AvecDK,
     [string]   $Conf,
@@ -101,6 +111,23 @@ $vouluBis = [ordered]@{
 if ($Bots -gt 0) {
     $voulu['Playerbots.MinRandomBots'] = $Bots
     $voulu['Playerbots.MaxRandomBots'] = $Bots
+}
+
+# Le debit de connexion. Le coeur partage ce budget entre mettre a jour les
+# bots deja la et en connecter de nouveaux :
+#
+#     updateBots = randomBotsPerInterval * onlineBotFocus / 100;
+#     loginBots  = randomBotsPerInterval - updateBots;
+#
+# onlineBotFocus vaut 25 tant que la population est sous 90 % de MinRandomBots,
+# puis 75. Le gros du budget va donc aux connexions pendant le remplissage, et
+# bascule vers l'entretien une fois plein - ce qui est le bon arbitrage, mais
+# rend la fin du remplissage lente.
+#
+# Monter ce nombre accelere les deux. Le cout est un pic de travail plus gros a
+# chaque cycle : c'est un echange entre debit et a-coups, pas un gain gratuit.
+if ($Cadence -gt 0) {
+    $voulu['Playerbots.RandomBotsPerInterval'] = $Cadence
 }
 
 # Deux fichiers, deux jeux de reglages, et la meme mecanique : on factorise
