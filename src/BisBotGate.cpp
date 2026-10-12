@@ -114,9 +114,6 @@ public:
         if (!raison)
             return;
 
-        LOG_DEBUG("module.playerbots-bis", "[mod-playerbots-bis] {} refuse a la connexion ({}), niveau {}",
-                  player->GetName(), raison, player->GetLevel());
-
         enAttente.insert(player->GetGUID());
     }
 };
@@ -162,7 +159,12 @@ public:
             if (!raison)
                 continue;
 
-            LOG_INFO("module.playerbots-bis", "[mod-playerbots-bis] {} deconnecte : {} (niveau {})",
+            // "server.loading" et non un logger a nous : AzerothCore n'ecrit que
+            // dans les loggers declares par worldserver.conf, et un nom inconnu
+            // disparait en silence. Le reste du module ecrit deja la, donc on
+            // sait que ca sort. Un refus qu'on ne voit pas est un refus qu'on ne
+            // peut pas diagnostiquer.
+            LOG_INFO("server.loading", "[mod-playerbots-bis] {} deconnecte : {} (niveau {})",
                      bot->GetName(), raison, bot->GetLevel());
 
             sRandomPlayerbotMgr.LogoutPlayerBot(guid);
