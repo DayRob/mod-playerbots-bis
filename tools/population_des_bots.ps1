@@ -50,6 +50,15 @@
     prix d'un pic de travail plus gros a chaque cycle. Au-dela, le serveur
     passe son temps dans ce traitement et le jeu saccade.
 
+.PARAMETER Intervalle
+    Playerbots.RandomBotUpdateInterval : duree du cycle du gestionnaire, en
+    secondes. Defaut du coeur 20. 0 pour ne pas y toucher.
+
+    A 10 le remplissage va deux fois plus vite une fois le turbo de demarrage
+    termine. Mais ce reglage ne concerne pas que les connexions : il fait
+    retraiter chaque bot deja en ligne aussi souvent, en permanence. Descendre
+    sous 10 coute cher pour un gain qui ne se voit qu'a la fin du remplissage.
+
 .PARAMETER AvecDK
     Laisse les chevaliers de la mort se connecter. Par defaut ils sont exclus.
 
@@ -68,6 +77,7 @@
 param(
     [int]      $Niveau = 3,
     [int]      $Cadence = 0,
+    [int]      $Intervalle = 0,
     [int]      $Bots   = 0,
     [switch]   $AvecDK,
     [string]   $Conf,
@@ -128,6 +138,24 @@ if ($Bots -gt 0) {
 # chaque cycle : c'est un echange entre debit et a-coups, pas un gain gratuit.
 if ($Cadence -gt 0) {
     $voulu['Playerbots.RandomBotsPerInterval'] = $Cadence
+}
+
+# La duree du cycle. Elle sort de cette ligne :
+#
+#     SetNextCheckDelay(updateIntervalTurboBoost * (onlineBotFocus + 25) * 10);
+#
+# soit, hors turbo et pendant le remplissage, randomBotUpdateInterval * 500 ms.
+# A 20 le cycle dure 10 secondes ; a 5, deux secondes et demie.
+#
+# MAIS CE N'EST PAS UN REGLAGE DE CONNEXION. C'est la cadence de TOUT le
+# gestionnaire : baisser ce nombre fait aussi retraiter chaque bot deja connecte
+# quatre fois plus souvent, pour toujours, pas seulement au demarrage. Le cout
+# ne disparait pas une fois la population remplie.
+#
+# Et il ne change rien au demarrage lui-meme : pendant le turbo le coeur force
+# deja la valeur a 1, quoi qu'on ait ecrit ici.
+if ($Intervalle -gt 0) {
+    $voulu['Playerbots.RandomBotUpdateInterval'] = $Intervalle
 }
 
 # Deux fichiers, deux jeux de reglages, et la meme mecanique : on factorise
