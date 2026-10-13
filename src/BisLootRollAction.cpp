@@ -71,6 +71,9 @@ bool BisLootRollAction::Execute(Event event)
     std::vector<ObjectGuid> downgrade;
     std::vector<ObjectGuid> claim;
     std::vector<ObjectGuid> need;
+    // Deja en main : un refus a part, parce qu'il ne se negocie pas. Les
+    // autres refus suivent LootGreedRollLevel ; celui-la passe toujours.
+    std::vector<ObjectGuid> possede;
 
     // Roll const* et non Roll* : selon la revision du coeur, GetRolls() rend
     // soit std::vector<Roll*>, soit std::vector<Roll const*>. Le pointeur
@@ -189,7 +192,25 @@ bool BisLootRollAction::Execute(Event event)
         // list claims it.
         if (sBisPriorityMgr->ClaimsClassRestricted(botAI, bot, roll->itemid))
         {
-            claim.push_back(roll->itemGUID);
+            // LE MEME GARDE QUE LE BESOIN plus haut, qui manquait ici. Un bot
+            // qui tient deja l'objet - porte ou en sac - n'a rien a gagner a
+            // un second exemplaire, et le prendre le retire a un bot qui n'en
+            // a aucun. C'est l'inverse de ce que l'echelle sert a faire.
+            //
+            // GetItemCount part de EQUIPMENT_SLOT_START, donc la piece sur le
+            // dos compte aussi : un seul appel couvre les deux cas.
+            //
+            // Et quand il la tient, le refus est EXPLICITE. Ne pas voter du
+            // tout laisserait le jet ouvert jusqu'a son expiration, ce qui
+            // retarde tout le monde ; le mettre avec les refus ordinaires le
+            // ferait cupider selon LootGreedRollLevel, donc gagner un second
+            // exemplaire - exactement ce qu'on vient d'empecher. PASS est le
+            // seul vote qui dise ce qu'il veut dire.
+            if (bot->GetItemCount(proto->ItemId, true))
+                possede.push_back(roll->itemGUID);
+            else
+                claim.push_back(roll->itemGUID);
+
             continue;
         }
 
@@ -207,6 +228,9 @@ bool BisLootRollAction::Execute(Event event)
     RollVote const vote = sPlayerbotAIConfig.LootGreedRollLevel ? GREED : PASS;
     for (ObjectGuid const& guid : downgrade)
         group->CountRollVote(bot->GetGUID(), guid, vote);
+
+    for (ObjectGuid const& guid : possede)
+        group->CountRollVote(bot->GetGUID(), guid, PASS);
 
     for (ObjectGuid const& guid : claim)
         group->CountRollVote(bot->GetGUID(), guid, GREED);
