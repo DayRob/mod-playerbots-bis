@@ -91,6 +91,13 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`, `entry`) VALUES
 (17, 3, 'Touch of Chaos', NULL),
 (17, 3, 'Bonecreeper Stylus', NULL);
 
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 8 AND `spec` = 0 AND `tier_id` = 60;
+
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
 SELECT 8, 0, s.`slot`, 0, 60, COALESCE(s.`entry`, r.entry), s.`rank`,
@@ -100,6 +107,13 @@ LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `n
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci
 WHERE COALESCE(s.`entry`, r.entry) IS NOT NULL;
 
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 8 AND `spec` = 1 AND `tier_id` = 60;
+
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
 SELECT 8, 1, s.`slot`, 0, 60, COALESCE(s.`entry`, r.entry), s.`rank`,
@@ -108,6 +122,13 @@ FROM `bis_seed_wowtbc` s
 LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci
 WHERE COALESCE(s.`entry`, r.entry) IS NOT NULL;
+
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 8 AND `spec` = 2 AND `tier_id` = 60;
 
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)

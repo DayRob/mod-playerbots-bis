@@ -97,6 +97,13 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`, `entry`) VALUES
 (17, 3, 'Gurubashi Dwarf Destroyer', NULL),
 (17, 3, 'Precisely Calibrated Boomstick', NULL);
 
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 4 AND `spec` = 1 AND `tier_id` = 60;
+
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
 SELECT 4, 1, s.`slot`, 0, 60, COALESCE(s.`entry`, r.entry), s.`rank`,

@@ -90,6 +90,13 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`, `entry`) VALUES
 (17, 1, 'Idol of Rejuvenation', NULL),
 (17, 2, 'Idol of Health', NULL);
 
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 11 AND `spec` = 2 AND `tier_id` = 60;
+
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
 SELECT 11, 2, s.`slot`, 0, 60, COALESCE(s.`entry`, r.entry), s.`rank`,

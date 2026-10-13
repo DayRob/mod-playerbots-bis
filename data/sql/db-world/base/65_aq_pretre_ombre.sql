@@ -92,6 +92,13 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`, `entry`) VALUES
 (17, 3, 'Bonecreeper Stylus', NULL),
 (17, 3, 'Ritssyn''s Wand of Bad Mojo', NULL);
 
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 5 AND `spec` = 2 AND `tier_id` = 60;
+
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
 SELECT 5, 2, s.`slot`, 0, 60, COALESCE(s.`entry`, r.entry), s.`rank`,
