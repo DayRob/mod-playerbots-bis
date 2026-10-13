@@ -331,7 +331,7 @@ Deux pièges qu'il connaît :
 
 ```ini
 PlayerbotsBis.Enable = 1
-PlayerbotsBis.MaxTier = 20            # cale les bots sur la phase de ton serveur
+PlayerbotsBis.MaxTier = 60            # cale les bots sur la phase de ton serveur (60 = Ahn'Qiraj)
 PlayerbotsBis.LeaveOtherSpecsBis = 1  # laisser à son propriétaire le BiS d'une autre spé
 PlayerbotsBis.AnnounceOwnBis = 1      # annoncer son propre BiS avant de roller
 PlayerbotsBis.NeedOnlyForBis = 0      # 1 = NEED reserve au BiS, GREED sur le reste

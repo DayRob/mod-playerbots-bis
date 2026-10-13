@@ -186,9 +186,20 @@ PlayerbotsBis.ClaimClassRestricted = 1
 #    20 Vanilla P1 MC/Ony       90 TBC P1 Karazhan       140 WotLK P1 Naxx
 #    30 Vanilla P2 BWL         100 TBC P2 SSC/TK         150 WotLK P2 Ulduar
 #    40 Vanilla P3 ZG          110 TBC P3 Hyjal/BT       160 WotLK P3 ToC
-#    50 Vanilla P4 AQ20        120 TBC P4 Sunwell        170 WotLK P4 ICC
-#    60 Vanilla P5 AQ40                                  180 WotLK P5 Ruby Sanctum
-#    70 Vanilla P6 Naxx40
+#    60 Vanilla P4 AQ 20+40    120 TBC P4 Sunwell        170 WotLK P4 ICC
+#    70 Vanilla P5 Naxx40                                180 WotLK P5 Ruby Sanctum
+#
+# IL N'Y A PLUS DE PALIER 50. Ahn'Qiraj 20 et Ahn'Qiraj 40 sont le MEME palier,
+# le 60 : wowtbc.gg publie une seule liste par spe pour la phase, et ses objets
+# viennent des deux raids melanges. Un palier 50 separe n'aurait eu aucune liste
+# a lui. Il a donc ete retire de playerbots_bis_tier.
+#
+# wowtbc.gg etiquette cette phase "P5" sur ses pages, parce qu'il compte
+# autrement ; l'echelle d'ici suit la numerotation Classic, ou Ahn'Qiraj est la
+# phase 4 et Naxxramas la 5. C'est la meme phase de jeu, et c'est pour ca que
+# les en-tetes des fichiers AQ disent "Source : Vanilla P5 AQ (wowtbc.gg)" -
+# P5 y qualifie la SOURCE, pas le palier.
+#
 # 0 = pas de plafond, les bots visent le sommet de l'echelle.
 #
 # ATTENTION : jusqu'a la version qui affiche le palier au rechargement, editer
@@ -196,8 +207,15 @@ PlayerbotsBis.ClaimClassRestricted = 1
 # reglages venaient de la memoire du serveur, pas du disque. Il fallait
 # redemarrer. C'est corrige : la commande relit desormais ce fichier, et
 # annonce le palier obtenu pour que tu puisses le verifier.
-# Defaut : 0
-PlayerbotsBis.MaxTier = 0
+#
+# POURQUOI 60 ET NON 0 : les paliers 10 a 60 ont des listes curees, relevees
+# spe par spe sur wowtbc.gg. Au-dela, les lignes viennent encore de la
+# conversion d'origine de playerbots_bis_gear, dont les rangs ne sortent
+# d'aucun guide. Sans plafond, un bot de niveau 60 chercherait donc des objets
+# classes par personne. 60 est le sommet de ce qui est verifie - pas une limite
+# technique.
+# Defaut : 60
+PlayerbotsBis.MaxTier = 60
 
 # Raccorde le plafond a mod-individual-progression : un bot ne vise que les paliers
 # dont required_progression est atteint par son propre personnage. Le plafond

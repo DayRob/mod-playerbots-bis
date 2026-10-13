@@ -1,0 +1,494 @@
+Filters
+Human/Orc
+Gear
+Slot
+Source
+Lionheart Helm
+Lionheart Helm
+enchantLesser Arcanum of Voracity
+head
+Blacksmithing
+BoE Pattern (300)
+Dropdown Arrow
+Southwind Helm
+Southwind Helm
+head
+Ruins of Ahn'Qiraj
+Moam
+Lizardscale Eyepatch
+Lizardscale Eyepatch
+head
+Zul'Gurub
+Gahz'ranka
+Crown of Destruction
+Crown of Destruction
+head
+Molten Core
+Ragnaros (11%)
+Helm of Endless Rage
+Helm of Endless Rage
+head
+Blackwing Lair
+Vaelastrasz the Corrupt
+Conqueror's Crown
+Conqueror's Crown
+head
+Quest Reward
+Conqueror's Crown
+Barbed Choker
+Barbed Choker
+neck
+Ahn'Qiraj
+Fankriss the Unyielding
+Dropdown Arrow
+The Eye of Hakkar
+The Eye of Hakkar
+neck
+Zul'Gurub
+Hakkar
+Fury of the Forgotten Swarm
+Fury of the Forgotten Swarm
+neck
+Ruins of Ahn'Qiraj
+General Rajaxx Officers
+Onyxia Tooth Pendant
+Onyxia Tooth Pendant
+neck
+Quest Reward
+For All To See
+Mark of Fordring
+Mark of Fordring
+neck
+Quest Reward
+In Dreams
+Prismatic Pendant of the Tiger
+Prismatic Pendant of the Tiger
+neck
+Auction House
+BoE World Drop
+Conqueror's Spaulders
+Conqueror's Spaulders
+enchantZandalar Signet of Might
+shoulder
+Quest Reward
+Conqueror's Spaulders
+Dropdown Arrow
+Truestrike Shoulders
+Truestrike Shoulders
+shoulder
+Blackrock Spire (Upper)
+Pyroguard Emberseer (12%)
+Mantle of Wicked Revenge
+Mantle of Wicked Revenge
+shoulder
+Ahn'Qiraj
+Fankriss the Unyielding
+Drake Talon Pauldrons
+Drake Talon Pauldrons
+shoulder
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+alternative
+Defiler's Plate Spaulders
+Defiler's Plate Spaulders
+shoulder
+Reputation
+The Defilers - Exalted (H)
+Bloodsoaked Pauldrons
+Bloodsoaked Pauldrons
+shoulder
+Zul'Gurub
+Bloodlord Mandokir
+Cloak of the Fallen God
+Cloak of the Fallen God
+enchantCloak - Lesser Agility
+back
+Quest Reward
+The Savior of Kalimdor
+Dropdown Arrow
+Puissant Cape
+Puissant Cape
+back
+World Boss
+Azuregos (17%)
+Drape of Unyielding Strength
+Drape of Unyielding Strength
+back
+Quest Reward
+Drape of Unyielding Strength
+Cloak of Concentrated Hatred
+Cloak of Concentrated Hatred
+back
+Ahn'Qiraj
+The Prophet Skeram
+Cloak of Draconic Might
+Cloak of Draconic Might
+back
+Blackwing Lair
+Trash Drop
+Cloak of Firemaw
+Cloak of Firemaw
+back
+Blackwing Lair
+Firemaw
+Breastplate of Annihilation
+Breastplate of Annihilation
+enchantChest - Greater Stats
+chest
+Ahn'Qiraj
+The Prophet Skeram
+Dropdown Arrow
+Obsidian Mail Tunic
+Obsidian Mail Tunic
+chest
+Blacksmithing
+BoP Pattern (300)
+Conqueror's Breastplate
+Conqueror's Breastplate
+chest
+Quest Reward
+Conqueror's Breastplate
+Vest of Swift Execution
+Vest of Swift Execution
+chest
+Ahn'Qiraj
+Lord Kri
+Savage Gladiator Chain
+Savage Gladiator Chain
+chest
+Blackrock Depths
+Gorosh the Dervish (15%)
+Malfurion's Blessed Bulwark
+Malfurion's Blessed Bulwark
+chest
+Blackwing Lair
+Ebonroc
+Qiraji Execution Bracers
+Qiraji Execution Bracers
+enchant
+Bracer - Superior Strength
+wrist
+Ahn'Qiraj
+Emperor Vek'lor
+
+Dropdown Arrow
+Hive Defiler Wristguards
+Hive Defiler Wristguards
+wrist
+Ahn'Qiraj
+Princess Huhuran
+Bracers of Brutality
+Bracers of Brutality
+wrist
+Ruins of Ahn'Qiraj
+Ossirian the Unscarred
+Wristguards of Stability
+Wristguards of Stability
+wrist
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (4%)
+Deeprock Bracers
+Deeprock Bracers
+wrist
+Quest Reward
+Stalwart's Battlegear
+Berserker Bracers
+Berserker Bracers
+wrist
+Reputation
+Warsong Outriders, Silverwing Sentinels - Exalted
+Gauntlets of Annihilation
+Gauntlets of Annihilation
+enchant
+Gloves - Superior Agility
+hands
+Ahn'Qiraj
+C'Thun
+
+Dropdown Arrow
+Gloves of Enforcement
+Gloves of Enforcement
+hands
+Ahn'Qiraj
+Battleguard Sartura
+Edgemaster's Handguards
+Edgemaster's Handguards
+hands
+Auction House
+BoE World Drop
+Sacrificial Gauntlets
+Sacrificial Gauntlets
+hands
+Zul'Gurub
+Multiple Bosses
+Flameguard Gauntlets
+Flameguard Gauntlets
+hands
+Molten Core
+Garr, Magmadar, Baron Geddon, Golemagg (5%)
+Chromatic Gauntlets
+Chromatic Gauntlets
+hands
+Reputation
+Thorium Brotherhood - Revered
+Onslaught Girdle
+Onslaught Girdle
+waist
+Molten Core
+Ragnaros (12%)
+
+Dropdown Arrow
+Belt of Never-ending Agony
+Belt of Never-ending Agony
+waist
+Ahn'Qiraj
+C'Thun
+Triad Girdle
+Triad Girdle
+waist
+Ahn'Qiraj
+Bug Trio
+Therazane's Link
+Therazane's Link
+waist
+Blackwing Lair
+Nefarian
+Belt of Preserved Heads
+Belt of Preserved Heads
+waist
+Quest Reward
+A Collection of Heads
+Taut Dragonhide Belt
+Taut Dragonhide Belt
+waist
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+Conqueror's Legguards
+Conqueror's Legguards
+enchant
+Lesser Arcanum of Voracity
+legs
+Quest Reward
+Conqueror's Legguards
+
+Dropdown Arrow
+Titanic Leggings
+Titanic Leggings
+legs
+Blacksmithing
+BoE Pattern (300)
+Scaled Sand Reaver Leggings
+Scaled Sand Reaver Leggings
+legs
+Ahn'Qiraj
+Fankriss the Unyielding
+alternative
+Outrider's Plate Legguards
+Outrider's Plate Legguards
+legs
+Reputation
+Warsong Riders - Exalted (H)
+Dark Heart Pants
+Dark Heart Pants
+legs
+World Boss
+Lethon
+Legplates of the Qiraji Command
+Legplates of the Qiraji Command
+legs
+Ruins of Ahn'Qiraj
+General Rajaxx
+Chromatic Boots
+Chromatic Boots
+enchant
+Boots - Greater Agility
+feet
+Blackwing Lair
+Chromaggus
+
+Dropdown Arrow
+Boots of the Shadow Flame
+Boots of the Shadow Flame
+feet
+Blackwing Lair
+Nefarian
+Boots of the Fallen Hero
+Boots of the Fallen Hero
+feet
+Ahn'Qiraj
+Vem
+Slime Kickers
+Slime Kickers
+feet
+Ruins of Ahn'Qiraj
+Buru the Gorger
+Boots of the Vanguard
+Boots of the Vanguard
+feet
+Ruins of Ahn'Qiraj
+General Rajaxx
+Boots of Heroism
+Boots of Heroism
+feet
+Quest Reward
+Anthion's Parting Words
+Ring of the Qiraji Fury
+Ring of the Qiraji Fury
+finger 1
+Ahn'Qiraj
+Viscidus
+
+Dropdown Arrow
+Master Dragonslayer's Ring
+Master Dragonslayer's Ring
+finger 1
+Blackwing Lair
+Nefarian
+Quick Strike Ring
+Quick Strike Ring
+finger 1
+Molten Core
+Garr, Magmadar, Baron Geddon, Golemagg (5%)
+Band of Accuria
+Band of Accuria
+finger 1
+Molten Core
+Ragnaros (16%)
+Don Julio's Band
+Don Julio's Band
+finger 1
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+Band of Earthen Might
+Band of Earthen Might
+finger 1
+Quest Reward
+Veteran's Battlegear
+Quick Strike Ring
+Quick Strike Ring
+finger 2
+Molten Core
+Garr, Magmadar, Baron Geddon, Golemagg (5%)
+
+Dropdown Arrow
+Master Dragonslayer's Ring
+Master Dragonslayer's Ring
+finger 2
+Blackwing Lair
+Nefarian
+Ring of the Qiraji Fury
+Ring of the Qiraji Fury
+finger 2
+Ahn'Qiraj
+Viscidus
+Band of Accuria
+Band of Accuria
+finger 2
+Molten Core
+Ragnaros (16%)
+Don Julio's Band
+Don Julio's Band
+finger 2
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+Band of Earthen Might
+Band of Earthen Might
+finger 2
+Quest Reward
+Veteran's Battlegear
+Drake Fang Talisman
+Drake Fang Talisman
+trinket 1
+Blackwing Lair
+Ebonroc
+
+Dropdown Arrow
+Fetish of the Sand Reaver
+Fetish of the Sand Reaver
+trinket 1
+Ahn'Qiraj
+Fankriss the Unyielding
+Diamond Flask
+Diamond Flask
+trinket 1
+Quest Reward
+Voodoo Feathers
+Jom Gabbar
+Jom Gabbar
+trinket 1
+Ahn'Qiraj
+Ouro
+Earthstrike
+Earthstrike
+trinket 1
+Quest Reward
+Champion's Battlegear
+Hand of Justice
+Hand of Justice
+trinket 1
+Blackrock Depths
+Emperor Dagran Thaurissan (15%)
+Diamond Flask
+Diamond Flask
+trinket 2
+Quest Reward
+Voodoo Feathers
+
+Dropdown Arrow
+Drake Fang Talisman
+Drake Fang Talisman
+trinket 2
+Blackwing Lair
+Ebonroc
+Fetish of the Sand Reaver
+Fetish of the Sand Reaver
+trinket 2
+Ahn'Qiraj
+Fankriss the Unyielding
+Jom Gabbar
+Jom Gabbar
+trinket 2
+Ahn'Qiraj
+Ouro
+Earthstrike
+Earthstrike
+trinket 2
+Quest Reward
+Champion's Battlegear
+Hand of Justice
+Hand of Justice
+trinket 2
+Blackrock Depths
+Emperor Dagran Thaurissan (15%)
+Larvae of the Great Worm
+Larvae of the Great Worm
+ranged
+Ahn'Qiraj
+Ouro
+
+Dropdown Arrow
+Striker's Mark
+Striker's Mark
+ranged
+Molten Core
+Magmadar (20%)
+Crossbow of Imminent Doom
+Crossbow of Imminent Doom
+ranged
+Ruins of Ahn'Qiraj
+Ossirian the Unscarred
+Gurubashi Dwarf Destroyer
+Gurubashi Dwarf Destroyer
+ranged
+Zul'Gurub
+Hakkar
+Heartstriker
+Heartstriker
+ranged
+Blackwing Lair
+Broodlord Lashlayer
+Bloodseeker
+Bloodseeker
+ranged
+Quest Reward
+Hero of the Frostwolf (H)

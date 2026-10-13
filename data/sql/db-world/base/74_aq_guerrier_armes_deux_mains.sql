@@ -87,7 +87,18 @@ JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`)
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci;
 
 -- VERIFICATION 1 - un nom que la base ne connait pas (aucune ligne = bon).
-SELECT s.`rank`, s.`item_name` AS nom_non_resolu
+--
+-- TROIS COLONNES, ET CE N'EST PAS DECORATIF. importer_tout.ps1 ramasse les
+-- noms perdus par la fonction Get-ColonneSignalee, qui s'arrete des qu'une
+-- ligne n'a pas EXACTEMENT trois champs :
+--
+--     if ($champs.Count -ne 3) { break }
+--
+-- et lit le nom dans le TROISIEME. Une verification a deux colonnes defile a
+-- l'ecran sans etre ramassee : le nom perdu ne remonte pas dans le bilan de
+-- fin d'import, celui qu'on lit. C'est la meme classe de piege que l'alias
+-- "nom_introuvable" du fichier 56 - un garde-fou correct, invisible.
+SELECT 60 AS `palier`, s.`rank`, s.`item_name` AS nom_non_resolu
 FROM `bis_seed_2h_aq` s
 LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci

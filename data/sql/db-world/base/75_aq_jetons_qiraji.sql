@@ -231,10 +231,20 @@ WHERE NOT EXISTS (
 -- ---------------------------------------------------------------------
 
 -- 1 - un nom de jeton que la base ne connait pas (aucune ligne = bon).
+--
 --     L'alias s'appelle nom_non_resolu, comme dans les fichiers generes :
 --     importer_tout.ps1 repere les noms perdus par CE libelle, et un alias
 --     different les laisserait passer en silence.
-SELECT n.`nom_jeton` AS nom_non_resolu
+--
+--     ET IL FAUT TROIS COLONNES. Le ramasseur de l'importeur s'arrete des
+--     qu'une ligne n'a pas exactement trois champs :
+--
+--         if ($champs.Count -ne 3) { break }
+--
+--     et lit le nom dans le TROISIEME. Une seule colonne suffisait a rendre
+--     ce garde-fou muet dans le bilan d'import - correct a l'ecran, absent la
+--     ou on le lit.
+SELECT 'jeton' AS `objet`, 60 AS `palier`, n.`nom_jeton` AS nom_non_resolu
 FROM `bis_jetons_aq_noms` n
 LEFT JOIN `item_template` j
   ON j.`name` COLLATE utf8mb4_general_ci = n.`nom_jeton` COLLATE utf8mb4_general_ci

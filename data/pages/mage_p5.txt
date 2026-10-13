@@ -1,0 +1,484 @@
+Gear
+Slot
+Source
+Mish'undare, Circlet of the Mind Flayer
+Mish'undare, Circlet of the Mind Flayer
+enchantPresence of Sight
+head
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Enigma Circlet
+Enigma Circlet
+head
+Quest Reward
+Enigma Circlet
+Spellweaver's Turban
+Spellweaver's Turban
+head
+Blackrock Spire (Upper)
+General Drakkisath (24%)
+The Hexxer's Cover
+The Hexxer's Cover
+head
+Zul'Gurub
+Jin'do the Hexxer
+Eternal Crown of Frozen Wrath
+Eternal Crown of Frozen Wrath
+head
+Auction House
+BoE World Drop
+Netherwind Crown
+Netherwind Crown
+head
+Onyxia's Lair
+Onyxia (20%)
+Amulet of Vek'nilash
+Amulet of Vek'nilash
+neck
+Ahn'Qiraj
+Emperor Vek'nilash
+Dropdown Arrow
+Choker of the Fire Lord
+Choker of the Fire Lord
+neck
+Molten Core
+Ragnaros (19%)
+Charm of the Shifting Sands
+Charm of the Shifting Sands
+neck
+Quest Reward
+The Fall of Ossirian
+Jeklik's Opaline Talisman
+Jeklik's Opaline Talisman
+neck
+Zul'Gurub
+High Priest Jeklik
+Diana's Pearl Necklace
+Diana's Pearl Necklace
+neck
+Stratholme (Live)
+Cannon Master Willey (23%)
+Choker of Enlightenment
+Choker of Enlightenment
+neck
+Molten Core
+Lucifron (23%)
+Mantle of the Blackwing Cabal
+Mantle of the Blackwing Cabal
+enchantZandalar Signet of Mojo
+shoulder
+Blackwing Lair
+Razoregore the Untamed
+Dropdown Arrow
+Enigma Shoulderpads
+Enigma Shoulderpads
+shoulder
+Quest Reward
+Enigma Shoulderpads
+Boreal Mantle
+Boreal Mantle
+shoulder
+Blackrock Depths
+Warden Stilgiss (24%)
+Eternal Spaulders of Frozen Wrath
+Eternal Spaulders of Frozen Wrath
+shoulder
+Auction House
+BoE World Drop
+alternative
+Champion's Silk Mantle
+Champion's Silk Mantle
+shoulder
+Honor System
+Rank 10
+Mantle of Maz'Nadir
+Mantle of Maz'Nadir
+shoulder
+Ruins of Ahn'Qiraj
+Moam
+Cloak of the Devoured
+Cloak of the Devoured
+enchantCloak - Greater Resistance
+back
+Ahn'Qiraj
+C'Thun
+Dropdown Arrow
+Cloak of Consumption
+Cloak of Consumption
+back
+Zul'Gurub
+Hakkar
+Cloak of the Brood Lord
+Cloak of the Brood Lord
+back
+Blackwing Lair
+Nefarian
+Cloak of the Hakkari Worshipers
+Cloak of the Hakkari Worshipers
+back
+Zul'Gurub
+Multiple Bosses
+Cape of the Trinity
+Cape of the Trinity
+back
+Ahn'Qiraj
+Bug Trio
+Master's Cloak of Frozen Wrath
+Master's Cloak of Frozen Wrath
+back
+Auction House
+BoE World Drop
+Enigma Robes
+Enigma Robes
+enchantChest - Greater Stats
+chest
+Quest Reward
+Enigma Robes
+Dropdown Arrow
+Garb of Royal Ascension
+Garb of Royal Ascension
+chest
+Ahn'Qiraj
+Trash Drop
+Bloodvine Vest
+Bloodvine Vest
+chest
+Tailoring
+BoP Pattern
+Robe of the Archmage
+Robe of the Archmage
+chest
+Tailoring
+BoE Pattern (300)
+Jade Inlaid Vestments
+Jade Inlaid Vestments
+chest
+World Boss
+Ysondre
+Netherwind Robes
+Netherwind Robes
+chest
+Blackwing Lair
+Nefarian
+Rockfury Bracers
+Rockfury Bracers
+enchant
+Bracer - Greater Intellect
+wrist
+Quest Reward
+Stalwart's Battlegear
+Dropdown Arrow
+Bracers of Arcane Accuracy
+Bracers of Arcane Accuracy
+wrist
+Blackwing Lair
+Broodlord Lashlayer
+Burrower Bracers
+Burrower Bracers
+wrist
+Ahn'Qiraj
+Ouro
+Black Bark Wristbands
+Black Bark Wristbands
+wrist
+World Boss
+Lethon
+Dryad's Wrist Bindings
+Dryad's Wrist Bindings
+wrist
+Reputation
+Warsong Outriders, Silverwing Sentinels - Exalted
+Master's Bracers of Frozen Wrath
+Master's Bracers of Frozen Wrath
+wrist
+Auction House
+BoE World Drop
+Dark Storm Gauntlets
+Dark Storm Gauntlets
+enchant
+Gloves - Frost Power
+hands
+Ahn'Qiraj
+C'Thun
+Dropdown Arrow
+Bloodtinged Gloves
+Bloodtinged Gloves
+hands
+Zul'Gurub
+Jin'do the Hexxer
+Netherwind Gloves
+Netherwind Gloves
+hands
+Blackwing Lair
+Firemaw, Ebonroc, & Flamegor
+Gloves of Delusional Power
+Gloves of Delusional Power
+hands
+World Boss
+All Dragons
+Sandworm Skin Gloves
+Sandworm Skin Gloves
+hands
+Quest Reward
+Armaments of War
+Hands of Power
+Hands of Power
+hands
+Blackrock Spire (Lower)
+Quartermaster Zigris (18%)
+Eyestalk Waist Cord
+Eyestalk Waist Cord
+waist
+Ahn'Qiraj
+C'Thun
+Dropdown Arrow
+Mana Igniting Cord
+Mana Igniting Cord
+waist
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (6%)
+Firemaw's Clutch
+Firemaw's Clutch
+waist
+Blackwing Lair
+Firemaw
+Belt of Untapped Power
+Belt of Untapped Power
+waist
+Zul'Gurub
+Multiple Bosses
+Netherwind Belt
+Netherwind Belt
+waist
+Blackwing Lair
+Vaelastrasz the Corrupt
+Angelista's Grasp
+Angelista's Grasp
+waist
+Blackwing Lair
+Chromaggus
+Leggings of the Black Blizzard
+Leggings of the Black Blizzard
+enchant
+Presence of Sight
+legs
+Ruins of Ahn'Qiraj
+Ossirian the Unscarred
+Dropdown Arrow
+Bloodvine Leggings
+Bloodvine Leggings
+legs
+Tailoring
+BoP Pattern
+Enigma Leggings
+Enigma Leggings
+legs
+Quest Reward
+Enigma Leggings
+Flarecore Leggings
+Flarecore Leggings
+legs
+Reputation
+Thorium Brotherhood - Revered
+Netherwind Pants
+Netherwind Pants
+legs
+Molten Core
+Ragnaros (22%)
+Skyshroud Leggings
+Skyshroud Leggings
+legs
+Blackrock Spire (Upper)
+Highlord Omokk (14%)
+Ringo's Blizzard Boots
+Ringo's Blizzard Boots
+enchant
+Boots - Minor Speed
+feet
+Blackwing Lair
+Trash Drop
+Dropdown Arrow
+Enigma Boots
+Enigma Boots
+feet
+Quest Reward
+Enigma Boots
+Boots of Epiphany
+Boots of Epiphany
+feet
+Ahn'Qiraj
+Emperor Vek'lor
+Bloodvine Boots
+Bloodvine Boots
+feet
+Tailoring
+BoP Pattern
+Master's Boots of Frozen Wrath
+Master's Boots of Frozen Wrath
+feet
+Auction House
+BoE World Drop
+alternative
+Blood Guard's Silk Walkers
+Blood Guard's Silk Walkers
+feet
+Honor System
+Rank 7
+Ring of the Fallen God
+Ring of the Fallen God
+finger 1
+Quest Reward
+The Savior of Kalimdor
+Dropdown Arrow
+Ritssyn's Ring of Chaos
+Ritssyn's Ring of Chaos
+finger 1
+Ahn'Qiraj
+Trash Drop
+Band of Forced Concentration
+Band of Forced Concentration
+finger 1
+Blackwing Lair
+Ebonroc
+Ring of Spell Power
+Ring of Spell Power
+finger 1
+Molten Core
+Gehennas, Sulfuron, Lucifron, Shazzrah (4%)
+Mindtear Band
+Mindtear Band
+finger 1
+World Boss
+Taerar (14%)
+Signet Ring of the Bronze Dragonflight
+Signet Ring of the Bronze Dragonflight
+finger 1
+Quest Reward
+The Qiraji Conqueror
+Neltharion's Tear
+Neltharion's Tear
+trinket 1
+Blackwing Lair
+Nefarian
+Dropdown Arrow
+Mind Quickening Gem
+Mind Quickening Gem
+trinket 1
+Blackwing Lair
+Vaelastrasz the Corrupt
+Zandalarian Hero Charm
+Zandalarian Hero Charm
+trinket 1
+Quest Reward
+The Heart of Hakkar
+Talisman of Ephemeral Power
+Talisman of Ephemeral Power
+trinket 1
+Molten Core
+Magmadar, Garr, Baron Geddon, Golemagg (5%)
+Draconic Infused Emblem
+Draconic Infused Emblem
+trinket 1
+Blackrock Spire (Upper)
+General Drakkisath (8%)
+Briarwood Reed
+Briarwood Reed
+trinket 1
+Blackrock Spire
+Jed Runewatcher (30%)
+Sharpened Silithid Femur
+Sharpened Silithid Femur
+enchant
+Weapon - Spell Power
+weapon
+Ahn'Qiraj
+Viscidus
+Dropdown Arrow
+Blessed Qiraji Acolyte Staff
+Blessed Qiraji Acolyte Staff
+weapon
+Quest Reward
+Imperial QIraji Regalia
+Staff of the Shadow Flame
+Staff of the Shadow Flame
+weapon
+Blackwing Lair
+Nefarian
+Claw of Chromaggus
+Claw of Chromaggus
+weapon
+Blackwing Lair
+Chromaggus
+Runesword of the Red
+Runesword of the Red
+weapon
+Quest Reward
+Treasure of the Timeless One
+Blade of Vaulted Secrets
+Blade of Vaulted Secrets
+weapon
+Quest Reward
+Blade of Valted Secrets
+Royal Scepter of Vek'lor
+Royal Scepter of Vek'lor
+off hand
+Ahn'Qiraj
+Emperor Vek'lor
+Dropdown Arrow
+Tome of the Ice Lord
+Tome of the Ice Lord
+off hand
+Reputation
+Frostwolf Clan, Stormpike Guard - Exalted
+Talon of Furious Concentration
+Talon of Furious Concentration
+off hand
+Ruins of Ahn'Qiraj
+Moam
+Jin'do's Bag of Whammies
+Jin'do's Bag of Whammies
+off hand
+Zul'Gurub
+Jin'do the Hexxer
+Master Dragonslayer's Orb
+Master Dragonslayer's Orb
+off hand
+Blackwing Lair
+Nefarian
+Scepter of Interminable Focus
+Scepter of Interminable Focus
+off hand
+Stratholme (Live)
+Sothos and Jarien's Heirlooms (28%)
+Wand of Qiraji Nobility
+Wand of Qiraji Nobility
+ranged
+Ahn'Qiraj
+Lord Kri
+Dropdown Arrow
+Cold Snap
+Cold Snap
+ranged
+World Boss
+Azuregos (17%)
+Touch of Chaos
+Touch of Chaos
+ranged
+Zul'Gurub
+Hakkar
+Wand of Biting Cold
+Wand of Biting Cold
+ranged
+Quest Reward
+Hero of the Frostwolf (H)
+Lunar Wand of Frozen Wrath
+Lunar Wand of Frozen Wrath
+ranged
+Auction House
+BoE World Drop
+Bonecreeper Stylus
+Bonecreeper Stylus
+ranged
+Scholomance
+Darkmaster Gandling (13%)
