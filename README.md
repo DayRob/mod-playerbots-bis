@@ -38,7 +38,7 @@ bot qu'il ne sait pas habiller.
 Chaque objet appartient à un **palier** (`tier_id`) qui donne l'ordre de progression :
 
 ```
-Vanilla Pre-Raid  <  MC/Ony  <  BWL  <  ZG  <  AQ20  <  AQ40  <  Naxx40
+Vanilla Pre-Raid  <  MC/Ony  <  BWL  <  ZG  <  AQ  <  Naxx40
                   <  TBC Pre-Raid  <  Karazhan  <  SSC/TK  <  Hyjal/BT  <  Sunwell
                   <  WotLK Pre-Raid  <  Naxx  <  Ulduar  <  ToC  <  ICC  <  Ruby Sanctum
 ```
@@ -378,7 +378,7 @@ fichier liste les noms non résolus. C'est le format à suivre pour contribuer u
 **Ce jeu de données est un point de départ, pas une liste BiS de référence.** Lacunes
 connues :
 
-- Paliers vides : Zul'Gurub (40), AQ20 (50), WotLK Pre-Raid (130), Ruby Sanctum (180).
+- Paliers vides : WotLK Pre-Raid (130), Ruby Sanctum (180).
 - Palier 20 (MC / Onyxia) : le guerrier Armes et le guerrier Fureur viennent d'un guide
   Wowhead (fichier `05`) ; les 22 autres spés viennent encore de la conversion du fichier
   `02`, dont les rangs ne proviennent d'aucun guide. Voleur Assassinat, Voleur Subtilité

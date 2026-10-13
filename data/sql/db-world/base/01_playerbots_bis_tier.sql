@@ -26,9 +26,13 @@ INSERT INTO `playerbots_bis_tier` (`tier_id`, `expansion`, `name`, `required_pro
 ( 20, 0, 'Vanilla Phase 1 - Molten Core / Onyxia',        0),
 ( 30, 0, 'Vanilla Phase 2 - Blackwing Lair',              1),
 ( 40, 0, 'Vanilla Phase 3 - Zul Gurub',                   3),
-( 50, 0, 'Vanilla Phase 4 - Ahn Qiraj 20',                4),
-( 60, 0, 'Vanilla Phase 5 - Ahn Qiraj 40',                4),
-( 70, 0, 'Vanilla Phase 6 - Naxxramas 40',                6),
+-- AQ20 et AQ40 sont sortis ensemble et se jouent ensemble : un seul palier,
+-- et non deux. Le 50 a donc disparu plutot que de rester vide entre deux
+-- etapes reelles - un palier sans objets n'est pas une etape, c'est un trou
+-- que le module franchit sans rien y trouver, et que les outils comptent
+-- comme une regression a combler.
+( 60, 0, 'Vanilla Phase 4 - Ahn Qiraj (20 et 40)',        4),
+( 70, 0, 'Vanilla Phase 5 - Naxxramas 40',                6),
 -- The Burning Crusade
 ( 80, 1, 'TBC Pre-Raid',                                  8),
 ( 90, 1, 'TBC Phase 1 - Karazhan / Gruul / Magtheridon',  8),

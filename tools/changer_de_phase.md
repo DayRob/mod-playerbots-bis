@@ -9,8 +9,7 @@ vaut pour n'importe quelle phase : seul le numero change.
 | Molten Core / Onyxia | 20 |
 | **Blackwing Lair** | **30** |
 | Zul'Gurub | 40 |
-| Ahn'Qiraj 20 | 50 |
-| Ahn'Qiraj 40 | 60 |
+| Ahn'Qiraj (20 et 40) | 60 |
 | Naxxramas 40 | 70 |
 
 ## 1. Serveur arrete : le code
