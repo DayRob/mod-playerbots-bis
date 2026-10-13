@@ -71,19 +71,26 @@ PlayerbotsBis.ClaimClassRestricted = 1
 ```
 
 Le `.dist` livre desormais `MaxTier = 60` par defaut, mais **le build n'installe
-que le `.dist`** : ton `.conf`, lui, garde la valeur que tu y as mise. Il faut
-donc l'editer a la main. En une ligne, si tu preferes :
+que le `.dist`** : ton `.conf`, lui, garde la valeur que tu y as mise.
+
+Un script s'en charge, et le serveur peut rester allume :
 
 ```powershell
-$c = "C:\Azerothcore\configs\modules\playerbots_bis.conf"
-(Get-Content $c) -replace '^\s*PlayerbotsBis\.MaxTier\s*=.*', 'PlayerbotsBis.MaxTier = 60' |
-  Set-Content $c -Encoding ASCII
-Select-String 'PlayerbotsBis\.MaxTier' $c
+powershell -ExecutionPolicy Bypass -File .\tools\changer_le_palier.ps1 -Appliquer
 ```
 
-La derniere ligne relit le fichier : c'est la seule preuve que le remplacement a
-porte. Si elle ne montre rien, la cle est absente du fichier - ajoute-la a la
-main.
+Il trouve le `.conf` tout seul, sauvegarde l'ancien, puis **relit le fichier** et
+affiche ce qu'il y a trouve. Cette relecture est le point : sans elle, un
+remplacement qui n'a pas porte - cle absente, fichier en lecture seule -
+ressemble exactement a un remplacement reussi.
+
+Sans `-Appliquer`, il montre seulement ce qu'il changerait. Et si la cle manque
+dans ton `.conf` - le cas normal pour un fichier ecrit avant que le reglage
+existe - il l'ajoute au lieu de repartir sans rien faire.
+
+Pour un autre palier : `-Palier 40`. Le script refuse un numero absent de
+l'echelle plutot que de l'ecrire, parce qu'un palier inexistant se comporte
+comme un plafond a zero - les bots viseraient le sommet, en silence.
 
 **Pourquoi 60 et pas 0.** Les paliers 10 a 60 ont des listes curees. Au-dela,
 les lignes viennent encore de la conversion de `playerbots_bis_gear`, dont les
