@@ -4,7 +4,7 @@
  * option) any later version.
  */
 
-#include "BisPriorityMgr.h"
+#include "Config.h"
 #include "DatabaseEnv.h"
 #include "Field.h"
 #include "Log.h"
@@ -161,12 +161,29 @@ public:
 
     void OnStartup() override
     {
-        uint32 const plancher = sBisPriorityMgr->MinBotLevel();
-        bool const sansDK = sBisPriorityMgr->BlockDeathKnights();
-        uint32 const vipGuild = sBisPriorityMgr->VipGuildId();
+        // Les reglages sont lus DIRECTEMENT dans sConfigMgr, et non via
+        // sBisPriorityMgr. Ce n'est pas un raccourci : le gestionnaire appelle
+        // LoadConfig() a son premier tick de monde, donc APRES OnStartup. Lire
+        // a travers lui ici rendait 0 partout, et cette fonction sortait sans
+        // rien faire ni rien dire - un echec parfaitement muet, qui a coute
+        // plusieurs demarrages a diagnostiquer.
+        //
+        // sConfigMgr, lui, a lu playerbots_bis.conf bien avant : le fichier
+        // apparait des les premieres lignes du journal, sous "Using modules
+        // configuration".
+        uint32 const plancher = sConfigMgr->GetOption<uint32>("PlayerbotsBis.MinBotLevel", 0);
+        bool const sansDK = sConfigMgr->GetOption<bool>("PlayerbotsBis.BlockDeathKnights", false);
+        uint32 const vipGuild = sConfigMgr->GetOption<uint32>("PlayerbotsBis.VipGuildId", 0);
 
         if (!plancher && !sansDK && !vipGuild)
+        {
+            // Dire qu'on ne fait rien, et pourquoi. Le silence d'une fonction
+            // desactivee est indiscernable de celui d'une fonction cassee.
+            LOG_INFO("server.loading",
+                     "[mod-playerbots-bis] File d'attente inactive : MinBotLevel, BlockDeathKnights "
+                     "et VipGuildId sont tous a zero dans playerbots_bis.conf");
             return;
+        }
 
         if (plancher || sansDK)
         {
