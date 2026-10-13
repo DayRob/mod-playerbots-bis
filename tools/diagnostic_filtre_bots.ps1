@@ -166,9 +166,11 @@ if (-not $Mysql) {
             }
         }
     } catch { }
-    $candidats += Get-ChildItem 'C:\Program Files','C:\Program Files (x86)' `
-                    -Directory -Recurse -Filter 'bin' -ErrorAction SilentlyContinue |
-                  ForEach-Object { Join-Path $_.FullName 'mysql.exe'; Join-Path $_.FullName 'mariadb.exe' }
+    try {
+        $candidats += Get-ChildItem 'C:\Program Files','C:\Program Files (x86)' `
+                        -Directory -Recurse -Filter 'bin' -ErrorAction SilentlyContinue |
+                      ForEach-Object { Join-Path $_.FullName 'mysql.exe'; Join-Path $_.FullName 'mariadb.exe' }
+    } catch { }
     foreach ($c in ($candidats | Select-Object -Unique)) {
         if (Essayer-Client $c) { $Mysql = $c; break }
     }
