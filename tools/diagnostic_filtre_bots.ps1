@@ -31,6 +31,9 @@
 
 [CmdletBinding()]
 param(
+    [string]   $Mysql,
+    [string]   $Utilisateur = 'acore',
+    [string]   $MotDePasse  = 'admin',
     [string]   $Conf,
     [string]   $Logs = 'C:\Azerothcore\logs',
     [string[]] $Racine = @('C:\Azerothcore', 'C:\AzerothCore', 'C:\azerothcore')
@@ -108,6 +111,66 @@ if ($aExpulse.Count) {
     Write-Host ''
 }
 
+# --- 2 bis. Ce que la file d'attente a REELLEMENT ecrit --------------------
+#
+# C'est la seule preuve directe. Les lignes "logout" et "add" posees au
+# demarrage sont dans la base : si elles y sont, le code a tourne et la cause
+# est ailleurs ; si elles n'y sont pas, inutile de chercher plus loin.
+function Essayer-Client {
+    param([string] $chemin)
+    if (-not (Test-Path $chemin)) { return $false }
+    $sauve = $ErrorActionPreference
+    $ErrorActionPreference = 'Stop'
+    try {
+        $v = (& $chemin --version 2>&1 | Out-String).Trim()
+        if ($LASTEXITCODE -eq 0 -and $v -match 'Ver\s') { return $true }
+    } catch { }
+    finally { $ErrorActionPreference = $sauve }
+    return $false
+}
+
+if (-not $Mysql) {
+    $candidats = @()
+    foreach ($svc in (Get-CimInstance Win32_Service -ErrorAction SilentlyContinue |
+                      Where-Object { $_.Name -match 'mysql|mariadb' })) {
+        if ($svc.PathName -match '"?([A-Za-z]:\\[^"]*?\\bin)\\[^\\"]*\.exe') {
+            $candidats += (Join-Path $Matches[1] 'mysql.exe')
+            $candidats += (Join-Path $Matches[1] 'mariadb.exe')
+        }
+    }
+    $candidats += Get-ChildItem 'C:\Program Files','C:\Program Files (x86)' `
+                    -Directory -Recurse -Filter 'bin' -ErrorAction SilentlyContinue |
+                  ForEach-Object { Join-Path $_.FullName 'mysql.exe'; Join-Path $_.FullName 'mariadb.exe' }
+    foreach ($c in ($candidats | Select-Object -Unique)) {
+        if (Essayer-Client $c) { $Mysql = $c; break }
+    }
+}
+
+$lignesPosees = $null
+if ($Mysql) {
+    $sql = @'
+SELECT CONCAT(
+  'logout_poses=',   SUM(p.event = 'logout'),
+  ' add_poses=',     SUM(p.event = 'add'),
+  ' add_de_la_guilde=', SUM(p.event = 'add' AND gm.guildid IS NOT NULL),
+  ' lvl1_encore_en_ligne=', (SELECT COUNT(*) FROM acore_characters.characters c2
+                             WHERE c2.online = 1 AND c2.level < 3)
+) AS etat
+FROM playerbots_random_bots p
+LEFT JOIN acore_characters.guild_member gm ON gm.guid = p.bot;
+'@
+    $lignesPosees = ($sql | & $Mysql "-u$Utilisateur" "-p$MotDePasse" acore_playerbots --skip-column-names 2>$null) -join ''
+    Write-Host ''
+    Write-Host 'Etat de la base :' -ForegroundColor Cyan
+    Write-Host ("  " + $lignesPosees) -ForegroundColor DarkGray
+}
+else {
+    Write-Host ''
+    Write-Host 'Client mysql introuvable : etat de la base non verifie.' -ForegroundColor Yellow
+}
+
+$aEcrit = ($lignesPosees -match 'logout_poses=([1-9]\d*)')
+
 # --- 3. Le verdict ---------------------------------------------------------
 Write-Host 'VERDICT' -ForegroundColor Cyan
 if (-not $aDemarre) {
@@ -120,6 +183,11 @@ elseif (-not $reglagePose -and -not $seReclame) {
 elseif (-not $reglagePose) {
     Write-Host '  Recompile, mais le reglage est absent ou a 0 : le filtre dort.' -ForegroundColor Red
     Write-Host '  .\tools\population_des_bots.ps1 -Bots 500 -Appliquer' -ForegroundColor Yellow
+}
+elseif ($null -ne $lignesPosees -and -not $aEcrit) {
+    Write-Host '  Le reglage est pose mais AUCUNE ligne logout en base :' -ForegroundColor Red
+    Write-Host '  la file d attente n a pas tourne. Soit le binaire est ancien' -ForegroundColor Red
+    Write-Host '  (recompiler), soit OnStartup ne se declenche pas chez toi.' -ForegroundColor Red
 }
 elseif (-not $aExpulse.Count) {
     Write-Host '  Tout est en place, mais aucune expulsion enregistree.' -ForegroundColor Yellow
