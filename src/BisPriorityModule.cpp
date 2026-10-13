@@ -204,6 +204,7 @@ public:
 // Defined in BisMasterLootAnnounce.cpp.
 void AddSC_playerbots_bis_masterloot();
 void AddSC_playerbots_bis_botgate();
+void AddSC_playerbots_bis_botqueue();
 
 void AddSC_playerbots_bis()
 {
@@ -211,4 +212,5 @@ void AddSC_playerbots_bis()
     new BisPriorityCommandScript();
     AddSC_playerbots_bis_masterloot();
     AddSC_playerbots_bis_botgate();
+    AddSC_playerbots_bis_botqueue();
 }

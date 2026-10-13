@@ -53,6 +53,7 @@ param(
     [int]    $Niveau      = 3,
     [int]    $Cadence     = 0,
     [int]    $Intervalle  = 0,
+    [int]    $Guilde      = 5,
     [string] $Mysql,
     [string] $Utilisateur = 'acore',
     [string] $MotDePasse  = 'admin'
@@ -130,7 +131,7 @@ Write-Host ''
 $etapes = @(
     @{ Nom = '1/3  Configuration : plafond, plancher de niveau, DK'
        Fichier = 'population_des_bots.ps1'
-       Args = @{ Bots = $Bots; Niveau = $Niveau; Cadence = $Cadence; Intervalle = $Intervalle; Appliquer = $true } },
+       Args = @{ Bots = $Bots; Niveau = $Niveau; Cadence = $Cadence; Intervalle = $Intervalle; Guilde = $Guilde; Appliquer = $true } },
 
     @{ Nom = '2/3  Vivier : ecarter les comptes jamais joues'
        Fichier = 'pas_de_bots_niveau_1.ps1'

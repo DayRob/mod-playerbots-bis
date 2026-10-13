@@ -287,3 +287,32 @@ PlayerbotsBis.MinBotLevel = 0
 #
 
 PlayerbotsBis.BlockDeathKnights = 0
+
+#
+#    PlayerbotsBis.VipGuildId
+#        Description: Identifiant de la guilde dont les bots passent devant tout
+#                     le monde a la connexion. 0 desactive la priorite.
+#
+#                     mod-playerbots tire ses bots au sort, et il ne s'en cache
+#                     pas (RandomPlayerbotMgr::AddRandomBots) :
+#
+#                         // Shuffle for class balance
+#                         std::shuffle(allCharacters.begin(), allCharacters.end(), rng);
+#
+#                     Aucun reglage ne donne la priorite a une guilde. Mais ce
+#                     tirage ne distribue que les places RESTANTES : au
+#                     demarrage, GetBots() remplit d'abord la liste avec les bots
+#                     portant deja une marque "add". Le module la leur pose, donc
+#                     ils sont retenus d'office.
+#
+#                     Consequence utile : Playerbots.MaxRandomBots peut
+#                     redescendre sans risquer de perdre les bots de la guilde.
+#
+#                     Les personnages de JOUEUR de la guilde ne sont jamais
+#                     inscrits - seuls les comptes que mod-playerbots reconnait
+#                     comme comptes de bots le sont. Inscrire un perso de joueur
+#                     ferait tenter au serveur de le connecter comme bot.
+#        Default:     0 (aucune priorite)
+#
+
+PlayerbotsBis.VipGuildId = 0

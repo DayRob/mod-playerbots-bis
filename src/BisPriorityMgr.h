@@ -70,6 +70,11 @@ public:
     // au mauvais prefixe, par exemple, laisse tous ses reglages sans effet.
     bool BlockDeathKnights() const { return _blockDeathKnights; }
 
+    // La guilde dont les bots passent devant tout le monde a la connexion.
+    // 0 desactive la priorite.
+    uint32 VipGuildId() const { return _vipGuildId; }
+
+
     // Vrai UNE SEULE FOIS par couple (bot, objet) dans une courte fenetre.
     //
     // L'avis d'usage est une VALEUR : playerbots la recalcule a chaque fois
@@ -300,6 +305,7 @@ private:
     bool _announceOnRoll = true;
     uint32 _minBotLevel = 0;
     bool _blockDeathKnights = false;
+    uint32 _vipGuildId = 0;
 
     // (guid bas << 32 | itemId) -> instant de la derniere annonce.
     std::unordered_map<uint64, time_t> _dejaAnnonce;

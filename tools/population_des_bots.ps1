@@ -50,6 +50,14 @@
     prix d'un pic de travail plus gros a chaque cycle. Au-dela, le serveur
     passe son temps dans ce traitement et le jeu saccade.
 
+.PARAMETER Guilde
+    PlayerbotsBis.VipGuildId : la guilde dont les bots passent devant tout le
+    monde a la connexion. 0 pour ne pas y toucher.
+
+    Rend bots_de_guilde_en_premier.ps1 inutile : le module refait le travail a
+    chaque demarrage, au lieu de dependre d'un script lance a la main et dont
+    l'effet s'efface au redemarrage suivant.
+
 .PARAMETER Intervalle
     Playerbots.RandomBotUpdateInterval : duree du cycle du gestionnaire, en
     secondes. Defaut du coeur 20. 0 pour ne pas y toucher.
@@ -78,6 +86,7 @@ param(
     [int]      $Niveau = 3,
     [int]      $Cadence = 0,
     [int]      $Intervalle = 0,
+    [int]      $Guilde = 0,
     [int]      $Bots   = 0,
     [switch]   $AvecDK,
     [string]   $Conf,
@@ -117,6 +126,9 @@ $voulu = [ordered]@{
 $vouluBis = [ordered]@{
     'PlayerbotsBis.MinBotLevel'       = $Niveau
     'PlayerbotsBis.BlockDeathKnights' = $(if ($AvecDK) { 0 } else { 1 })
+}
+if ($Guilde -gt 0) {
+    $vouluBis['PlayerbotsBis.VipGuildId'] = $Guilde
 }
 if ($Bots -gt 0) {
     $voulu['Playerbots.MinRandomBots'] = $Bots
