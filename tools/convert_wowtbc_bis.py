@@ -119,7 +119,29 @@ SUFFIXES_ALEATOIRES = re.compile(
     r"Nature's Wrath|Power|Shadow Wrath|Spirit|Stamina|Strength|Marksmanship|"
     r"Concentration|Restoration|Sorcery)$", re.I)
 
-RANG_MAX = 3
+# Le rang est la POSITION dans le creneau, sans plafond utile.
+#
+# Il a longtemps valu 3 : tout ce qui arrivait apres le troisieme objet d'un
+# creneau recevait le rang 3 comme lui. Ca paraissait sans consequence - le
+# module prend le meilleur rang present - et ca en avait une, grave :
+#
+#   ceinture du chaman Amelioration, palier 60, telle que la page la classe
+#     1. Belt of Never-ending Agony
+#     2. Ossirian's Binding
+#     3. Therazane's Link
+#     4. Belt of Preserved Heads   <- ce que le bot portait
+#     5. Taut Dragonhide Belt
+#
+# Aplaties au rang 3, les positions 3, 4 et 5 avaient la MEME priorite. Un bot
+# portant la 4e ne voyait donc pas la 3e comme une amelioration, et repondait
+# "je n'en ai pas besoin" a un objet qui valait mieux que le sien. Tout le
+# dessous du troisieme choix etait indiscernable.
+#
+# 255 n'est pas un chiffre choisi : c'est le plafond du MOTEUR, qui calcule
+# la priorite par `255 - min(rank, 255)`. Au-dela, deux rangs redeviendraient
+# egaux - exactement le defaut qu'on corrige. Aucune page n'approche ce
+# nombre : les creneaux en comptent six au plus.
+RANG_MAX = 255
 
 # ---------------------------------------------------------------------------
 # Ce que la BASE MONDE a corrige, et que la page seule ne pouvait pas dire.
