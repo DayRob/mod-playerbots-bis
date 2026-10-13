@@ -618,6 +618,21 @@ construction. Un guerrier affichait ainsi 35 « pièces » pour dix-sept crénea
 
 Même chose pour un seul bot, directement dans le chat, avec les liens d'objets cliquables.
 
+### Vérifier les tables temporaires avant de livrer
+
+```
+python3 tools/verifier_tables_temporaires.py
+```
+
+MySQL refuse d'ouvrir une table `TEMPORARY` **deux fois dans la même instruction** —
+`ERROR 1137 : Can't reopen table` — là où **MariaDB l'accepte**. Le banc d'essai de ce dépôt
+tourne sur MariaDB : un fichier peut donc y passer sans un mot et échouer chez un joueur qui
+tourne sur MySQL. C'est arrivé au fichier 75, dont un `NOT EXISTS` relisait deux tables
+temporaires.
+
+Ce script le retrouve sans moteur, en lisant le texte. Il n'attrape qu'une chose — mais c'est
+précisément celle qu'un import d'essai sur MariaDB ne peut pas attraper.
+
 ### Convertir une liste wowtbc.gg
 
 ```

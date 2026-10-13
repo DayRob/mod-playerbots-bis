@@ -202,29 +202,64 @@ WHERE `token_id` IN (SELECT DISTINCT `jeton` FROM `bis_jetons_aq`);
 --
 -- La cle primaire de la table l'impose, et Ahn'Qiraj le met vraiment a
 -- l'epreuve : Imperial Qiraji Armaments offre un CHOIX d'armes, dont le
--- guerrier a plusieurs en liste. Un INSERT IGNORE nu aurait garde celle que
--- le moteur sort en premier - donc le Pugio de rang 3 aussi bien que la hache
--- de rang 1.
+-- guerrier a plusieurs en liste. Un INSERT IGNORE nu garderait celle que le
+-- moteur sort en premier - donc le Pugio de rang 3 aussi bien que la hache de
+-- rang 1.
 --
--- Le NOT EXISTS garde celle de meilleur rang, et tranche les egalites par le
--- plus petit identifiant pour que le resultat soit le meme a chaque import.
--- Ecrit sans fonction de fenetrage a dessein : le reste du depot n'en utilise
--- aucune, et ce choix-la se lit entierement dans la clause.
-INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `piece_id`, `comment`)
-SELECT j.`jeton`, b.`class`, j.`piece`,
-       CONCAT(j.`nom_jeton`, ' -> ', i.`name`)
+-- EN TROIS ETAPES, ET C'EST UNE CONTRAINTE DU MOTEUR, PAS UN GOUT
+-- La premiere version posait la question en une seule instruction, avec un
+-- NOT EXISTS qui relisait les deux tables temporaires. MySQL a refuse :
+--
+--     ERROR 1137 (HY000) : Can't reopen table: 'j'
+--
+-- Une table TEMPORARY ne peut pas etre ouverte deux fois dans la meme
+-- instruction. MariaDB, lui, l'accepte - c'est pour ca que le banc d'essai
+-- local n'avait rien vu et que la panne est arrivee chez le joueur. Chaque
+-- table temporaire n'est desormais lue QU'UNE FOIS par instruction, et
+-- tools/verifier_tables_temporaires.py le controle sur tout le depot.
+--
+-- Etape 1 : le meilleur rang de chaque (jeton, classe).
+DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_rang`;
+CREATE TEMPORARY TABLE `bis_jetons_aq_rang` (
+    `jeton` INT UNSIGNED NOT NULL,
+    `class` TINYINT UNSIGNED NOT NULL,
+    `rang`  TINYINT UNSIGNED NOT NULL,
+    PRIMARY KEY (`jeton`, `class`)
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `bis_jetons_aq_rang` (`jeton`, `class`, `rang`)
+SELECT j.`jeton`, b.`class`, MIN(b.`rank`)
 FROM `bis_jetons_aq` j
 JOIN `bis_listes_aq` b ON b.`item_id` = j.`piece`
-JOIN `item_template` i ON i.`entry` = j.`piece`
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM `bis_jetons_aq` j2
-    JOIN `bis_listes_aq` b2 ON b2.`item_id` = j2.`piece`
-    WHERE j2.`jeton` = j.`jeton`
-      AND b2.`class` = b.`class`
-      AND (b2.`rank` < b.`rank`
-           OR (b2.`rank` = b.`rank` AND j2.`piece` < j.`piece`))
-);
+GROUP BY j.`jeton`, b.`class`;
+
+-- Etape 2 : a ce rang, la piece de plus petit identifiant. Le MIN tranche les
+-- egalites, pour que deux imports rendent le meme resultat.
+DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_choix`;
+CREATE TEMPORARY TABLE `bis_jetons_aq_choix` (
+    `jeton` INT UNSIGNED NOT NULL,
+    `class` TINYINT UNSIGNED NOT NULL,
+    `piece` INT UNSIGNED NOT NULL,
+    PRIMARY KEY (`jeton`, `class`)
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `bis_jetons_aq_choix` (`jeton`, `class`, `piece`)
+SELECT r.`jeton`, r.`class`, MIN(j.`piece`)
+FROM `bis_jetons_aq_rang` r
+JOIN `bis_jetons_aq` j ON j.`jeton` = r.`jeton`
+JOIN `bis_listes_aq` b
+  ON b.`item_id` = j.`piece` AND b.`class` = r.`class` AND b.`rank` = r.`rang`
+GROUP BY r.`jeton`, r.`class`;
+
+-- Etape 3 : la conversion elle-meme. Le nom du jeton se relit dans
+-- item_template plutot que dans bis_jetons_aq, qui le porte aussi : ce serait
+-- une seconde lecture d'une table temporaire deja jointe.
+INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `piece_id`, `comment`)
+SELECT c.`jeton`, c.`class`, c.`piece`,
+       CONCAT(t.`name`, ' -> ', i.`name`)
+FROM `bis_jetons_aq_choix` c
+JOIN `item_template` i ON i.`entry` = c.`piece`
+JOIN `item_template` t ON t.`entry` = c.`jeton`;
 
 -- ---------------------------------------------------------------------
 -- VERIFICATIONS
@@ -288,6 +323,8 @@ LEFT JOIN `bis_listes_aq` b ON b.`item_id` = j.`piece`
 WHERE b.`item_id` IS NULL
 ORDER BY j.`nom_jeton`, i.`name`;
 
+DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_choix`;
+DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_rang`;
 DROP TEMPORARY TABLE IF EXISTS `bis_listes_aq`;
 DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq`;
 DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_noms`;
