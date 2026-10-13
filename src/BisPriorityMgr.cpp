@@ -178,13 +178,26 @@ void BisPriorityMgr::LoadTables()
              static_cast<uint32>(_questTokens.size()));
 }
 
+namespace
+{
+    // (jeton << 16) | (classe << 8) | spe. Ecrite une fois et appelee des deux
+    // cotes : une cle composee a la main a deux endroits finit par differer, et
+    // le symptome serait un jeton qui ne se convertit plus - sans erreur.
+    uint64 QuestTokenKey(uint32 tokenId, uint8 cls, uint8 spec)
+    {
+        return (static_cast<uint64>(tokenId) << 16)
+             | (static_cast<uint64>(cls) << 8)
+             | static_cast<uint64>(spec);
+    }
+}
+
 // La table est FACULTATIVE. Une base ou le fichier 56 n'a jamais tourne reste
 // une base valide : les bots ne reclameront simplement aucun jeton, et aucun
 // n'aura a etre converti. Un ERROR ici ferait croire a une installation cassee.
 void BisPriorityMgr::LoadQuestTokens()
 {
     QueryResult result = WorldDatabase.Query(
-        "SELECT `token_id`, `class`, `piece_id` FROM `playerbots_bis_quest_token`");
+        "SELECT `token_id`, `class`, `spec`, `piece_id` FROM `playerbots_bis_quest_token`");
     if (!result)
         return;
 
@@ -193,12 +206,13 @@ void BisPriorityMgr::LoadQuestTokens()
         Field* fields = result->Fetch();
         uint32 const tokenId = fields[0].Get<uint32>();
         uint8 const cls = fields[1].Get<uint8>();
-        uint32 const pieceId = fields[2].Get<uint32>();
+        uint8 const spec = fields[2].Get<uint8>();
+        uint32 const pieceId = fields[3].Get<uint32>();
 
         if (!tokenId || !pieceId)
             continue;
 
-        _questTokens[(tokenId << 8) | cls] = pieceId;
+        _questTokens[QuestTokenKey(tokenId, cls, spec)] = pieceId;
     } while (result->NextRow());
 }
 
@@ -240,9 +254,9 @@ bool BisPriorityMgr::AnnounceOnce(Player* bot, uint32 itemId)
     return true;
 }
 
-uint32 BisPriorityMgr::QuestTokenReward(uint32 tokenId, uint8 cls) const
+uint32 BisPriorityMgr::QuestTokenReward(uint32 tokenId, uint8 cls, uint8 spec) const
 {
-    auto const it = _questTokens.find((tokenId << 8) | cls);
+    auto const it = _questTokens.find(QuestTokenKey(tokenId, cls, spec));
     return it == _questTokens.end() ? 0 : it->second;
 }
 

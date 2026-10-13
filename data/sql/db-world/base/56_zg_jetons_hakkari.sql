@@ -160,14 +160,45 @@ ORDER BY j.`classe`, j.`nom_jeton`;
 -- cherchant une ligne de meme classe, spe, creneau, palier et rang, ce qui
 -- tombe juste aujourd'hui et faux le jour ou deux pieces partagent un rang.
 -- L'identifiant ecrit noir sur blanc ne se trompe pas.
+-- ---------------------------------------------------------------------
+-- LA TABLE DE CONVERSION A GAGNE UNE COLONNE spec
+--
+-- Sa cle etait (token_id, class). Les jetons de Zul'Gurub donnaient une piece
+-- par CLASSE, donc la classe suffisait. Ahn'Qiraj a montre la limite : ses deux
+-- jetons d'arme ouvrent un CHOIX, et le choix depend de la SPE.
+--
+--   Imperial Qiraji Armaments, guerrier -> hache pour Fureur,
+--                                          BOUCLIER pour Protection
+--   Imperial Qiraji Regalia,   chaman   -> baton Acolyte pour Elementaire,
+--                                          baton Augur pour Restauration
+--
+-- Avec l'ancienne cle, le meilleur rang de la CLASSE gagnait : un guerrier
+-- Protection echangeait son jeton contre la hache et laissait le bouclier.
+--
+-- La table est ENTIEREMENT DERIVEE des listes - les fichiers 56 et 75 la
+-- remplissent - donc la migration peut la supprimer sans rien perdre. Le test
+-- porte sur la COLONNE et non sur la table : une base d'avant le changement a
+-- bien la table, c'est spec qui lui manque.
+-- ---------------------------------------------------------------------
+SET @spec_absente := (
+    SELECT COUNT(*) = 0 FROM `information_schema`.`COLUMNS`
+    WHERE `TABLE_SCHEMA` = DATABASE()
+      AND `TABLE_NAME` = 'playerbots_bis_quest_token'
+      AND `COLUMN_NAME` = 'spec');
+SET @ordre := IF(@spec_absente, 'DROP TABLE IF EXISTS `playerbots_bis_quest_token`', 'DO 0');
+PREPARE migre FROM @ordre;
+EXECUTE migre;
+DEALLOCATE PREPARE migre;
+
 CREATE TABLE IF NOT EXISTS `playerbots_bis_quest_token` (
     `token_id` INT UNSIGNED NOT NULL COMMENT 'objet de quete tenu par le bot',
     `class`    TINYINT UNSIGNED NOT NULL COMMENT 'classe du bot',
+    `spec`     TINYINT UNSIGNED NOT NULL COMMENT 'spe du bot - 10 = ours druide',
     `piece_id` INT UNSIGNED NOT NULL COMMENT 'piece que le jeton achete',
     `comment`  VARCHAR(120) NOT NULL DEFAULT '',
-    PRIMARY KEY (`token_id`, `class`)
+    PRIMARY KEY (`token_id`, `class`, `spec`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  COMMENT='mod-playerbots-bis : jeton de quete -> piece, par classe';
+  COMMENT='mod-playerbots-bis : jeton de quete -> piece, par classe et par spe';
 
 -- Rejouable, comme le bloc precedent.
 DELETE FROM `playerbots_bis_quest_token`
@@ -177,8 +208,12 @@ WHERE `token_id` IN (SELECT DISTINCT `jeton` FROM `bis_jetons_zg`);
 -- classent pour cette classe entrent ici. Un jeton reclamable sans conversion,
 -- ou une conversion vers une piece que personne ne reclame, seraient deux
 -- facons de se contredire.
-INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `piece_id`, `comment`)
-SELECT j.`jeton`, j.`classe`, i.`entry`,
+-- UNE LIGNE PAR SPE. Un jeton hakkari ne donne qu'une piece par classe, donc
+-- toutes les spes de cette classe recoivent la MEME - mais la cle exige la
+-- colonne, et l'ecrire ainsi fait que ce fichier n'a plus rien de particulier
+-- face au 75, dont les jetons donnent, eux, des pieces differentes par spe.
+INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `spec`, `piece_id`, `comment`)
+SELECT j.`jeton`, j.`classe`, b.`spec`, i.`entry`,
        CONCAT(j.`nom_jeton`, ' -> ', j.`piece`)
 FROM `bis_jetons_zg` j
 JOIN `item_template` i
@@ -191,7 +226,7 @@ JOIN `playerbots_bis_item` b
 SELECT DISTINCT b.`item_id` AS jeton_sans_conversion, b.`class`, b.`comment`
 FROM `playerbots_bis_item` b
 LEFT JOIN `playerbots_bis_quest_token` t
-  ON t.`token_id` = b.`item_id` AND t.`class` = b.`class`
+  ON t.`token_id` = b.`item_id` AND t.`class` = b.`class` AND t.`spec` = b.`spec`
 WHERE b.`item_id` IN (SELECT DISTINCT `jeton` FROM `bis_jetons_zg`)
   AND t.`piece_id` IS NULL
 ORDER BY b.`item_id`, b.`class`;

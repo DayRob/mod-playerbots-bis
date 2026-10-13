@@ -152,15 +152,29 @@ public:
     // les chemins d'equipement les ecartent avant d'en arriver la.
     bool WantsQuestToken(Player* bot, uint32 itemId, uint16* outTierId = nullptr);
 
-    // La piece que ce jeton de quete achete pour cette classe, ou 0 quand la
-    // table n'en connait pas - un jeton qu'aucune liste ne reclame pour elle,
-    // ou l'Idole primordiale hakkari, dont les quetes rendent des enchantements
-    // et qui n'a donc aucune piece a donner.
+    // La piece que ce jeton de quete achete pour cette classe ET CETTE SPE, ou 0
+    // quand la table n'en connait pas - un jeton qu'aucune liste ne reclame pour
+    // elle, ou l'Idole primordiale hakkari, dont les quetes rendent des
+    // enchantements et qui n'a donc aucune piece a donner.
     //
-    // La correspondance vient de playerbots_bis_quest_token (fichier 56), pas
-    // d'une deduction : chercher la piece par creneau, palier et rang tomberait
-    // juste aujourd'hui et faux le jour ou deux pieces partagent un rang.
-    uint32 QuestTokenReward(uint32 tokenId, uint8 cls) const;
+    // LA SPE FAIT PARTIE DE LA CLE, et Ahn'Qiraj est ce qui l'a montre. Les
+    // jetons de Zul'Gurub donnaient une piece par CLASSE, donc la classe
+    // suffisait. Les deux jetons d'arme qirajis, eux, ouvrent un CHOIX :
+    //
+    //   Imperial Qiraji Armaments, guerrier -> hache pour Fureur,
+    //                                          BOUCLIER pour Protection
+    //   Imperial Qiraji Regalia,   chaman   -> baton Acolyte pour Elementaire,
+    //                                          baton Augur pour Restauration
+    //
+    // Avec une cle sans spe, un guerrier Protection echangeait son jeton contre
+    // la hache et laissait le bouclier - le meilleur rang de la CLASSE gagnait,
+    // pas celui du bot.
+    //
+    // La correspondance vient de playerbots_bis_quest_token (fichiers 56 et 75),
+    // pas d'une deduction : chercher la piece par creneau, palier et rang
+    // tomberait juste aujourd'hui et faux le jour ou deux pieces partagent un
+    // rang.
+    uint32 QuestTokenReward(uint32 tokenId, uint8 cls, uint8 spec) const;
 
     // What this item would push out if the bot put it on: the piece worn in the
     // slot the list assigns it, or nullptr when that slot is empty. Pairs are
@@ -283,7 +297,10 @@ private:
     std::unordered_map<uint32, std::vector<uint16>> _bisOwners;
     // (tokenId<<8|cls) -> piece achetee. Plat plutot qu'imbrique : la table
     // compte quelques dizaines de lignes, et une classe tient sur huit bits.
-    std::unordered_map<uint32, uint32> _questTokens;
+    // Cle sur 64 bits : (jeton << 16) | (classe << 8) | spe. Le jeton seul tient
+    // deja sur plus de 16 bits, et la spe d'ours vaut 10 - les deux decalages de
+    // huit laissent la place aux trois sans se chevaucher.
+    std::unordered_map<uint64, uint32> _questTokens;
     size_t _itemCount = 0;
     bool _loaded = false;
 

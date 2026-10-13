@@ -186,14 +186,45 @@ JOIN `item_template` i ON i.`entry` = j.`piece`;
 --    La table est creee par le fichier 56 ; ce CREATE IF NOT EXISTS la repete
 --    a l'identique pour que ce fichier reste jouable seul.
 -- ---------------------------------------------------------------------
+-- ---------------------------------------------------------------------
+-- LA TABLE DE CONVERSION A GAGNE UNE COLONNE spec
+--
+-- Sa cle etait (token_id, class). Les jetons de Zul'Gurub donnaient une piece
+-- par CLASSE, donc la classe suffisait. Ahn'Qiraj a montre la limite : ses deux
+-- jetons d'arme ouvrent un CHOIX, et le choix depend de la SPE.
+--
+--   Imperial Qiraji Armaments, guerrier -> hache pour Fureur,
+--                                          BOUCLIER pour Protection
+--   Imperial Qiraji Regalia,   chaman   -> baton Acolyte pour Elementaire,
+--                                          baton Augur pour Restauration
+--
+-- Avec l'ancienne cle, le meilleur rang de la CLASSE gagnait : un guerrier
+-- Protection echangeait son jeton contre la hache et laissait le bouclier.
+--
+-- La table est ENTIEREMENT DERIVEE des listes - les fichiers 56 et 75 la
+-- remplissent - donc la migration peut la supprimer sans rien perdre. Le test
+-- porte sur la COLONNE et non sur la table : une base d'avant le changement a
+-- bien la table, c'est spec qui lui manque.
+-- ---------------------------------------------------------------------
+SET @spec_absente := (
+    SELECT COUNT(*) = 0 FROM `information_schema`.`COLUMNS`
+    WHERE `TABLE_SCHEMA` = DATABASE()
+      AND `TABLE_NAME` = 'playerbots_bis_quest_token'
+      AND `COLUMN_NAME` = 'spec');
+SET @ordre := IF(@spec_absente, 'DROP TABLE IF EXISTS `playerbots_bis_quest_token`', 'DO 0');
+PREPARE migre FROM @ordre;
+EXECUTE migre;
+DEALLOCATE PREPARE migre;
+
 CREATE TABLE IF NOT EXISTS `playerbots_bis_quest_token` (
     `token_id` INT UNSIGNED NOT NULL COMMENT 'objet de quete tenu par le bot',
     `class`    TINYINT UNSIGNED NOT NULL COMMENT 'classe du bot',
+    `spec`     TINYINT UNSIGNED NOT NULL COMMENT 'spe du bot - 10 = ours druide',
     `piece_id` INT UNSIGNED NOT NULL COMMENT 'piece que le jeton achete',
     `comment`  VARCHAR(120) NOT NULL DEFAULT '',
-    PRIMARY KEY (`token_id`, `class`)
+    PRIMARY KEY (`token_id`, `class`, `spec`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  COMMENT='mod-playerbots-bis : jeton de quete -> piece, par classe';
+  COMMENT='mod-playerbots-bis : jeton de quete -> piece, par classe et par spe';
 
 DELETE FROM `playerbots_bis_quest_token`
 WHERE `token_id` IN (SELECT DISTINCT `jeton` FROM `bis_jetons_aq`);
@@ -223,15 +254,16 @@ DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_rang`;
 CREATE TEMPORARY TABLE `bis_jetons_aq_rang` (
     `jeton` INT UNSIGNED NOT NULL,
     `class` TINYINT UNSIGNED NOT NULL,
+    `spec`  TINYINT UNSIGNED NOT NULL,
     `rang`  TINYINT UNSIGNED NOT NULL,
-    PRIMARY KEY (`jeton`, `class`)
+    PRIMARY KEY (`jeton`, `class`, `spec`)
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO `bis_jetons_aq_rang` (`jeton`, `class`, `rang`)
-SELECT j.`jeton`, b.`class`, MIN(b.`rank`)
+INSERT INTO `bis_jetons_aq_rang` (`jeton`, `class`, `spec`, `rang`)
+SELECT j.`jeton`, b.`class`, b.`spec`, MIN(b.`rank`)
 FROM `bis_jetons_aq` j
 JOIN `bis_listes_aq` b ON b.`item_id` = j.`piece`
-GROUP BY j.`jeton`, b.`class`;
+GROUP BY j.`jeton`, b.`class`, b.`spec`;
 
 -- Etape 2 : a ce rang, la piece de plus petit identifiant. Le MIN tranche les
 -- egalites, pour que deux imports rendent le meme resultat.
@@ -239,23 +271,25 @@ DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_choix`;
 CREATE TEMPORARY TABLE `bis_jetons_aq_choix` (
     `jeton` INT UNSIGNED NOT NULL,
     `class` TINYINT UNSIGNED NOT NULL,
+    `spec`  TINYINT UNSIGNED NOT NULL,
     `piece` INT UNSIGNED NOT NULL,
-    PRIMARY KEY (`jeton`, `class`)
+    PRIMARY KEY (`jeton`, `class`, `spec`)
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO `bis_jetons_aq_choix` (`jeton`, `class`, `piece`)
-SELECT r.`jeton`, r.`class`, MIN(j.`piece`)
+INSERT INTO `bis_jetons_aq_choix` (`jeton`, `class`, `spec`, `piece`)
+SELECT r.`jeton`, r.`class`, r.`spec`, MIN(j.`piece`)
 FROM `bis_jetons_aq_rang` r
 JOIN `bis_jetons_aq` j ON j.`jeton` = r.`jeton`
 JOIN `bis_listes_aq` b
-  ON b.`item_id` = j.`piece` AND b.`class` = r.`class` AND b.`rank` = r.`rang`
-GROUP BY r.`jeton`, r.`class`;
+  ON b.`item_id` = j.`piece` AND b.`class` = r.`class`
+ AND b.`spec` = r.`spec` AND b.`rank` = r.`rang`
+GROUP BY r.`jeton`, r.`class`, r.`spec`;
 
 -- Etape 3 : la conversion elle-meme. Le nom du jeton se relit dans
 -- item_template plutot que dans bis_jetons_aq, qui le porte aussi : ce serait
 -- une seconde lecture d'une table temporaire deja jointe.
-INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `piece_id`, `comment`)
-SELECT c.`jeton`, c.`class`, c.`piece`,
+INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `spec`, `piece_id`, `comment`)
+SELECT c.`jeton`, c.`class`, c.`spec`, c.`piece`,
        CONCAT(t.`name`, ' -> ', i.`name`)
 FROM `bis_jetons_aq_choix` c
 JOIN `item_template` i ON i.`entry` = c.`piece`
@@ -308,7 +342,7 @@ ORDER BY b.`comment`, b.`class`, b.`spec`;
 SELECT DISTINCT b.`item_id` AS jeton_sans_conversion, b.`class`, b.`comment`
 FROM `playerbots_bis_item` b
 LEFT JOIN `playerbots_bis_quest_token` t
-  ON t.`token_id` = b.`item_id` AND t.`class` = b.`class`
+  ON t.`token_id` = b.`item_id` AND t.`class` = b.`class` AND t.`spec` = b.`spec`
 WHERE b.`item_id` IN (SELECT DISTINCT `jeton` FROM `bis_jetons_aq`)
   AND t.`piece_id` IS NULL
 ORDER BY b.`item_id`, b.`class`;

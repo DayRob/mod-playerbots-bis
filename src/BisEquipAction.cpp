@@ -66,7 +66,10 @@ bool BisEquipUpgradesAction::ConvertQuestTokens(ChatHandler* report)
         if (!proto || proto->Class != ITEM_CLASS_QUEST)
             continue;
 
-        uint32 const pieceId = sBisPriorityMgr->QuestTokenReward(proto->ItemId, bot->getClass());
+        // La SPE compte autant que la classe : Imperial Qiraji Armaments donne
+        // une hache a un guerrier Fureur et un BOUCLIER a un Protection.
+        uint32 const pieceId = sBisPriorityMgr->QuestTokenReward(
+            proto->ItemId, bot->getClass(), sBisPriorityMgr->GetSpec(bot));
         if (!pieceId)
             continue;
 
