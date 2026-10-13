@@ -70,6 +70,15 @@ else {
 }
 Write-Host ("  PlayerbotsBis.MinBotLevel = {0}" -f $valeur) `
     -ForegroundColor $(if ($reglagePose) { 'Green' } else { 'Red' })
+
+$vip = '(absent)'
+if ($Conf -and (Test-Path $Conf)) {
+    foreach ($l in (Get-Content -LiteralPath $Conf)) {
+        if ($l -match '^\s*PlayerbotsBis\.VipGuildId\s*=\s*(.*?)\s*$') { $vip = $Matches[1]; break }
+    }
+}
+Write-Host ("  PlayerbotsBis.VipGuildId  = {0}" -f $vip) `
+    -ForegroundColor $(if ($vip -match '^[1-9]') { 'Green' } else { 'Yellow' })
 Write-Host ''
 
 # --- 2. Ce que le serveur dit de lui-meme ----------------------------------
@@ -96,6 +105,12 @@ $seReclame  = (Chercher 'Missing property PlayerbotsBis\.MinBotLevel').Count -gt
 $aDemarre   = (Chercher '\[mod-playerbots-bis\] Active').Count -gt 0
 $aExpulse   = (Chercher '\[mod-playerbots-bis\].*deconnecte')
 
+# La file d'attente annonce son passage MEME quand elle n'ecarte personne.
+# L'absence de cette ligne prouve donc que ce code n'est pas dans le binaire,
+# alors qu'un zero prouverait qu'il a tourne sans rien trouver. Les deux
+# demandent des reponses opposees, d'ou la distinction.
+$fileVue = (Chercher '\[mod-playerbots-bis\] File d.attente')
+
 Write-Host ''
 Write-Host ("  module charge au demarrage      : {0}" -f $(if ($aDemarre) { 'oui' } else { 'NON' })) `
     -ForegroundColor $(if ($aDemarre) { 'Green' } else { 'Red' })
@@ -103,6 +118,8 @@ Write-Host ("  binaire connait MinBotLevel     : {0}" -f $(if ($seReclame -or $r
     -ForegroundColor $(if ($seReclame -or $reglagePose) { 'Green' } else { 'Red' })
 Write-Host ("  expulsions enregistrees         : {0}" -f $aExpulse.Count) `
     -ForegroundColor $(if ($aExpulse.Count) { 'Green' } else { 'Yellow' })
+Write-Host ("  file d attente au demarrage     : {0}" -f $(if ($fileVue.Count) { 'oui' } else { 'JAMAIS VUE' })) `
+    -ForegroundColor $(if ($fileVue.Count) { 'Green' } else { 'Red' })
 Write-Host ''
 
 if ($aExpulse.Count) {
@@ -200,10 +217,15 @@ elseif (-not $reglagePose) {
     Write-Host '  Recompile, mais le reglage est absent ou a 0 : le filtre dort.' -ForegroundColor Red
     Write-Host '  .\tools\population_des_bots.ps1 -Bots 500 -Appliquer' -ForegroundColor Yellow
 }
+elseif ($baseLue -and -not $aEcrit -and -not $fileVue.Count) {
+    Write-Host '  La file d attente n est pas dans le binaire : RECOMPILER.' -ForegroundColor Red
+    Write-Host '  Le filtre, lui, tourne - il vient du commit precedent. Les deux' -ForegroundColor Red
+    Write-Host '  ne sont pas arrives dans la meme compilation.' -ForegroundColor Red
+}
 elseif ($baseLue -and -not $aEcrit) {
-    Write-Host '  Le reglage est pose mais AUCUNE ligne logout en base :' -ForegroundColor Red
-    Write-Host '  la file d attente n a pas tourne. Soit le binaire est ancien' -ForegroundColor Red
-    Write-Host '  (recompiler), soit OnStartup ne se declenche pas chez toi.' -ForegroundColor Red
+    Write-Host '  La file a tourne mais n a rien ecrit : elle ne trouve aucun bot' -ForegroundColor Red
+    Write-Host '  a ecarter. C est le filtre de selection qui est en cause, et non' -ForegroundColor Red
+    Write-Host '  le moment ou il s execute. Colle-moi la ligne "File d attente".' -ForegroundColor Red
 }
 elseif (-not $aExpulse.Count) {
     Write-Host '  Tout est en place, mais aucune expulsion enregistree.' -ForegroundColor Yellow
