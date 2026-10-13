@@ -51,6 +51,14 @@ CRENEAUX = {
     "main hand": 15, "weapon": 15, "two hand": 15, "2h weapon": 15,
     "orc weapon": 15, "human weapon": 15, "dwarf weapon": 15, "troll weapon": 15,
     "off hand": 16, "offhand": 16, "shield": 16,
+    # La page Protection separe le bouclier de l'arme de main gauche, et nomme
+    # la seconde "off hand weapon". Sans ce libelle, ses six blocs n'avaient
+    # aucun creneau et sortaient en "inconnus" : pour un tank le resultat etait
+    # le bon - l'arme ne passait pas - mais par ACCIDENT, et une page DPS
+    # portant le meme libelle aurait perdu son arme de main gauche en silence.
+    # Nomme ici, le creneau est connu, et c'est --sans-arme-main-gauche qui
+    # decide de l'ecarter ou non.
+    "off hand weapon": 16, "offhand weapon": 16,
     "orc off hand": 16, "human off hand": 16,
     "ranged": 17, "relic": 17, "wand": 17, "libram": 17, "idol": 17, "totem": 17,
 }
