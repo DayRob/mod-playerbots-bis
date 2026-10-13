@@ -161,8 +161,19 @@ QUALIFICATIF = re.compile(
     r"death knight|alliance|horde|oh|mh|a|h)\)\s*$", re.I)
 
 
+# wowtbc numerote parfois la PREMIERE des deux occurrences d'un nom :
+# "Signet Ring of the Bronze Dragonflight-v2", quand la seconde est nue. C'est
+# sa facon de distinguer plusieurs versions d'une meme recompense de quete.
+#
+# Sans ce nettoyage les deux occurrences different, l'ancre ne se forme pas, et
+# l'objet disparait SANS apparaitre dans les ecartes - trois listes AQ avaient
+# ainsi perdu cette bague avant qu'on s'en apercoive.
+VERSION = re.compile(r"-v\d+\s*$", re.I)
+
+
 def nettoyer(nom):
-    nu = QUALIFICATIF.sub("", nom).strip()
+    nu = VERSION.sub("", QUALIFICATIF.sub("", nom)).strip()
+    nu = QUALIFICATIF.sub("", nu).strip()
     return NOMS_CORRIGES.get(nu, nu)
 
 
@@ -197,6 +208,18 @@ def lire_blocs(lignes):
             i = j
         else:
             i += 1
+
+    # Un objet dont le nom ne s'apparie pas disparait sans bruit. Or dans ce
+    # format chaque libelle de creneau appartient a exactement un bloc : moins
+    # de blocs que de libelles trahit donc un appariement rate, et c'est la
+    # seule trace qu'on puisse en avoir. Mieux vaut une alerte imprecise qu'un
+    # objet perdu en silence.
+    libelles = sum(1 for l in lignes if l.lower() in CRENEAUX or l.lower() in IGNORES)
+    if len(blocs) < libelles:
+        print("ATTENTION : %d libelles de creneau pour %d objets reconnus - "
+              "%d bloc(s) non apparie(s), donc perdu(s)."
+              % (libelles, len(blocs), libelles - len(blocs)), file=sys.stderr)
+
     return blocs
 
 
