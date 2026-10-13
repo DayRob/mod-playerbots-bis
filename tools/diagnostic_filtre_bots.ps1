@@ -129,15 +129,26 @@ function Essayer-Client {
     return $false
 }
 
+# Un chemin donne a la main peut etre faux : le valider ici plutot que mourir
+# dessus plus bas. Un diagnostic qui plante ne diagnostique rien.
+if ($Mysql -and -not (Essayer-Client $Mysql)) {
+    Write-Host ("  client mysql inutilisable : {0}" -f $Mysql) -ForegroundColor Yellow
+    $Mysql = $null
+}
+
 if (-not $Mysql) {
+    # Get-CimInstance n'existe pas partout. Un diagnostic doit degrader, pas
+    # s'arreter : sans le service on se rabat sur les emplacements classiques.
     $candidats = @()
-    foreach ($svc in (Get-CimInstance Win32_Service -ErrorAction SilentlyContinue |
-                      Where-Object { $_.Name -match 'mysql|mariadb' })) {
-        if ($svc.PathName -match '"?([A-Za-z]:\\[^"]*?\\bin)\\[^\\"]*\.exe') {
-            $candidats += (Join-Path $Matches[1] 'mysql.exe')
-            $candidats += (Join-Path $Matches[1] 'mariadb.exe')
+    try {
+        foreach ($svc in (Get-CimInstance Win32_Service -ErrorAction SilentlyContinue |
+                          Where-Object { $_.Name -match 'mysql|mariadb' })) {
+            if ($svc.PathName -match '"?([A-Za-z]:\\[^"]*?\\bin)\\[^\\"]*\.exe') {
+                $candidats += (Join-Path $Matches[1] 'mysql.exe')
+                $candidats += (Join-Path $Matches[1] 'mariadb.exe')
+            }
         }
-    }
+    } catch { }
     $candidats += Get-ChildItem 'C:\Program Files','C:\Program Files (x86)' `
                     -Directory -Recurse -Filter 'bin' -ErrorAction SilentlyContinue |
                   ForEach-Object { Join-Path $_.FullName 'mysql.exe'; Join-Path $_.FullName 'mariadb.exe' }
@@ -159,7 +170,11 @@ SELECT CONCAT(
 FROM playerbots_random_bots p
 LEFT JOIN acore_characters.guild_member gm ON gm.guid = p.bot;
 '@
+    $sauve = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     $lignesPosees = ($sql | & $Mysql "-u$Utilisateur" "-p$MotDePasse" acore_playerbots --skip-column-names 2>$null) -join ''
+    $ErrorActionPreference = $sauve
+    if (-not $lignesPosees) { $lignesPosees = '(la base a refuse - verifie -Utilisateur / -MotDePasse)' }
     Write-Host ''
     Write-Host 'Etat de la base :' -ForegroundColor Cyan
     Write-Host ("  " + $lignesPosees) -ForegroundColor DarkGray
@@ -169,7 +184,8 @@ else {
     Write-Host 'Client mysql introuvable : etat de la base non verifie.' -ForegroundColor Yellow
 }
 
-$aEcrit = ($lignesPosees -match 'logout_poses=([1-9]\d*)')
+$baseLue = ($lignesPosees -match 'logout_poses=\d+')
+$aEcrit  = ($lignesPosees -match 'logout_poses=[1-9]\d*')
 
 # --- 3. Le verdict ---------------------------------------------------------
 Write-Host 'VERDICT' -ForegroundColor Cyan
@@ -184,7 +200,7 @@ elseif (-not $reglagePose) {
     Write-Host '  Recompile, mais le reglage est absent ou a 0 : le filtre dort.' -ForegroundColor Red
     Write-Host '  .\tools\population_des_bots.ps1 -Bots 500 -Appliquer' -ForegroundColor Yellow
 }
-elseif ($null -ne $lignesPosees -and -not $aEcrit) {
+elseif ($baseLue -and -not $aEcrit) {
     Write-Host '  Le reglage est pose mais AUCUNE ligne logout en base :' -ForegroundColor Red
     Write-Host '  la file d attente n a pas tourne. Soit le binaire est ancien' -ForegroundColor Red
     Write-Host '  (recompiler), soit OnStartup ne se declenche pas chez toi.' -ForegroundColor Red
