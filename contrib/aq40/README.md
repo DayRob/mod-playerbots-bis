@@ -56,10 +56,26 @@ jusqu'a 45 yards, puis `StopMoving`. Il ne frappe jamais au contact. Donc la
 separation se joue entierement sur Vek'nilash — c'est pour ca qu'un seul
 groupe tire.
 
+**Les scarabes reveilles ne font pas decrocher le raid.** Mutate Bug (802) et
+Explode Bug (804) rendent une bestiole hostile et elle va chercher quelqu'un.
+Seul le bot qu'elle a effectivement atteint est laisse avec elle —
+`Unit::getAttackers()` repond exactement a cette question. Tous les autres
+restent sur les Empereurs : une bestiole reveillee est un rang 0 de niveau 60,
+et les deux jumeaux partagent une seule barre de vie sur un chrono de 15
+minutes.
+
 **Rien de tout ca ne bouge avant le pull.** Les trois declencheurs repondent
 non tant qu'aucun jumeau n'est en combat. En dehors du combat lui-meme, les
 bots restent entierement sous le controle de ce qui les mene d'habitude —
-mod-dungeon-clear compris.
+mod-dungeon-clear compris, dont la conf prevoit explicitement ce partage :
+
+> the boss fights themselves are owned by the playerbots raid strategies while
+> dungeon-clear stands down
+
+Sur une carte de raid, mod-dungeon-clear route jusqu'au boss, rassemble le
+raid a un point de ralliement (`RaidMusterTotalTimeoutSecs`, 60 s au plafond),
+libere le pull, puis se retire du combat. Cette strategie en est donc le
+proprietaire attendu : `.dc on` a l'entree doit suffire.
 
 ## Les scarabes de la salle : pas pour cette strategie
 
@@ -138,7 +154,6 @@ le pull, une fois par boss.
 | `SAFE_SEPARATION` | 70 | 60 plus une marge |
 | `MELEE_STAY_AWAY_FROM_VEKLOR` | 15 | Arcane Burst sur `NOMINAL_MELEE_RANGE` |
 | `CASTER_STAY_AWAY_FROM_VEKNILASH` | 25 | `AddThreat(victim, 2000.f)` sur le plus proche apres teleportation |
-| `BUG_ALERT_RANGE` | 15 | un bot aux prises avec un scarabe reveille est laisse tranquille |
 | carte | 531 | Temple d'Ahn'Qiraj |
 
 Deux mesures prises sur une base reelle, pas supposees : les deux jumeaux

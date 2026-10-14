@@ -15,8 +15,9 @@ bool Aq40TwinsDragApartTrigger::IsActive()
     if (!RaidAq40Utils::IsPhysicalDamageDealer(bot))
         return false;
 
-    // A bot being chewed on by an awakened bug deals with the bug first.
-    if (RaidAq40Utils::IsAngryBugNear(bot))
+    // A bot with a woken bug in its face deals with the bug first. Only that
+    // bot: the rest of the raid stays on the emperors.
+    if (RaidAq40Utils::IsBugOnMe(bot))
         return false;
 
     Unit* veklor = RaidAq40Utils::GetVeklor(bot);
@@ -47,7 +48,7 @@ bool Aq40TwinsWrongTargetTrigger::IsActive()
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 
-    if (RaidAq40Utils::IsAngryBugNear(bot))
+    if (RaidAq40Utils::IsBugOnMe(bot))
         return false;
 
     Unit* assigned = RaidAq40Utils::GetAssignedTwin(bot);

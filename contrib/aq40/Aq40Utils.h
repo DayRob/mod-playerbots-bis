@@ -44,9 +44,10 @@ constexpr float CASTER_STAY_AWAY_FROM_VEKNILASH = 25.0f;
 // short enough that a bot busy elsewhere in the temple is never dragged in.
 constexpr float TWIN_SCAN_RANGE = 150.0f;
 
-// Mutate Bug (802) and Explode Bug (804) turn a nearby scarab or scorpion hostile.
-// A bot busy with one of those is left alone rather than dragged back to the boss.
-constexpr float BUG_ALERT_RANGE = 15.0f;
+// Mutate Bug (802) and Explode Bug (804) turn a scarab or scorpion hostile, and
+// it goes for somebody. Only the bot it actually reached is left alone with it;
+// everyone else stays on the emperors, because a woken bug is a rank-0 level-60
+// nuisance and both emperors share one health pool on a 15-minute timer.
 
 // The chamber's own bugs never strike first: npc_ahnqiraji_critter::Reset()
 // returns early for any spawn that linked_respawn ties to a Vek'lor spawn, and
@@ -79,7 +80,8 @@ public:
 
     static float Separation(Unit* veklor, Unit* veknilash);
 
-    static bool IsAngryBugNear(Player* bot);
+    // A woken scarab or scorpion is in melee on this bot specifically.
+    static bool IsBugOnMe(Player* bot);
 
 };
 
