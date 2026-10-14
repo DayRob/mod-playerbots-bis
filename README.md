@@ -912,10 +912,14 @@ Ils vivent ici parce qu'un `git pull` dans mod-playerbots écrase son
 arborescence. L'installateur les recopie au bon endroit et branche la
 stratégie :
 
+```powershell
+powershell -ExecutionPolicy Bypass -File "C:\Azerothcore\modules\mod-playerbots-bis\tools\installer_aq40_twins.ps1"
+powershell -ExecutionPolicy Bypass -File "C:\Azerothcore\modules\mod-playerbots-bis\tools\installer_aq40_twins.ps1" -Retirer
 ```
-.\tools\installer_aq40_twins.ps1
-.\tools\installer_aq40_twins.ps1 -Retirer
-```
+
+Le contournement `-ExecutionPolicy Bypass` ne vaut que pour le lancement en
+cours. `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` règle le cas
+définitivement pour tous les scripts du projet, sans droits administrateur.
 
 Il sauvegarde chaque fichier modifié, relit après écriture, se relance sans
 danger, et `-Retirer` rend les quatre fichiers touchés identiques à

@@ -133,10 +133,21 @@ positions de spawn, la faction des scarabes au repos, et surtout la colonne
 
 ## Installation
 
+```powershell
+powershell -ExecutionPolicy Bypass -File "C:\Azerothcore\modules\mod-playerbots-bis\tools\installer_aq40_twins.ps1"
 ```
-cd C:\Azerothcore\modules\mod-playerbots-bis
-.\tools\installer_aq40_twins.ps1
+
+Le contournement `-ExecutionPolicy Bypass` ne vaut que pour ce lancement et ne
+change rien au systeme. Pour en finir une fois pour toutes avec tous les
+scripts du projet, sans etre administrateur :
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
+
+Les fichiers arrivant par `git pull` ne portent pas la marque de zone
+d'Internet, donc `RemoteSigned` les laisse passer sans `Unblock-File`.
+
 
 Le script copie les douze fichiers dans
 `mod-playerbots\src\Ai\Raid\Aq40\` et branche la strategie a quatre endroits :
@@ -148,8 +159,8 @@ Le script copie les douze fichiers dans
 
 Il sauvegarde chaque fichier avant (`.avant_aq40`), relit apres pour prouver
 que l'ecriture a atterri, et se relance sans danger : il saute ce qui est
-deja fait. `-Retirer` annule tout et rend les quatre fichiers identiques a
-l'original.
+deja fait. `-Retirer` (ajoute a la meme ligne de commande) annule tout et rend les
+quatre fichiers identiques a l'original.
 
 **Il faut reconfigurer CMake, pas seulement rebuild.** AzerothCore liste les
 fichiers des modules a la configuration : un dossier neuf n'existe pas pour un
