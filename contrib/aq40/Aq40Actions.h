@@ -65,6 +65,18 @@ public:
     bool Execute(Event event) override;
 };
 
+// Rejoint l'endroit d'ou ce bot doit partir, avant que le combat commence.
+class Aq40TakeStationAction : public MovementAction
+{
+public:
+    Aq40TakeStationAction(PlayerbotAI* botAI, std::string const name = "aq40 take your station")
+        : MovementAction(botAI, name)
+    {
+    }
+
+    bool Execute(Event event) override;
+};
+
 // Tient son piedestal, et le jumeau qui va avec.
 //
 // Trois gestes, dans cet ordre : provoquer quand le jumeau confie regarde

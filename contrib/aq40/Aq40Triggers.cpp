@@ -154,3 +154,37 @@ bool Aq40TankTheBugsTrigger::IsActive()
 
     return RaidAq40Utils::IsOnBugDuty(bot);
 }
+
+bool Aq40PrePullTrigger::IsActive()
+{
+    if (!bot->IsAlive() || bot->IsInCombat())
+        return false;
+
+    // Il mange ou il boit : on le laisse finir. MoveTo releve un bot assis, donc
+    // le placer maintenant lui couperait sa boisson - et dungeon-clear, qui
+    // libere son Smart Rest juste avant le pull, aurait a la recommencer.
+    if (bot->IsSitState())
+        return false;
+
+    if (RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    Position station;
+    if (!RaidAq40Utils::GetPrePullStation(bot, station))
+        return false;
+
+    // DANS LA SALLE, PAS DANS LE COULOIR. Un bot encore en chemin appartient a
+    // dungeon-clear, qui connait la route; le tirer vers un poste a travers les
+    // murs ne ferait que le perdre.
+    Position milieu;
+    if (!RaidAq40Utils::GetBugStation(bot, milieu))
+        return false;
+
+    if (bot->GetExactDist2d(milieu.GetPositionX(), milieu.GetPositionY()) > PREPULL_GATHER_RANGE)
+        return false;
+
+    // DEJA EN PLACE : on rend faux, et rien n'est bloque. C'est ce qui permet
+    // au pull de partir - le tien, ou celui de dungeon-clear a la reprise -
+    // sans que cette regle ait a lui ceder quoi que ce soit.
+    return bot->GetExactDist2d(station.GetPositionX(), station.GetPositionY()) >= TANK_ANCHOR_TOLERANCE;
+}

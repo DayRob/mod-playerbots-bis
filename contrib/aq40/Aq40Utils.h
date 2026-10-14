@@ -92,6 +92,31 @@ constexpr float VEKLOR_TANK_DISTANCE = 10.0f;
 // piedestal. En deca, il rentre et le jumeau suit.
 constexpr float TANK_GRAB_RANGE = 25.0f;
 
+// ── LA MISE EN PLACE AVANT LE PULL ────────────────────────────────────────
+//
+// Elle n'existe que dans UNE fenetre : les Jumeaux pas encore engages, le bot
+// hors combat, et le raid deja dans la salle. C'est exactement l'etat ou
+// mod-dungeon-clear met le run quand DungeonClear.WaitAtBoss = 1 : il met en
+// pause juste avant le pull, et sa propre documentation dit que "the driving
+// ladder is inert when paused and followers stop trailing the leader". Rien ne
+// tire donc les bots pendant qu'ils se placent, et rien n'est bloque non plus :
+// des qu'un bot est a son poste, le declencheur rend faux et le pull - le tien
+// ou celui de dungeon-clear - part sans rien avoir a attendre.
+//
+// Au-dela de cette distance du milieu de la salle, on ne touche a rien : un bot
+// encore dans le couloir appartient a dungeon-clear.
+constexpr float PREPULL_GATHER_RANGE = 100.0f;
+
+// De combien chacun se decale de son poste vers le milieu, pour ne pas se tenir
+// sur son tank. Un corps-a-corps n'a que quelques pas a faire au pull; un
+// lanceur de sorts est deja a portee.
+constexpr float MELEE_PREPULL_OFFSET = 10.0f;
+constexpr float CASTER_PREPULL_OFFSET = 20.0f;
+
+// L'ecartement lateral entre deux bots du meme groupe, gradue sur leur GUID :
+// sans lui, trente-six bots visent le meme point et s'empilent.
+constexpr float PREPULL_SPREAD_STEP = 4.0f;
+
 // How far the bug tank looks for a woken bug. Wide enough to cover the raid he
 // is protecting - the healers stand behind their own group, not on him - and
 // short enough that he never leaves the fight to chase something at the far end
@@ -197,10 +222,16 @@ public:
     // de la ou il est reparti.
     static bool IsOnBugDuty(Player* bot);
 
-    // Le milieu des deux socles : la ou les bestioles se reveillent et ou se
+    // Le milieu des deux postes : la ou les bestioles se reveillent et ou se
     // tiennent les soigneurs. Le poste du tank des bestioles quand la salle est
     // calme.
     static bool GetBugStation(Player* bot, Position& out);
+
+    // Ou ce bot doit se tenir AVANT le pull. Les trois tanks sur leurs postes,
+    // les corps-a-corps du cote ou Vek'nilash sera tenu, les lanceurs de sorts
+    // du cote de Vek'lor, chacun decale de ses voisins. Faux pour les
+    // soigneurs : ils suivent, et c'est tres bien comme ca.
+    static bool GetPrePullStation(Player* bot, Position& out);
 };
 
 #endif

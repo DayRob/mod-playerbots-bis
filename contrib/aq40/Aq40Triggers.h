@@ -46,6 +46,15 @@ public:
     bool IsActive() override;
 };
 
+// Les Jumeaux ne sont pas encore engages, le raid est dans la salle, et ce bot
+// n'est pas a l'endroit d'ou il doit partir.
+class Aq40PrePullTrigger : public Trigger
+{
+public:
+    Aq40PrePullTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 not in place yet") {}
+    bool IsActive() override;
+};
+
 // Ce bot a un piedestal a tenir et le combat a commence. Toujours vrai pour les
 // rangs 0 et 1 pendant le combat : c'est l'action qui juge s'il y a quelque
 // chose a faire, et elle rend faux des que le poste est tenu - l'IA de classe

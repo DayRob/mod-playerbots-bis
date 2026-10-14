@@ -20,6 +20,7 @@ public:
         creators["aq40 twins keep distance"] = &RaidAq40ActionContext::twins_keep_distance;
         creators["aq40 twins cross over"] = &RaidAq40ActionContext::twins_cross_over;
         creators["aq40 twins attack my twin"] = &RaidAq40ActionContext::twins_attack_my_twin;
+        creators["aq40 take your station"] = &RaidAq40ActionContext::take_your_station;
         creators["aq40 tank hold your pedestal"] = &RaidAq40ActionContext::tank_hold_your_pedestal;
         creators["aq40 tank the bugs"] = &RaidAq40ActionContext::tank_the_bugs;
     }
@@ -29,6 +30,7 @@ private:
     static Action* twins_keep_distance(PlayerbotAI* botAI) { return new Aq40TwinsKeepDistanceAction(botAI); }
     static Action* twins_cross_over(PlayerbotAI* botAI) { return new Aq40TwinsFarSideAction(botAI); }
     static Action* twins_attack_my_twin(PlayerbotAI* botAI) { return new Aq40TwinsAttackMyTwinAction(botAI); }
+    static Action* take_your_station(PlayerbotAI* botAI) { return new Aq40TakeStationAction(botAI); }
     static Action* tank_hold_your_pedestal(PlayerbotAI* botAI) { return new Aq40TankAnchorAction(botAI); }
     static Action* tank_the_bugs(PlayerbotAI* botAI) { return new Aq40TankTheBugsAction(botAI); }
 };

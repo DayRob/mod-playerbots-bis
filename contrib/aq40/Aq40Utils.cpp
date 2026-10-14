@@ -5,6 +5,7 @@
  */
 
 #include "Aq40Utils.h"
+#include <cmath>
 #include "Group.h"
 #include "Player.h"
 #include "PlayerbotAI.h"
@@ -319,5 +320,60 @@ bool RaidAq40Utils::GetBugStation(Player* bot, Position& out)
     out.Relocate((poste0.GetPositionX() + poste1.GetPositionX()) / 2.0f,
                  (poste0.GetPositionY() + poste1.GetPositionY()) / 2.0f,
                  (poste0.GetPositionZ() + poste1.GetPositionZ()) / 2.0f);
+    return true;
+}
+
+bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
+{
+    Position poste0;
+    Position poste1;
+    if (!GetPosts(bot, poste0, poste1))
+        return false;
+
+    uint8 const rang = TankIndex(bot);
+    if (rang == 0)
+    {
+        out = poste0;
+        return true;
+    }
+    if (rang == 1)
+    {
+        out = poste1;
+        return true;
+    }
+    if (rang == 2)
+        return GetBugStation(bot, out);
+
+    // Les soigneurs ne sont pas places. Ils suivent le raid et soignent; les
+    // pousser quelque part ne ferait que les couper de ce qu'ils doivent voir.
+    bool const sorts = IsSpellDamageDealer(bot);
+    bool const physique = IsPhysicalDamageDealer(bot);
+    if (!sorts && !physique)
+        return false;
+
+    // Le poste du jumeau qu'il pourra blesser. Vek'nilash sera tenu au poste 0
+    // - c'est celui qui est le plus proche de sa plateforme - donc les
+    // corps-a-corps y vont, et les lanceurs de sorts vont en face.
+    Position const& poste = physique ? poste0 : poste1;
+    Position const& autre = physique ? poste1 : poste0;
+
+    float dX = autre.GetPositionX() - poste.GetPositionX();
+    float dY = autre.GetPositionY() - poste.GetPositionY();
+    float const ecart = std::sqrt(dX * dX + dY * dY);
+    if (ecart < 1.0f)
+        return false;
+
+    dX /= ecart;
+    dY /= ecart;
+
+    float const recul = physique ? MELEE_PREPULL_OFFSET : CASTER_PREPULL_OFFSET;
+
+    // L'ecartement lateral, gradue sur le GUID : sept rangs de part et d'autre
+    // de l'axe, stables d'un tick a l'autre puisqu'un GUID ne change jamais.
+    float const lateral = (float(bot->GetGUID().GetCounter() % 7u) - 3.0f) * PREPULL_SPREAD_STEP;
+
+    out.Relocate(poste.GetPositionX() + recul * dX - lateral * dY,
+                 poste.GetPositionY() + recul * dY + lateral * dX,
+                 poste.GetPositionZ());
     return true;
 }

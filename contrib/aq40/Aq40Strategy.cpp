@@ -9,10 +9,14 @@
 
 void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
-    // Every trigger below answers false until a twin is in combat, so nothing
-    // in this folder moves a bot, picks a target or blocks an action before the
-    // pull. Outside the fight itself, the bots stay entirely under whatever
-    // else drives them.
+    // Une seule regle agit avant le pull, et c'est la mise en place : tant que
+    // les Jumeaux ne sont pas engages, chacun rejoint l'endroit d'ou il doit
+    // partir. Elle ne touche a rien hors de la salle, s'efface des qu'un bot
+    // est a son poste, et laisse donc le pull partir sans rien lui ceder.
+    //
+    // Toutes les autres repondent faux tant qu'un Jumeau n'est pas en combat :
+    // elles ne deplacent personne, ne choisissent aucune cible et ne bloquent
+    // aucune action en dehors du combat lui-meme.
     //
     // Order matters. The tanks' posts come first - a post held is what keeps the
     // two emperors apart in the first place. Then, for everyone else: getting off
@@ -34,6 +38,10 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     // Le troisieme tank prend les bestioles du milieu. Elles se reveillent une
     // par une, toutes les quelques secondes, et vont vers les soigneurs - c'est
     // le soin lui-meme qui leur donne la menace.
+    triggers.push_back(
+        new TriggerNode("aq40 not in place yet",
+            { NextAction("aq40 take your station", ACTION_RAID + 5.0f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 tank off his pedestal",
             { NextAction("aq40 tank hold your pedestal", ACTION_RAID + 4.0f) }));

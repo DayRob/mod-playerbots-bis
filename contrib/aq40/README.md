@@ -18,6 +18,29 @@ Tout vient du script du coeur,
 `src/server/scripts/Kalimdor/TempleOfAhnQiraj/boss_twinemperors.cpp`, pas
 d'un guide. Les trois chiffres qui comptent en sortent.
 
+**-1. Tout le monde en place AVANT le pull.** Tant que les Jumeaux ne sont pas
+engages, chacun rejoint l'endroit d'ou il doit partir : les trois tanks sur
+leurs postes, les corps-a-corps a 10 yards du poste ou Vek'nilash sera tenu, les
+lanceurs de sorts a 20 yards de celui de Vek'lor, chacun decale lateralement de
+ses voisins — l'ecart est gradue sur le GUID, donc stable d'un tick a l'autre.
+Les soigneurs ne sont pas places : ils suivent, et c'est tres bien comme ca.
+
+**La fenetre est celle de `DungeonClear.WaitAtBoss = 1`**, qui met le run en
+pause juste avant le pull. La documentation de mod-dungeon-clear le dit :
+
+> the driving ladder above is inert when paused and followers stop trailing the
+> leader
+
+Rien ne tire donc les bots pendant qu'ils se placent. **Et rien n'est bloque non
+plus** : des qu'un bot est a son poste, la regle rend faux, donc le pull — le
+tien, `.dc pull`, ou la reprise du run — part sans avoir a lui ceder quoi que ce
+soit. La mise en place ne pulle jamais d'elle-meme.
+
+Deux gardes : au-dela de **100 yards du milieu de la salle** on ne touche a
+rien, parce qu'un bot encore dans le couloir appartient a dungeon-clear qui
+connait la route; et un bot **assis** est laisse tranquille, parce que `MoveTo`
+releve un bot qui mange et lui couperait sa boisson.
+
 **0. Un tank par piedestal, et ils priment sur tout le reste.** Chaque
 Empereur apparait sur son socle, aux deux bouts de la salle — mesure sur une
 base reelle : **158,2 yards** entre les deux. Les y GARDER vaut mieux que les

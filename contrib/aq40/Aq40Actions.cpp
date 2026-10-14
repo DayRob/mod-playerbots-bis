@@ -274,3 +274,16 @@ bool Aq40TankTheBugsAction::Execute(Event /*event*/)
                   bestiole->GetPositionZ(), false, false, false, false,
                   MovementPriority::MOVEMENT_COMBAT, true, false);
 }
+
+bool Aq40TakeStationAction::Execute(Event /*event*/)
+{
+    Position station;
+    if (!RaidAq40Utils::GetPrePullStation(bot, station))
+        return false;
+
+    if (bot->GetExactDist2d(station.GetPositionX(), station.GetPositionY()) < TANK_ANCHOR_TOLERANCE)
+        return false;
+
+    return MoveTo(bot->GetMapId(), station.GetPositionX(), station.GetPositionY(), station.GetPositionZ(),
+                  false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+}
