@@ -233,8 +233,24 @@ bool Aq40TankAnchorAction::Execute(Event /*event*/)
 bool Aq40TankTheBugsAction::Execute(Event /*event*/)
 {
     Unit* bestiole = RaidAq40Utils::GetBugToTank(bot);
+
+    // RIEN A FAIRE : ON TIENT LE MILIEU. C'est le poste du schema - les
+    // bestioles se reveillent la, les soigneurs s'y tiennent. Rendre faux ici
+    // rendrait la main a l'IA de classe, qui renverrait le tank sur Vek'nilash
+    // a quatre-vingts yards de la prochaine bestiole.
     if (!bestiole)
-        return false;
+    {
+        Position milieu;
+        if (!RaidAq40Utils::GetBugStation(bot, milieu))
+            return false;
+
+        if (bot->GetExactDist2d(milieu.GetPositionX(), milieu.GetPositionY()) >= TANK_ANCHOR_TOLERANCE)
+            return MoveTo(bot->GetMapId(), milieu.GetPositionX(), milieu.GetPositionY(),
+                          milieu.GetPositionZ(), false, false, false, false,
+                          MovementPriority::MOVEMENT_COMBAT, true, false);
+
+        return true;
+    }
 
     // Elle est deja sur moi : rien a arracher, l'IA de classe la tue.
     if (bestiole->GetVictim() == bot)

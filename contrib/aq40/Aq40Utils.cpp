@@ -251,8 +251,33 @@ Unit* RaidAq40Utils::GetBugToTank(Player* bot)
 
 bool RaidAq40Utils::IsOnBugDuty(Player* bot)
 {
-    // IsBugTank d'abord, et TankIndex rend son verdict sans rien chercher en
-    // grille pour tout le monde sauf les tanks : la recherche ci-dessous ne
-    // tourne donc que pour un seul bot du raid.
-    return IsBugTank(bot) && GetBugToTank(bot) != nullptr;
+    // UN POSTE, PAS UNE REACTION. La premiere version ne rendait vrai que
+    // lorsqu'une bestiole etait deja reveillee - donc entre deux, le tank
+    // repartait sur Vek'nilash, a quatre-vingts yards de la ou la suivante
+    // allait tomber. Elle en reveille une toutes les quelques secondes : le
+    // temps qu'il revienne, le soigneur avait deja ete mordu.
+    //
+    // Il tient donc le milieu tout le combat, comme sur le schema : les
+    // bestioles y sont, les soigneurs aussi.
+    return IsBugTank(bot) && AreTwinsEngaged(bot);
+}
+
+bool RaidAq40Utils::GetBugStation(Player* bot, Position& out)
+{
+    Creature* const veklor = GetVeklor(bot);
+    Creature* const veknilash = GetVeknilash(bot);
+    if (!veklor || !veknilash)
+        return false;
+
+    // LE MILIEU DES DEUX SOCLES, pas des deux Empereurs. Les socles ne bougent
+    // jamais; les Empereurs, eux, s'echangent toutes les trente secondes et se
+    // promenent entre-temps, donc un milieu calcule sur eux ferait marcher le
+    // tank sans raison a chaque tick.
+    Position const& gauche = veklor->GetHomePosition();
+    Position const& droite = veknilash->GetHomePosition();
+
+    out.Relocate((gauche.GetPositionX() + droite.GetPositionX()) / 2.0f,
+                 (gauche.GetPositionY() + droite.GetPositionY()) / 2.0f,
+                 (gauche.GetPositionZ() + droite.GetPositionZ()) / 2.0f);
+    return true;
 }

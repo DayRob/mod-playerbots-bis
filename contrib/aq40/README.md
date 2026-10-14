@@ -81,6 +81,15 @@ par les degats laisse le soigneur se faire mordre plusieurs secondes de plus.
 L'ordre d'urgence : la bestiole qui mange un soigneur, puis celle qui mange
 quelqu'un d'autre, puis la sienne ou celle qui n'a encore personne.
 
+**C'est un poste, pas une reaction.** Entre deux bestioles, il tient le MILIEU
+des deux socles — la ou elles se reveillent, et ou se tiennent les soigneurs.
+Le laisser repartir sur Vek'nilash entre-temps le mettait a quatre-vingts yards
+de la suivante : le temps qu'il revienne, le soigneur avait deja ete mordu.
+
+Le milieu se calcule sur les deux SOCLES, pas sur les deux Empereurs : les
+socles ne bougent jamais, alors qu'un milieu calcule sur les boss ferait marcher
+le tank a chaque tick.
+
 **1. Chacun tape le jumeau qu'il peut blesser.** Vek'lor (15276) est immunise
 au physique, Vek'nilash (15275) au magique sauf au sacre. Les degats sont
 partages entre les deux et ils meurent ensemble, donc la moitie du raid qui

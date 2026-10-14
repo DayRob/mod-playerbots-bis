@@ -171,10 +171,17 @@ public:
     // la salle est calme.
     static Unit* GetBugToTank(Player* bot);
 
-    // Vrai quand ce bot est le tank des bestioles ET qu'une bestiole demande
-    // son attention. Les quatre regles des Empereurs se taisent dans ce cas :
-    // sans ca, "mauvaise cible" le rappellerait sur Vek'nilash au tick suivant.
+    // Vrai pendant tout le combat pour le tank des bestioles - c'est un poste,
+    // pas une reaction. Les quatre regles des Empereurs se taisent alors pour
+    // lui : sans ca, "mauvaise cible" le rappellerait sur Vek'nilash des que la
+    // salle se calme, et la bestiole suivante tomberait a quatre-vingts yards
+    // de la ou il est reparti.
     static bool IsOnBugDuty(Player* bot);
+
+    // Le milieu des deux socles : la ou les bestioles se reveillent et ou se
+    // tiennent les soigneurs. Le poste du tank des bestioles quand la salle est
+    // calme.
+    static bool GetBugStation(Player* bot, Position& out);
 };
 
 #endif
