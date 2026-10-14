@@ -894,6 +894,41 @@ Un bot qui se trouve **dans** l'instance ne peut pas être libéré — le cœur
 refuse, et la commande le compte à part pour que tu le saches plutôt que de
 rapporter « 0 verrou ». Sors-le d'abord (`.summon <nom>` depuis l'extérieur).
 
+## Une stratégie AQ40 pour les Empereurs Jumeaux
+
+mod-playerbots n'a aucun dossier `Aq40` : la carte 531 (Temple d'Ahn'Qiraj)
+n'est rattachée à aucune stratégie, et les bots y combattent avec leur IA
+générique. Les Jumeaux sont le premier boss que ça rend infaisable, parce que
+chacun est immunisé à la moitié du raid.
+
+`contrib/aq40/` contient dix fichiers de code **mod-playerbots** — pas
+mod-playerbots-bis — qui répartissent les bots sur le bon jumeau, les écartent
+de celui qu'ils ne peuvent pas blesser, et font éloigner Vek'nilash de son
+frère jusqu'au-delà des 60 yards de Heal Brother.
+
+Ils vivent ici parce qu'un `git pull` dans mod-playerbots écrase son
+arborescence. L'installateur les recopie au bon endroit et branche la
+stratégie :
+
+```
+.\tools\installer_aq40_twins.ps1
+.\tools\installer_aq40_twins.ps1 -Retirer
+```
+
+Il sauvegarde chaque fichier modifié, relit après écriture, se relance sans
+danger, et `-Retirer` rend les quatre fichiers touchés identiques à
+l'original. **Il faut reconfigurer CMake, pas seulement rebuild** : AzerothCore
+liste les fichiers des modules à la configuration, donc un dossier neuf
+n'existe pas pour un rebuild seul.
+
+Les constantes, leur source dans le script du cœur, et la liste de ce que la
+stratégie ne fait pas sont dans `contrib/aq40/README.md`.
+À vérifier sur ta base avant d'entrer :
+
+```
+mysql -u acore -p acore_world -t < tools/jumeaux_aq40.sql
+```
+
 ## Licence et crédits
 
 GNU GPL v2, comme AzerothCore et mod-playerbots.
