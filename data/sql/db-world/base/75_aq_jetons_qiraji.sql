@@ -52,11 +52,19 @@
 --
 -- CE QUI N'EST PAS ICI, ET POURQUOI
 -- ---------------------------------
--- Les SCARABEES et les IDOLES qirajis - Clay, Bone, Ivory, Crystal, Stone,
--- Gold, Silver, Bronze Scarab, et les idoles des Ruines - sont absents a
--- dessein. Ils achetent des ENCHANTEMENTS, pas des pieces d'equipement : ils
--- n'ont aucun creneau ou se poser. C'est la meme raison qui ecarte Primal
--- Hakkari Idol du fichier 56.
+-- Les SCARABEES et les IDOLES qirajis sont traites par le fichier 77, et non
+-- ici. Ce fichier a longtemps affirme qu'ils "achetent des ENCHANTEMENTS, pas
+-- des pieces d'equipement" : c'etait FAUX, et jamais verifie. La base monde
+-- montre qu'ils achetent tout le palier 2.5 des Ruines.
+--
+-- Ils ne sont pas pour autant des jetons au sens de ce fichier-ci. Une piece
+-- leur en coute PLUSIEURS a la fois - la quete 8627 exige un Bone Scarab, un
+-- Silver Scarab et une Idol of the Sage - donc la conversion "un jeton, une
+-- piece" qu'on ecrit plus bas ne s'y applique pas. Le 77 les rend reclamables
+-- sans conversion, et explique pourquoi.
+--
+-- Primal Hakkari Idol, elle, reste hors du fichier 56 pour la raison qu'on
+-- croyait valoir ici : ses quetes rendent des enchantements.
 --
 -- Les RENDUS DE TETE a une seule recompense - "For All To See" pour Onyxia
 -- Tooth Pendant, "The Fall of Ossirian" pour Charm of the Shifting Sands - ne
