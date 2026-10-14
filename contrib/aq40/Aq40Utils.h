@@ -8,6 +8,7 @@
 #define PLAYERBOTS_AQ40UTILS_H
 
 #include "Creature.h"
+#include "Position.h"
 #include "Unit.h"
 
 class Player;
@@ -49,6 +50,39 @@ constexpr float CASTER_FAR_SIDE_OFFSET = 25.0f;
 // short enough that a bot busy elsewhere in the temple is never dragged in.
 constexpr float TWIN_SCAN_RANGE = 150.0f;
 
+// LES DEUX PIEDESTAUX. Chaque Empereur apparait sur le sien, aux deux bouts de
+// la salle - mesure sur une base reelle : 158,2 yards entre les deux. Le script
+// du coeur ne touche jamais a la position d'origine d'une creature (aucun
+// SetHomePosition dans boss_twinemperors.cpp), donc GetHomePosition() rend
+// toujours le piedestal de depart, meme apres trois teleportations.
+//
+// C'est la seule reference fixe de ce combat, et c'est ce qui fait tenir toute
+// la strategie : un tank par piedestal, chacun ramene le jumeau qu'on lui a
+// confie sur SON socle, et les deux restent a 158 yards - loin des 60 de Heal
+// Brother, sans que personne ait rien a trainer.
+constexpr float TANK_ANCHOR_TOLERANCE = 3.0f;
+
+// Pas de poste : ce bot n'est pas un tank, ou n'est pas en groupe.
+constexpr uint8 TANK_INDEX_NONE = 255;
+
+// Vek'lor lance Arcane Burst (568) des qu'un joueur est a portee de contact
+// (SelectNearestPlayer(NOMINAL_MELEE_RANGE), soit 5 yards), toutes les 7 a 12
+// secondes, et ca repousse. Le tank qui le tient se place donc juste au-dela -
+// assez pres pour rester le joueur le plus proche, ce qui est tout ce que la
+// teleportation regarde.
+constexpr float VEKLOR_TANK_DISTANCE = 10.0f;
+
+// Au-dela, le tank va CHERCHER son jumeau au lieu de l'attendre sur son socle :
+// c'est le cas de la capture ou les deux Empereurs ont fini sur le meme
+// piedestal. En deca, il rentre et le jumeau suit.
+constexpr float TANK_GRAB_RANGE = 25.0f;
+
+// How far the bug tank looks for a woken bug. Wide enough to cover the raid he
+// is protecting - the healers stand behind their own group, not on him - and
+// short enough that he never leaves the fight to chase something at the far end
+// of the chamber.
+constexpr float BUG_SCAN_RANGE = 60.0f;
+
 // Mutate Bug (802) and Explode Bug (804) turn a scarab or scorpion hostile, and
 // it goes for somebody. Only the bot it actually reached is left alone with it;
 // everyone else stays on the emperors, because a woken bug is a rank-0 level-60
@@ -88,6 +122,59 @@ public:
     // A woken scarab or scorpion is in melee on this bot specifically.
     static bool IsBugOnMe(Player* bot);
 
+    // ── LES TANKS, PAR PIEDESTAL ──────────────────────────────────────────
+    //
+    // Les bots tanks du groupe sont ranges par GUID - un ordre qui ne change
+    // jamais, et c'est tout ce qu'on lui demande : un choix "malin" qui changerait
+    // d'avis d'un tick a l'autre ferait osciller deux tanks entre les deux bouts
+    // de la salle. Le rang donne le poste :
+    //
+    //   rang 0 -> le piedestal de Vek'nilash
+    //   rang 1 -> le piedestal de Vek'lor
+    //   rang 2 -> les bestioles du milieu
+    //   au-dela -> rien de particulier, ils se battent comme les autres
+    //
+    // Un humain n'est jamais range : rien ici ne le ferait bouger. Si c'est toi
+    // qui tiens un cote, le bot de rang 0 doublera ton poste - inoffensif, et
+    // visible d'un coup d'oeil.
+    static uint8 TankIndex(Player* bot);
+
+    // Le socle que ce tank doit tenir. Faux s'il n'a pas de poste.
+    static bool GetAnchor(Player* bot, Position& out);
+
+    // Le jumeau confie a ce tank. CE N'EST PAS une distance : les deux socles
+    // se partagent les deux Empereurs, celui qui est le plus pres du socle du
+    // rang 0 lui revient et l'autre va au rang 1. Les deux tanks font le meme
+    // calcul, donc ils ne peuvent pas se retrouver sur le meme jumeau - y
+    // compris quand les deux ont fini colles sur le meme piedestal.
+    static Unit* GetTwinForTank(Player* bot);
+
+    // Vrai pour les rangs 0 et 1 pendant le combat : leur consigne de poste
+    // remplace alors les quatre regles de placement, qui ne savent rien des
+    // socles et les feraient repartir vers le milieu.
+    static bool IsOnAnchorDuty(Player* bot);
+
+    // ── LE TANK DES BESTIOLES ─────────────────────────────────────────────
+    //
+    // Vek'lor lance Explode Bug (804) toutes les 4,5 a 10 secondes et
+    // Vek'nilash Mutate Bug (802) toutes les 10 a 20 : chaque incantation
+    // retourne UNE bestiole de la salle (le script du sort fait
+    // RandomResize(targets, 1)), qui passe hostile et entre en combat avec la
+    // zone entiere. Sans menace sur personne, elle part vers qui lui en donne -
+    // et c'est le soigneur, parce que chaque sort de soin en fabrique sur tout
+    // ce qui est en combat avec lui.
+    static bool IsBugTank(Player* bot);
+
+    // La bestiole reveillee dont ce bot doit s'occuper, la plus urgente
+    // d'abord : celle qui mange un soigneur, puis celle qui mange quelqu'un
+    // d'autre, puis la sienne ou celle qui n'a encore personne. nullptr quand
+    // la salle est calme.
+    static Unit* GetBugToTank(Player* bot);
+
+    // Vrai quand ce bot est le tank des bestioles ET qu'une bestiole demande
+    // son attention. Les quatre regles des Empereurs se taisent dans ce cas :
+    // sans ca, "mauvaise cible" le rappellerait sur Vek'nilash au tick suivant.
+    static bool IsOnBugDuty(Player* bot);
 };
 
 #endif

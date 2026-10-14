@@ -12,6 +12,13 @@ bool Aq40TwinsDragApartTrigger::IsActive()
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 
+    // LES POSTES PASSENT AVANT. Un tank qui tient un piedestal, et le tank des
+    // bestioles tant qu'une bestiole traine, ont une consigne qui connait la
+    // salle; les quatre regles ci-dessous n'en savent rien et les renverraient
+    // vers le milieu au tick suivant.
+    if (RaidAq40Utils::IsOnAnchorDuty(bot) || RaidAq40Utils::IsOnBugDuty(bot))
+        return false;
+
     if (!RaidAq40Utils::IsPhysicalDamageDealer(bot))
         return false;
 
@@ -31,6 +38,13 @@ bool Aq40TwinsDragApartTrigger::IsActive()
 bool Aq40TwinsKeepDistanceTrigger::IsActive()
 {
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // LES POSTES PASSENT AVANT. Un tank qui tient un piedestal, et le tank des
+    // bestioles tant qu'une bestiole traine, ont une consigne qui connait la
+    // salle; les quatre regles ci-dessous n'en savent rien et les renverraient
+    // vers le milieu au tick suivant.
+    if (RaidAq40Utils::IsOnAnchorDuty(bot) || RaidAq40Utils::IsOnBugDuty(bot))
         return false;
 
     Unit* forbidden = RaidAq40Utils::GetForbiddenTwin(bot);
@@ -72,6 +86,13 @@ bool Aq40TwinsWrongTargetTrigger::IsActive()
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 
+    // LES POSTES PASSENT AVANT. Un tank qui tient un piedestal, et le tank des
+    // bestioles tant qu'une bestiole traine, ont une consigne qui connait la
+    // salle; les quatre regles ci-dessous n'en savent rien et les renverraient
+    // vers le milieu au tick suivant.
+    if (RaidAq40Utils::IsOnAnchorDuty(bot) || RaidAq40Utils::IsOnBugDuty(bot))
+        return false;
+
     if (RaidAq40Utils::IsBugOnMe(bot))
         return false;
 
@@ -85,6 +106,13 @@ bool Aq40TwinsWrongTargetTrigger::IsActive()
 bool Aq40TwinsWrongSideTrigger::IsActive()
 {
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // LES POSTES PASSENT AVANT. Un tank qui tient un piedestal, et le tank des
+    // bestioles tant qu'une bestiole traine, ont une consigne qui connait la
+    // salle; les quatre regles ci-dessous n'en savent rien et les renverraient
+    // vers le milieu au tick suivant.
+    if (RaidAq40Utils::IsOnAnchorDuty(bot) || RaidAq40Utils::IsOnBugDuty(bot))
         return false;
 
     if (RaidAq40Utils::IsBugOnMe(bot))
@@ -104,4 +132,25 @@ bool Aq40TwinsWrongSideTrigger::IsActive()
     // qui decide. Le declencheur ne repond donc oui que quand le placement est
     // vraiment faux, et laisse l'IA de classe tranquille le reste du temps.
     return bot->GetExactDist2d(other) < mine->GetExactDist2d(other);
+}
+
+bool Aq40TankAnchorTrigger::IsActive()
+{
+    if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // Pas de test de position ici. Savoir si le poste est tenu demande de
+    // connaitre le socle, le jumeau confie et la distance qui va avec - c'est
+    // exactement ce que l'action calcule, et le lui faire calculer deux fois
+    // ouvrait la porte a ce que les deux reponses divergent. L'action rend faux
+    // quand il n'y a rien a faire, et l'IA de classe reprend la main.
+    return RaidAq40Utils::IsOnAnchorDuty(bot);
+}
+
+bool Aq40TankTheBugsTrigger::IsActive()
+{
+    if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    return RaidAq40Utils::IsOnBugDuty(bot);
 }

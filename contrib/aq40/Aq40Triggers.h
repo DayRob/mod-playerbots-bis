@@ -46,4 +46,23 @@ public:
     bool IsActive() override;
 };
 
+// Ce bot a un piedestal a tenir et le combat a commence. Toujours vrai pour les
+// rangs 0 et 1 pendant le combat : c'est l'action qui juge s'il y a quelque
+// chose a faire, et elle rend faux des que le poste est tenu - l'IA de classe
+// reprend alors la main pour frapper et encaisser.
+class Aq40TankAnchorTrigger : public Trigger
+{
+public:
+    Aq40TankAnchorTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 tank off his pedestal") {}
+    bool IsActive() override;
+};
+
+// Une bestiole reveillee traine, et ce bot est celui dont c'est le travail.
+class Aq40TankTheBugsTrigger : public Trigger
+{
+public:
+    Aq40TankTheBugsTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 bugs on the raid") {}
+    bool IsActive() override;
+};
+
 #endif

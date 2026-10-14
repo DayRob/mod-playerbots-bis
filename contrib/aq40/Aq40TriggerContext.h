@@ -19,6 +19,8 @@ public:
         creators["aq40 twins wrong side"] = &RaidAq40TriggerContext::twins_wrong_side;
         creators["aq40 twins between the emperors"] = &RaidAq40TriggerContext::twins_wrong_side_of_room;
         creators["aq40 twins wrong target"] = &RaidAq40TriggerContext::twins_wrong_target;
+        creators["aq40 tank off his pedestal"] = &RaidAq40TriggerContext::tank_off_his_pedestal;
+        creators["aq40 bugs on the raid"] = &RaidAq40TriggerContext::bugs_on_the_raid;
     }
 
 private:
@@ -26,6 +28,8 @@ private:
     static Trigger* twins_wrong_side(PlayerbotAI* botAI) { return new Aq40TwinsKeepDistanceTrigger(botAI); }
     static Trigger* twins_wrong_side_of_room(PlayerbotAI* botAI) { return new Aq40TwinsWrongSideTrigger(botAI); }
     static Trigger* twins_wrong_target(PlayerbotAI* botAI) { return new Aq40TwinsWrongTargetTrigger(botAI); }
+    static Trigger* tank_off_his_pedestal(PlayerbotAI* botAI) { return new Aq40TankAnchorTrigger(botAI); }
+    static Trigger* bugs_on_the_raid(PlayerbotAI* botAI) { return new Aq40TankTheBugsTrigger(botAI); }
 };
 
 #endif

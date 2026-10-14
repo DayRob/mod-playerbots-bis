@@ -18,6 +18,69 @@ Tout vient du script du coeur,
 `src/server/scripts/Kalimdor/TempleOfAhnQiraj/boss_twinemperors.cpp`, pas
 d'un guide. Les trois chiffres qui comptent en sortent.
 
+**0. Un tank par piedestal, et ils priment sur tout le reste.** Chaque
+Empereur apparait sur son socle, aux deux bouts de la salle — mesure sur une
+base reelle : **158,2 yards** entre les deux. Les y GARDER vaut mieux que les
+separer une fois qu'ils se sont rejoints.
+
+Les bots tanks du groupe sont ranges par GUID — un ordre qui ne change jamais,
+et c'est tout ce qu'on lui demande : un choix « malin » qui changerait d'avis
+d'un tick a l'autre ferait osciller deux tanks entre les deux bouts de la
+salle. Le rang donne le poste :
+
+| Rang | Poste |
+|---|---|
+| 0 | le piedestal de Vek'nilash |
+| 1 | le piedestal de Vek'lor |
+| 2 | les bestioles du milieu |
+| au-dela | rien de particulier, ils se battent comme les autres |
+
+Un humain compte comme tank mais n'est jamais range : rien ici ne le ferait
+bouger. Si c'est toi qui tiens un cote, le bot de rang 0 doublera ton poste.
+
+Le socle vient de `GetHomePosition()`, la position d'apparition. Le script du
+coeur n'y touche jamais — aucun `SetHomePosition` dans
+`boss_twinemperors.cpp` — donc elle reste juste apres trois teleportations.
+
+**Le partage des jumeaux se fait en une seule comparaison**, et les deux tanks
+font la meme : l'Empereur le plus proche du socle du rang 0 lui revient, l'autre
+va au rang 1. Donner a chacun « le jumeau le plus proche de MON socle » aurait
+donne le meme aux deux le jour ou les deux se retrouvent sur le meme piedestal
+— c'est-a-dire exactement le jour ou cette regle doit servir.
+
+Les deux postes ne font pas le meme travail :
+
+- **Cote Vek'nilash**, le tank le prend pour cible, le provoque des qu'il
+  regarde ailleurs, va le chercher s'il est a plus de 25 yards, et **rentre sur
+  son socle** — Vek'nilash suit son attaquant au contact, donc il revient chez
+  lui.
+- **Cote Vek'lor**, le tank ne le touche pas. Vek'lor est immunise a tout ce
+  qu'un tank frappe, et le provoquer ne ferait que le promener : il suit sa
+  cible jusqu'a 45 yards, donc l'aggro d'un tank qui recule le ferait avancer.
+  Son travail, c'est d'**etre la quand ca bascule**. Il se tient a **10 yards**
+  — deux de plus que la portee de contact qu'Arcane Burst (568) cherche avant
+  de repousser, et bien moins que les 25 ou se tiennent les lanceurs de sorts.
+  Apres la teleportation, le joueur le plus proche recoit 2000 de menace : c'est
+  lui.
+
+Un tank qui attend trente secondes sans rien faire, c'est le prix de l'echange,
+et c'est ce que fait un vrai raid. Il rend quand meme la main a son IA de classe
+si une bestiole lui tombe dessus.
+
+**0 bis. Le troisieme tank prend les bestioles.** Vek'lor lance Explode Bug
+(804) toutes les **4,5 a 10 secondes** et Vek'nilash Mutate Bug (802) toutes les
+**10 a 20** : chaque incantation retourne UNE bestiole de la salle — le script
+du sort fait `RandomResize(targets, 1)` — qui passe hostile et entre en combat
+avec la zone entiere.
+
+Sans menace sur personne, elle part vers qui lui en donne, et c'est le
+**soigneur** : chaque sort de soin fabrique de la menace sur tout ce qui est en
+combat avec lui. D'ou la provocation en premier geste — attendre d'en produire
+par les degats laisse le soigneur se faire mordre plusieurs secondes de plus.
+
+L'ordre d'urgence : la bestiole qui mange un soigneur, puis celle qui mange
+quelqu'un d'autre, puis la sienne ou celle qui n'a encore personne.
+
 **1. Chacun tape le jumeau qu'il peut blesser.** Vek'lor (15276) est immunise
 au physique, Vek'nilash (15275) au magique sauf au sacre. Les degats sont
 partages entre les deux et ils meurent ensemble, donc la moitie du raid qui
@@ -145,11 +208,16 @@ le pull, une fois par boss.
 
 ## Ce que la strategie ne fait pas
 
-- **Elle ne designe pas de tank pour Vek'lor.** Pas besoin : il ne frappe
-  jamais au contact, il reste a 45 yards et lance Shadow Bolt. Celui qui lui
-  fait le plus de degats le garde, et c'est tout.
+- **Elle ne fait pas tanker Vek'lor.** Le tank de son piedestal attend
+  l'echange sans le toucher : il est immunise a tout ce qu'un tank frappe.
+  Celui qui lui fait le plus de degats le garde, et c'est tout.
 - **Elle ne gere pas Unbalancing Strike** (26613, -100 de defense pendant
-  6 s sur le tank de Vek'nilash). Pas de rotation de tanks.
+  6 s sur le tank de Vek'nilash). Pas de rotation de tanks : les deux postes
+  sont fixes pour tout le combat, et c'est la teleportation qui fait tourner
+  les jumeaux, pas les tanks.
+- **Elle demande trois bots tanks** pour que les trois postes soient tenus.
+  Avec deux, personne ne s'occupe des bestioles; avec un seul, il tient le
+  piedestal de Vek'nilash et le cote Vek'lor reste vide.
 - **Elle ne traverse pas la salle avant la teleportation.** Twin Teleport
   tombe toutes les 30 a 40 secondes, echange les positions et remet les
   menaces a zero ; les deux groupes se retrouvent alors du mauvais cote et

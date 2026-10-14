@@ -14,11 +14,34 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     // pull. Outside the fight itself, the bots stay entirely under whatever
     // else drives them.
     //
-    // Order matters. Getting off the wrong emperor comes first because standing
-    // there is what gets bots knocked around and killed; pulling the two of them
-    // apart comes next because Heal Brother is what loses the fight; picking the
-    // right target is last, and it is also what the other two fall back on once
-    // the positioning is settled.
+    // Order matters. The tanks' posts come first - a post held is what keeps the
+    // two emperors apart in the first place. Then, for everyone else: getting off
+    // the wrong emperor, because standing there is what gets bots knocked around
+    // and killed; pulling the two of them apart, because Heal Brother is what
+    // loses the fight; and picking the right target last, which is also what the
+    // others fall back on once the positioning is settled.
+
+    // LES POSTES D'ABORD, ET ILS PRIMENT SUR TOUT LE RESTE.
+    //
+    // Les deux Empereurs apparaissent chacun sur son piedestal, a 158 yards
+    // l'un de l'autre. Les y GARDER vaut mieux que les separer une fois qu'ils
+    // se sont rejoints : un tank par socle, chacun tient le jumeau qu'on lui a
+    // confie et le ramene chez lui, et Heal Brother - qui demande moins de
+    // 60 yards - ne part jamais. Twin Teleport les echange toutes les 30 a 40
+    // secondes en remettant les menaces a zero; le tank est deja sur place,
+    // donc il recupere celui qui arrive au lieu de courir apres.
+    //
+    // Le troisieme tank prend les bestioles du milieu. Elles se reveillent une
+    // par une, toutes les quelques secondes, et vont vers les soigneurs - c'est
+    // le soin lui-meme qui leur donne la menace.
+    triggers.push_back(
+        new TriggerNode("aq40 tank off his pedestal",
+            { NextAction("aq40 tank hold your pedestal", ACTION_RAID + 4.0f) }));
+
+    triggers.push_back(
+        new TriggerNode("aq40 bugs on the raid",
+            { NextAction("aq40 tank the bugs", ACTION_RAID + 3.0f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 twins wrong side",
             { NextAction("aq40 twins keep distance", ACTION_RAID + 2.0f) }));

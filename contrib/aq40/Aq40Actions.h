@@ -65,4 +65,36 @@ public:
     bool Execute(Event event) override;
 };
 
+// Tient son piedestal, et le jumeau qui va avec.
+//
+// Trois gestes, dans cet ordre : provoquer quand le jumeau confie regarde
+// ailleurs, aller le chercher quand il est trop loin pour ca, et sinon rentrer
+// sur son socle - le jumeau suit, et c'est comme ca que les deux Empereurs
+// reviennent chacun sur le sien.
+class Aq40TankAnchorAction : public AttackAction
+{
+public:
+    Aq40TankAnchorAction(PlayerbotAI* botAI, std::string const name = "aq40 tank hold your pedestal")
+        : AttackAction(botAI, name)
+    {
+    }
+
+    bool Execute(Event event) override;
+};
+
+// Arrache au soigneur la bestiole que Mutate Bug ou Explode Bug vient de
+// reveiller. La provocation d'abord : le soin fabrique de la menace a chaque
+// sort, donc attendre d'en produire par les degats laisse le soigneur se faire
+// mordre plusieurs secondes de plus.
+class Aq40TankTheBugsAction : public AttackAction
+{
+public:
+    Aq40TankTheBugsAction(PlayerbotAI* botAI, std::string const name = "aq40 tank the bugs")
+        : AttackAction(botAI, name)
+    {
+    }
+
+    bool Execute(Event event) override;
+};
+
 #endif
