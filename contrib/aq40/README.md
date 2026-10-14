@@ -44,9 +44,19 @@ de **60 yards** l'un de l'autre. C'est la seule chose qui fait perdre le
 combat.
 
 Mesure sur une base reelle : les deux spawns sont a **158,2 yards** l'un de
-l'autre. Ils commencent donc deja separes, et cette regle ne sert qu'a
-rattraper une separation perdue en cours de combat, pas a faire le travail du
-pull. Vek'nilash suit qui le frappe, donc les attaquants physiques se
+l'autre. Mais ca ne dure pas : au pull, les DEUX se dirigent vers le raid, et
+s'il est groupe ils arrivent colles. C'est donc bien cette regle qui fait tout
+le travail, des la premiere seconde.
+
+Et elle doit alors commander seule. Premier essai en jeu : repartition
+parfaite, jumeaux colles. La cause etait dans l'ordre des priorites — Vek'lor
+arrivant a moins de 15 yards des melee, « s'ecarter du jumeau interdit »
+(ACTION_RAID + 2) battait « ecarter Vek'nilash » (+ 1) a chaque tick, et
+l'ecartement n'a jamais tourne. Un melee s'ecarte desormais au jugé seulement
+quand les Empereurs sont DEJA assez loin l'un de l'autre ; en dessous, c'est
+l'ecartement qui le place — et son point de destination est de l'autre cote de
+Vek'nilash par rapport a Vek'lor, donc s'y rendre eloigne du jumeau interdit
+de toute facon. Vek'nilash suit qui le frappe, donc les attaquants physiques se
 placent 8 yards derriere lui, cote oppose a Vek'lor, et il les suit. Ils
 repetent jusqu'a **70 yards** de separation, puis ils arretent et tapent
 normalement.
