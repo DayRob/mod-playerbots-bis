@@ -805,7 +805,22 @@ bool BisPriorityMgr::WantsQuestToken(Player* bot, uint32 itemId, uint16* outTier
         return false;
 
     ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemId);
-    if (!proto || proto->Class != ITEM_CLASS_QUEST)
+    if (!proto)
+        return false;
+
+    // UN JETON, C'EST CE QUE LA TABLE DE CONVERSION NOMME - PAS UNE CLASSE
+    // D'OBJET. Cette ligne testait ITEM_CLASS_QUEST, et c'etait faux : les
+    // jetons de Zul'Gurub et les idoles d'Ahn'Qiraj sont bien des objets de
+    // quete (12), mais les SEPT jetons du tier 2.5 - Imperial Qiraji Armaments
+    // et Regalia, Carapace et Husk of the Old God, Vek'lor's Diadem, les deux
+    // Qiraji Bindings - sont des objets DIVERS (15). Le filtre les rendait
+    // invisibles : 105 lignes de listes sur lesquelles aucun bot ne votait, et
+    // les meilleures pieces du raid partaient au plus haut jet de cupidite.
+    //
+    // Interroger la table est aussi plus juste que l'ancien test : un bot ne
+    // reclame plus un jeton qu'il ne saurait pas convertir, alors qu'avant il
+    // suffisait que le jeton figure dans sa liste.
+    if (!QuestTokenReward(itemId, bot->getClass(), GetSpec(bot)))
         return false;
 
     uint8 slot = 0;

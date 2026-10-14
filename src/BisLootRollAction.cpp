@@ -91,16 +91,22 @@ bool BisLootRollAction::Execute(Event event)
         if (!proto)
             continue;
 
-        // Les JETONS DE QUETE, d'abord, parce qu'ils ne survivraient pas au
-        // filtre suivant. Un jeton hakkari n'est ni arme ni armure, donc tous
-        // les chemins d'equipement l'ecartent - a juste titre, il ne s'equipe
-        // pas. Mais il achete une piece que la liste nomme, et sans ce branchement
+        // LES JETONS, d'abord, parce qu'ils ne survivraient pas au filtre
+        // suivant. Un jeton hakkari n'est ni arme ni armure, donc tous les
+        // chemins d'equipement l'ecartent - a juste titre, il ne s'equipe pas.
+        // Mais il achete une piece que la liste nomme, et sans ce branchement
         // TOUS les bots passaient : l'objet ne revenait a personne.
+        //
+        // Et SANS condition sur la classe d'objet. Ce branchement testait
+        // ITEM_CLASS_QUEST, ce qui couvrait les jetons hakkari et les idoles
+        // mais laissait dehors les SEPT jetons du tier 2.5 d'Ahn'Qiraj, qui
+        // sont ITEM_CLASS_MISCELLANEOUS : 105 lignes de listes sur lesquelles
+        // personne ne votait. C'est WantsQuestToken qui sait ce qu'est un
+        // jeton, en interrogeant la table de conversion.
         //
         // NEED et non GREED : le jeton vaut exactement la piece qu'il donne,
         // et celle-ci est souvent rang 1. Un GREED le laisserait a n'importe
         // quel bot qui cupidite au hasard.
-        if (proto->Class == ITEM_CLASS_QUEST)
         {
             uint16 tierId = 0;
             if (forceNeed && sBisPriorityMgr->WantsQuestToken(bot, roll->itemid, &tierId))
@@ -137,9 +143,16 @@ bool BisLootRollAction::Execute(Event event)
                 // Les pieces d'equipement, elles, parlent au moment de
                 // l'equipement - le seul ou "a la place de" est vrai. Un jeton
                 // ne s'equipe jamais, donc il reste silencieux.
+
+                continue;
             }
-            continue;
         }
+
+        // Un objet de quete qui n'est pas un jeton de nos listes ne nous
+        // regarde pas. Le filtre arme/armure plus bas l'ecarterait de toute
+        // facon ; le dire ici evite de le chercher dans les listes pour rien.
+        if (proto->Class == ITEM_CLASS_QUEST)
+            continue;
 
         // LES OBJETS RECLAMES HORS LISTE, avant le filtre arme/armure qui les
         // ecarterait. Les montures d'Ahn'Qiraj sont le cas d'origine : les

@@ -62,8 +62,12 @@ bool BisEquipUpgradesAction::ConvertQuestTokens(ChatHandler* report)
         if (!item)
             continue;
 
+        // Pas de filtre sur la classe d'objet : les jetons du tier 2.5 d'AQ40
+        // sont ITEM_CLASS_MISCELLANEOUS, pas ITEM_CLASS_QUEST. QuestTokenReward
+        // rend zero pour tout ce qui n'est pas un jeton, donc c'est elle qui
+        // tranche, et elle ne se trompe pas de classe.
         ItemTemplate const* const proto = item->GetTemplate();
-        if (!proto || proto->Class != ITEM_CLASS_QUEST)
+        if (!proto)
             continue;
 
         // La SPE compte autant que la classe : Imperial Qiraji Armaments donne
