@@ -92,8 +92,8 @@ d'un bot, la strategie le laisse s'en occuper.
 
 A verifier sur ta base avant d'entrer :
 
-```
-& "C:\Program Files\MySQL\MySQL Server 9.7\bin\mysql.exe" -uacore -padmin acore_world -t < tools\jumeaux_aq40.sql
+```powershell
+Get-Content tools\jumeaux_aq40.sql -Raw | & "C:\Program Files\MySQL\MySQL Server 9.7\bin\mysql.exe" -uacore -padmin --default-character-set=utf8mb4 -t acore_world
 ```
 
 Attendu : Vek'lor immunise `physique`, Vek'nilash immunise

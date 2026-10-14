@@ -709,8 +709,8 @@ rang 1, que l'échelle ne sait pas départager.
 
 ### Deux mains, ou une main + main gauche ?
 
-```
-mysql -u acore -p acore_world < tools/main_droite_ou_main_gauche.sql
+```powershell
+Get-Content tools\main_droite_ou_main_gauche.sql -Raw | & "C:\Program Files\MySQL\MySQL Server 9.7\bin\mysql.exe" -uacore -padmin --default-character-set=utf8mb4 -t acore_world
 ```
 
 La question n'a pas de réponse dans la formule : `palier × 1000 + (255 − rang)` compare
@@ -925,8 +925,8 @@ Les constantes, leur source dans le script du cœur, et la liste de ce que la
 stratégie ne fait pas sont dans `contrib/aq40/README.md`.
 À vérifier sur ta base avant d'entrer :
 
-```
-mysql -u acore -p acore_world -t < tools/jumeaux_aq40.sql
+```powershell
+Get-Content tools\jumeaux_aq40.sql -Raw | & "C:\Program Files\MySQL\MySQL Server 9.7\bin\mysql.exe" -uacore -padmin --default-character-set=utf8mb4 -t acore_world
 ```
 
 ## Licence et crédits
