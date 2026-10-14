@@ -72,8 +72,11 @@ struct Aq40TankPost
     float z;
 };
 
-constexpr Aq40TankPost TANK_POST_A = { 0.0f, 0.0f, 0.0f };
-constexpr Aq40TankPost TANK_POST_B = { 0.0f, 0.0f, 0.0f };
+// Relevés en jeu sur la carte 531, sur les deux tetes de mort du schema de
+// guilde. 133,3 yards les separent, et chacun est a une bonne quatre-vingtaine
+// de yards de la plateforme d'apparition qui lui fait face.
+constexpr Aq40TankPost TANK_POST_A = { -8896.308f, 1283.0752f, -112.292564f };  // tete de mort gauche
+constexpr Aq40TankPost TANK_POST_B = { -9027.637f, 1259.976f, -112.294556f };   // tete de mort droite
 
 // Assez pres pour que le poste soit tenu. Trois yards laissent au bot de quoi
 // se replacer sans repartir a chaque tick.

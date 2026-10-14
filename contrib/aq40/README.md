@@ -44,23 +44,40 @@ Ce ne sont **pas** les points d'apparition. Les deux Empereurs poussent sur les
 plateformes du fond, aux deux coins hauts de la salle; le raid les tire contre
 les murs gauche et droit, a mi-hauteur — c'est la qu'on les tient.
 
-Les deux postes sont deux constantes de `Aq40Utils.h` :
+Les deux postes sont deux constantes de `Aq40Utils.h`, relevées en jeu au
+`.gps` sur les deux tetes de mort du schema :
 
 ```cpp
-constexpr Aq40TankPost TANK_POST_A = { 0.0f, 0.0f, 0.0f };
-constexpr Aq40TankPost TANK_POST_B = { 0.0f, 0.0f, 0.0f };
+constexpr Aq40TankPost TANK_POST_A = { -8896.308f, 1283.0752f, -112.292564f };  // gauche
+constexpr Aq40TankPost TANK_POST_B = { -9027.637f, 1259.976f, -112.294556f };   // droite
 ```
 
-Pour les remplir : se placer a chaque endroit en jeu, faire `.gps`, et coller
-les deux relevés. **L'ordre n'a pas d'importance** — le code donne a chaque rang
-le poste le plus proche de la plateforme qui lui revient, donc chaque tank garde
-son cote du debut a la fin.
+**133,3 yards** les separent, et chacun est a une bonne quatre-vingtaine de
+yards de la plateforme d'apparition qui lui fait face. L'ordre des deux lignes
+n'a pas d'importance : le code donne a chaque rang le poste le plus proche de
+la plateforme qui lui revient, donc chaque tank garde son cote du debut a la
+fin.
 
-**A zero, on se rabat sur `GetHomePosition()`**, donc sur les plateformes
-d'apparition. Le script du coeur n'y touche jamais — aucun `SetHomePosition`
-dans `boss_twinemperors.cpp` — donc elles restent justes apres trois
-teleportations, et 158,2 yards les separent : Heal Brother ne part pas. Mais ce
-n'est pas le placement de la guilde.
+**A zero, on se rabattrait sur `GetHomePosition()`**, donc sur les plateformes
+d'apparition — 158,2 yards, Heal Brother ne part pas non plus, mais ce n'est
+pas le placement de la guilde.
+
+### Comment les deux Empereurs arrivent sur les postes
+
+Personne ne tire Vek'lor, et ce n'est pas un oubli : il garde 45 yards de sa
+cible, donc le provoquer ne ferait que le ramener a 45 yards du tank au lieu de
+l'amener au poste. **C'est la teleportation qui s'en charge**, en deux temps :
+
+1. Le tank du rang 0 traine Vek'nilash sur son poste — Vek'nilash suit son
+   attaquant au contact, lui se laisse mener.
+2. Twin Teleport ECHANGE les positions : Vek'lor arrive donc sur le poste que
+   Vek'nilash occupait, et Vek'nilash atterrit la ou etait son frere. Le tank
+   de ce cote, qui attendait a dix yards, herite des 2000 de menace et le
+   ramene a son tour.
+
+Au bout d'un cycle ou deux, les deux Empereurs ne font plus que rebondir entre
+les deux tetes de mort, et chaque tank reste de son cote. Rien a programmer de
+plus : le partage par proximite au poste du rang 0 suit l'echange tout seul.
 
 **Ce que le tank peut et ne peut pas tirer.** Vek'nilash suit son attaquant au
 contact : son tank le ramene ou il veut. Vek'lor, lui, garde 45 yards de sa
