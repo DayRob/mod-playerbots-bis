@@ -310,6 +310,21 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         if (displacedOffHand && bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
             displacedOffHand = nullptr;
 
+        // LE RANG DES DEUX PIECES. Celui qui arrive ne dit que la moitie de
+        // l'echange : "rang 3 a la place de rang 7" se lit d'un coup d'oeil,
+        // "rang 3" seul oblige a aller chercher l'autre.
+        //
+        // Le rang de la piece qui part se relit dans la liste du bot. Elle n'y
+        // est pas toujours - un bot peut porter n'importe quoi sur un creneau
+        // que sa liste ne couvre pas encore - et c'est alors "hors liste", ce
+        // qui est une information en soi.
+        //
+        // Declare ICI et non dans le bloc d'annonce : la ligne de rapport, plus
+        // bas, s'en sert aussi.
+        uint8 rangRemplace = 0;
+        if (replaced)
+            sBisPriorityMgr->GetItemPriority(bot, replaced->ItemId, nullptr, nullptr, &rangRemplace);
+
         // Said out loud for the same reason the claim is: the bot is putting on
         // something playerbots' own score had just declined, and without a word
         // that reads as the item jumping slots by itself. Naming what leaves
@@ -320,35 +335,49 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
             std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
             std::ostringstream out;
             out << "J'equipe " << ChatHelper::FormatItem(proto);
+            if (rank)
+                out << " rang " << uint32(rank);
             if (replaced)
+            {
                 out << " a la place de " << ChatHelper::FormatItem(replaced);
+                if (rangRemplace)
+                    out << " rang " << uint32(rangRemplace);
+                else
+                    out << " hors liste";
+            }
             else
                 out << " sur un creneau vide";
             if (displacedOffHand)
                 out << ", et je range " << ChatHelper::FormatItem(displacedOffHand);
-            // Meme forme que l'annonce de reclamation, pour qu'on lise les
-            // deux de la meme facon.
-            if (rank && !tierName.empty())
-                out << " (rang " << uint32(rank) << ", " << tierName << ")";
-            else if (rank)
-                out << " (rang " << uint32(rank) << ")";
-            else if (!tierName.empty())
+            // Le palier seul en fin de phrase : chaque piece porte deja son
+            // rang juste apres son nom, le repeter ici brouillerait la lecture.
+            if (!tierName.empty())
                 out << " (" << tierName << ")";
             botAI->TellMaster(out.str());
         }
 
         if (report)
         {
+            // Meme forme que l'annonce : chaque piece porte son rang juste
+            // apres son nom, et le palier ferme la ligne.
             std::ostringstream line;
-            line << "  " << ChatHelper::FormatItem(proto) << " : EQUIPE au creneau "
-                 << uint32(targetSlot);
+            line << "  " << ChatHelper::FormatItem(proto);
+            if (rank)
+                line << " rang " << uint32(rank);
+            line << " : EQUIPE au creneau " << uint32(targetSlot);
             if (replaced)
-                line << " a la place de " << ChatHelper::FormatItem(replaced);
+            {
+                line << ", a la place de " << ChatHelper::FormatItem(replaced);
+                if (rangRemplace)
+                    line << " rang " << uint32(rangRemplace);
+                else
+                    line << " hors liste";
+            }
             else
                 line << " (creneau vide)";
             if (displacedOffHand)
                 line << ", main gauche rangee : " << ChatHelper::FormatItem(displacedOffHand);
-            line << " (rang " << uint32(rank) << ", " << sBisPriorityMgr->GetTierName(tierId) << ")";
+            line << " (" << sBisPriorityMgr->GetTierName(tierId) << ")";
             report->PSendSysMessage("{}", line.str());
         }
 

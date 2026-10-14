@@ -111,11 +111,15 @@ namespace
                     (sBisPriorityMgr->AnnounceOnRoll() || bot->GetItemCount(itemId, true) > 0) &&
                     sBisPriorityMgr->AnnounceOnce(bot, itemId))
                 {
+                    // CE QUI PART N'EST PLUS NOMME ICI. Au moment du jet, le
+                    // bot n'a pas encore la piece : annoncer ce qu'elle
+                    // remplacerait, c'est decrire un echange qui n'aura
+                    // peut-etre pas lieu - un seul des pretendants l'emporte.
+                    // La phrase est reservee a l'equipement, le seul instant
+                    // ou "a la place de" est un fait.
                     std::ostringstream out;
-                    out << ChatHelper::FormatItem(proto) << " - je le prends";
-                    if (worn && worn->GetTemplate())
-                        out << " a la place de " << ChatHelper::FormatItem(worn->GetTemplate());
-                    out << " : reserve a ma classe, et je n'ai pas encore"
+                    out << ChatHelper::FormatItem(proto) << " - je le prends"
+                        << " : reserve a ma classe, et je n'ai pas encore"
                            " mon BiS a cet emplacement";
                     botAI->TellMaster(out.str());
                 }
@@ -188,10 +192,7 @@ namespace
                 out << " (rang " << uint32(rank) << ")";
             else if (!tierName.empty())
                 out << " (" << tierName << ")";
-            if (worn && worn->GetTemplate())
-                out << ", a la place de " << ChatHelper::FormatItem(worn->GetTemplate());
-            else
-                out << ", creneau vide";
+            // Meme raison que ci-dessus : ce qui part se dit a l'equipement.
             if (tooLowLevel)
                 out << " - je le garde, il me faut le niveau " << uint32(proto->RequiredLevel);
             botAI->TellMaster(out.str());
