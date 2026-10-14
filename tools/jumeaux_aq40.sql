@@ -44,3 +44,23 @@ FROM `creature` cr
 JOIN `creature_template` ct ON ct.`entry` = cr.`id1`
 WHERE cr.`id1` IN (15275, 15276)
 ORDER BY cr.`id1`;
+
+-- Les scarabes et scorpions de la salle : sont-ils seulement passifs, ou
+-- carrement non hostiles ? Un bot ne peut prendre pour cible que ce qui lui
+-- est hostile, donc la faction decide si le probleme est cote IA ou cote base.
+-- Le script ne leur met la faction 16 (hostile) et REACT_AGGRESSIVE qu'au
+-- reveil, par Mutate Bug (802) ou Explode Bug (804) : avant ca, la valeur
+-- ci-dessous est celle qu'ils portent en permanence dans la salle.
+SELECT c.`entry`,
+       c.`name`,
+       c.`faction`,
+       c.`npcflag`,
+       c.`unit_flags`,
+       c.`flags_extra`,
+       c.`lootid`,
+       c.`rank`      AS rang_pnj,
+       c.`ScriptName` AS script,
+       (SELECT COUNT(*) FROM `creature` s WHERE s.`id1` = c.`entry` AND s.`map` = 531) AS exemplaires_dans_aq40
+FROM `creature_template` c
+WHERE c.`entry` IN (15316, 15317)
+ORDER BY c.`entry`;
