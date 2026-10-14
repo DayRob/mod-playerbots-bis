@@ -140,19 +140,59 @@ uint8 RaidAq40Utils::TankIndex(Player* bot)
     return rang;
 }
 
+bool RaidAq40Utils::GetPosts(Player* bot, Position& poste0, Position& poste1)
+{
+    Creature* const veklor = GetVeklor(bot);
+    Creature* const veknilash = GetVeknilash(bot);
+    if (!veklor || !veknilash)
+        return false;
+
+    // La plateforme d'apparition de Vek'nilash sert de reference, pour une
+    // seule raison : elle ne bouge jamais. Le rang 0 tient le poste qui en est
+    // le plus proche, donc chaque tank garde son cote du debut a la fin.
+    Position const& plateformeZero = veknilash->GetHomePosition();
+
+    auto defini = [](Aq40TankPost const& poste) { return poste.x != 0.0f || poste.y != 0.0f; };
+
+    // Postes non renseignes : on se rabat sur les plateformes d'apparition.
+    // 158,2 yards les separent, donc Heal Brother ne part pas - mais les
+    // Empereurs restent sur leurs socles au lieu d'etre tires contre les murs.
+    if (!defini(TANK_POST_A) || !defini(TANK_POST_B))
+    {
+        poste0 = plateformeZero;
+        poste1 = veklor->GetHomePosition();
+        return true;
+    }
+
+    auto ecart = [](Aq40TankPost const& poste, Position const& repere)
+    {
+        float const dX = poste.x - repere.GetPositionX();
+        float const dY = poste.y - repere.GetPositionY();
+        return dX * dX + dY * dY;
+    };
+
+    bool const aEstLePremier = ecart(TANK_POST_A, plateformeZero) <= ecart(TANK_POST_B, plateformeZero);
+
+    Aq40TankPost const& premier = aEstLePremier ? TANK_POST_A : TANK_POST_B;
+    Aq40TankPost const& second = aEstLePremier ? TANK_POST_B : TANK_POST_A;
+
+    poste0.Relocate(premier.x, premier.y, premier.z);
+    poste1.Relocate(second.x, second.y, second.z);
+    return true;
+}
+
 bool RaidAq40Utils::GetAnchor(Player* bot, Position& out)
 {
     uint8 const rang = TankIndex(bot);
     if (rang > 1)
         return false;
 
-    // Rang 0 sur le socle de Vek'nilash : c'est le jumeau qu'un tank peut
-    // vraiment tenir, donc le poste qui compte quand il n'y a qu'un seul tank.
-    Creature* const socle = (rang == 0) ? GetVeknilash(bot) : GetVeklor(bot);
-    if (!socle)
+    Position poste0;
+    Position poste1;
+    if (!GetPosts(bot, poste0, poste1))
         return false;
 
-    out = socle->GetHomePosition();
+    out = (rang == 0) ? poste0 : poste1;
     return true;
 }
 
@@ -167,22 +207,25 @@ Unit* RaidAq40Utils::GetTwinForTank(Player* bot)
     if (!veklor || !veknilash)
         return nullptr;
 
-    // LE PARTAGE SE FAIT EN UNE SEULE COMPARAISON, et les deux tanks font la
-    // meme : le jumeau le plus proche du socle du rang 0 lui revient, l'autre
-    // va au rang 1. Donner a chacun "le jumeau le plus proche de MON socle"
-    // aurait donne le meme aux deux le jour ou les deux Empereurs se retrouvent
-    // sur le meme piedestal - c'est-a-dire exactement le jour ou cette regle
-    // doit servir.
-    Position const& socleZero = veknilash->GetHomePosition();
+    Position poste0;
+    Position poste1;
+    if (!GetPosts(bot, poste0, poste1))
+        return nullptr;
 
-    bool const veklorAuSocleZero =
-        veklor->GetExactDist2d(socleZero.GetPositionX(), socleZero.GetPositionY()) <
-        veknilash->GetExactDist2d(socleZero.GetPositionX(), socleZero.GetPositionY());
+    // LE PARTAGE SE FAIT EN UNE SEULE COMPARAISON, et les deux tanks font la
+    // meme : le jumeau le plus proche du poste du rang 0 lui revient, l'autre
+    // va au rang 1. Donner a chacun "le jumeau le plus proche de MON poste"
+    // aurait donne le meme aux deux le jour ou les deux Empereurs se retrouvent
+    // au meme endroit - c'est-a-dire exactement le jour ou cette regle doit
+    // servir.
+    bool const veklorAuPosteZero =
+        veklor->GetExactDist2d(poste0.GetPositionX(), poste0.GetPositionY()) <
+        veknilash->GetExactDist2d(poste0.GetPositionX(), poste0.GetPositionY());
 
     if (rang == 0)
-        return veklorAuSocleZero ? static_cast<Unit*>(veklor) : static_cast<Unit*>(veknilash);
+        return veklorAuPosteZero ? static_cast<Unit*>(veklor) : static_cast<Unit*>(veknilash);
 
-    return veklorAuSocleZero ? static_cast<Unit*>(veknilash) : static_cast<Unit*>(veklor);
+    return veklorAuPosteZero ? static_cast<Unit*>(veknilash) : static_cast<Unit*>(veklor);
 }
 
 bool RaidAq40Utils::IsOnAnchorDuty(Player* bot)
@@ -264,20 +307,17 @@ bool RaidAq40Utils::IsOnBugDuty(Player* bot)
 
 bool RaidAq40Utils::GetBugStation(Player* bot, Position& out)
 {
-    Creature* const veklor = GetVeklor(bot);
-    Creature* const veknilash = GetVeknilash(bot);
-    if (!veklor || !veknilash)
-        return false;
-
-    // LE MILIEU DES DEUX SOCLES, pas des deux Empereurs. Les socles ne bougent
+    // LE MILIEU DES DEUX POSTES, pas des deux Empereurs. Les postes ne bougent
     // jamais; les Empereurs, eux, s'echangent toutes les trente secondes et se
     // promenent entre-temps, donc un milieu calcule sur eux ferait marcher le
     // tank sans raison a chaque tick.
-    Position const& gauche = veklor->GetHomePosition();
-    Position const& droite = veknilash->GetHomePosition();
+    Position poste0;
+    Position poste1;
+    if (!GetPosts(bot, poste0, poste1))
+        return false;
 
-    out.Relocate((gauche.GetPositionX() + droite.GetPositionX()) / 2.0f,
-                 (gauche.GetPositionY() + droite.GetPositionY()) / 2.0f,
-                 (gauche.GetPositionZ() + droite.GetPositionZ()) / 2.0f);
+    out.Relocate((poste0.GetPositionX() + poste1.GetPositionX()) / 2.0f,
+                 (poste0.GetPositionY() + poste1.GetPositionY()) / 2.0f,
+                 (poste0.GetPositionZ() + poste1.GetPositionZ()) / 2.0f);
     return true;
 }

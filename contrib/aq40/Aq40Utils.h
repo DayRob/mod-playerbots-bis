@@ -50,26 +50,38 @@ constexpr float CASTER_FAR_SIDE_OFFSET = 25.0f;
 // short enough that a bot busy elsewhere in the temple is never dragged in.
 constexpr float TWIN_SCAN_RANGE = 150.0f;
 
-// LES DEUX PIEDESTAUX. Chaque Empereur apparait sur le sien, aux deux bouts de
-// la salle - mesure sur une base reelle : 158,2 yards entre les deux. Le script
-// du coeur ne touche jamais a la position d'origine d'une creature (aucun
-// SetHomePosition dans boss_twinemperors.cpp), donc GetHomePosition() rend
-// toujours le piedestal de depart, meme apres trois teleportations.
+// LES DEUX POSTES DE TANK.
 //
-// C'est la seule reference fixe de ce combat, et c'est ce qui fait tenir toute
-// la strategie : un tank par piedestal, chacun ramene le jumeau qu'on lui a
-// confie sur SON socle, et les deux restent a 158 yards - loin des 60 de Heal
-// Brother, sans que personne ait rien a trainer.
+// Ce NE SONT PAS les points d'apparition. Les deux Empereurs poussent sur les
+// plateformes du fond, aux deux coins hauts de la salle; le raid les tire
+// contre les murs gauche et droit, a mi-hauteur - c'est la qu'on les tient, et
+// c'est ce que montre le schema de guilde. Hors des bestioles du milieu, hors
+// du chemin des deux groupes qui se croisent a chaque echange.
+//
+// A zero, les postes se rabattent sur GetHomePosition(), donc sur les
+// plateformes d'apparition. La strategie marche toujours - 158,2 yards
+// separent les deux, soit bien plus que les 60 de Heal Brother - mais ce n'est
+// pas le placement de la guilde. Pour les remplir : se placer sur chaque tete
+// de mort du schema, faire ".gps" en jeu, et coller les deux relevés ici.
+// L'ORDRE N'A PAS D'IMPORTANCE : le code attribue a chaque rang le poste le
+// plus proche de la plateforme qui lui revient.
+struct Aq40TankPost
+{
+    float x;
+    float y;
+    float z;
+};
+
+constexpr Aq40TankPost TANK_POST_A = { 0.0f, 0.0f, 0.0f };
+constexpr Aq40TankPost TANK_POST_B = { 0.0f, 0.0f, 0.0f };
+
+// Assez pres pour que le poste soit tenu. Trois yards laissent au bot de quoi
+// se replacer sans repartir a chaque tick.
 constexpr float TANK_ANCHOR_TOLERANCE = 3.0f;
 
 // Pas de poste : ce bot n'est pas un tank, ou n'est pas en groupe.
 constexpr uint8 TANK_INDEX_NONE = 255;
 
-// Vek'lor lance Arcane Burst (568) des qu'un joueur est a portee de contact
-// (SelectNearestPlayer(NOMINAL_MELEE_RANGE), soit 5 yards), toutes les 7 a 12
-// secondes, et ca repousse. Le tank qui le tient se place donc juste au-dela -
-// assez pres pour rester le joueur le plus proche, ce qui est tout ce que la
-// teleportation regarde.
 constexpr float VEKLOR_TANK_DISTANCE = 10.0f;
 
 // Au-dela, le tank va CHERCHER son jumeau au lieu de l'attendre sur son socle :
@@ -139,7 +151,11 @@ public:
     // visible d'un coup d'oeil.
     static uint8 TankIndex(Player* bot);
 
-    // Le socle que ce tank doit tenir. Faux s'il n'a pas de poste.
+    // Les deux postes, ranges : poste0 pour le rang 0, poste1 pour le rang 1.
+    // Faux tant que les deux Empereurs ne sont pas trouves.
+    static bool GetPosts(Player* bot, Position& poste0, Position& poste1);
+
+    // Le poste que ce tank doit tenir. Faux s'il n'a pas de poste.
     static bool GetAnchor(Player* bot, Position& out);
 
     // Le jumeau confie a ce tank. CE N'EST PAS une distance : les deux socles

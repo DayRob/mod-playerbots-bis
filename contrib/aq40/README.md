@@ -38,9 +38,36 @@ salle. Le rang donne le poste :
 Un humain compte comme tank mais n'est jamais range : rien ici ne le ferait
 bouger. Si c'est toi qui tiens un cote, le bot de rang 0 doublera ton poste.
 
-Le socle vient de `GetHomePosition()`, la position d'apparition. Le script du
-coeur n'y touche jamais — aucun `SetHomePosition` dans
-`boss_twinemperors.cpp` — donc elle reste juste apres trois teleportations.
+### Les deux postes, et ou les mettre
+
+Ce ne sont **pas** les points d'apparition. Les deux Empereurs poussent sur les
+plateformes du fond, aux deux coins hauts de la salle; le raid les tire contre
+les murs gauche et droit, a mi-hauteur — c'est la qu'on les tient.
+
+Les deux postes sont deux constantes de `Aq40Utils.h` :
+
+```cpp
+constexpr Aq40TankPost TANK_POST_A = { 0.0f, 0.0f, 0.0f };
+constexpr Aq40TankPost TANK_POST_B = { 0.0f, 0.0f, 0.0f };
+```
+
+Pour les remplir : se placer a chaque endroit en jeu, faire `.gps`, et coller
+les deux relevés. **L'ordre n'a pas d'importance** — le code donne a chaque rang
+le poste le plus proche de la plateforme qui lui revient, donc chaque tank garde
+son cote du debut a la fin.
+
+**A zero, on se rabat sur `GetHomePosition()`**, donc sur les plateformes
+d'apparition. Le script du coeur n'y touche jamais — aucun `SetHomePosition`
+dans `boss_twinemperors.cpp` — donc elles restent justes apres trois
+teleportations, et 158,2 yards les separent : Heal Brother ne part pas. Mais ce
+n'est pas le placement de la guilde.
+
+**Ce que le tank peut et ne peut pas tirer.** Vek'nilash suit son attaquant au
+contact : son tank le ramene ou il veut. Vek'lor, lui, garde 45 yards de sa
+cible et ne bouge que si elle s'en eloigne — sa position est donc decidee par
+qui tient sa menace, c'est-a-dire les lanceurs de sorts, pas par un tank. Le
+mettre a un endroit precis veut dire placer les lanceurs de sorts a 45 yards de
+cet endroit, du cote du milieu.
 
 **Le partage des jumeaux se fait en une seule comparaison**, et les deux tanks
 font la meme : l'Empereur le plus proche du socle du rang 0 lui revient, l'autre
