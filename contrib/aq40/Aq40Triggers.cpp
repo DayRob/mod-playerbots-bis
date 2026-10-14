@@ -81,3 +81,27 @@ bool Aq40TwinsWrongTargetTrigger::IsActive()
 
     return AI_VALUE(Unit*, "current target") != assigned;
 }
+
+bool Aq40TwinsWrongSideTrigger::IsActive()
+{
+    if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    if (RaidAq40Utils::IsBugOnMe(bot))
+        return false;
+
+    Unit* mine = RaidAq40Utils::GetAssignedTwin(bot);
+    Unit* other = RaidAq40Utils::GetForbiddenTwin(bot);
+    if (!mine || !other)
+        return false;
+
+    // Le mauvais cote, c'est etre plus pres du jumeau interdit que son propre
+    // jumeau ne l'est : le bot est alors entre les deux, et le boss qu'il tient
+    // se dirige vers son frere pour l'atteindre.
+    //
+    // Pose comme une comparaison et non comme une distance fixe, parce que la
+    // bonne distance change tout le temps : c'est la geometrie des deux boss
+    // qui decide. Le declencheur ne repond donc oui que quand le placement est
+    // vraiment faux, et laisse l'IA de classe tranquille le reste du temps.
+    return bot->GetExactDist2d(other) < mine->GetExactDist2d(other);
+}

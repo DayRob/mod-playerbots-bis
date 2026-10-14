@@ -29,6 +29,15 @@ public:
     bool IsActive() override;
 };
 
+// This bot is standing between the two emperors, so its own twin is being
+// pulled towards its brother instead of away from him.
+class Aq40TwinsWrongSideTrigger : public Trigger
+{
+public:
+    Aq40TwinsWrongSideTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 twins between the emperors") {}
+    bool IsActive() override;
+};
+
 // This bot is hitting the twin that is immune to what it does.
 class Aq40TwinsWrongTargetTrigger : public Trigger
 {

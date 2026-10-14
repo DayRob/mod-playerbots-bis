@@ -27,6 +27,15 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new TriggerNode("aq40 twins too close together",
             { NextAction("aq40 twins drag apart", ACTION_RAID + 1.0f) }));
 
+    // La moitie PREVENTIVE de la separation, et elle vaut tout le temps : un
+    // raid qui se tient entre les deux Empereurs les fait converger sans que
+    // personne fasse de faute. Apres chaque teleportation, les deux groupes se
+    // retrouvent du mauvais cote d'un seul coup - c'est cette regle qui les
+    // renvoie, au tick suivant, sans attendre que la separation soit perdue.
+    triggers.push_back(
+        new TriggerNode("aq40 twins between the emperors",
+            { NextAction("aq40 twins cross over", ACTION_RAID + 0.5f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 twins wrong target",
             { NextAction("aq40 twins attack my twin", ACTION_RAID) }));

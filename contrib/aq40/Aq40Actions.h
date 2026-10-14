@@ -38,6 +38,20 @@ public:
     bool Execute(Event event) override;
 };
 
+// Crosses to the far side of its own twin, so that twin faces away from its
+// brother. This is the preventive half of the separation: a raid that stands
+// between the emperors drags them together without anyone doing anything wrong.
+class Aq40TwinsFarSideAction : public MovementAction
+{
+public:
+    Aq40TwinsFarSideAction(PlayerbotAI* botAI, std::string const name = "aq40 twins cross over")
+        : MovementAction(botAI, name)
+    {
+    }
+
+    bool Execute(Event event) override;
+};
+
 // Switches onto the twin this bot can actually damage. Both emperors share their
 // damage, so the half of the raid that picks the wrong one contributes nothing.
 class Aq40TwinsAttackMyTwinAction : public AttackAction

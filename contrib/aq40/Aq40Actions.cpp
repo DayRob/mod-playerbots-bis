@@ -76,3 +76,34 @@ bool Aq40TwinsAttackMyTwinAction::Execute(Event /*event*/)
 
     return Attack(assigned);
 }
+
+bool Aq40TwinsFarSideAction::Execute(Event /*event*/)
+{
+    Unit* mine = RaidAq40Utils::GetAssignedTwin(bot);
+    Unit* other = RaidAq40Utils::GetForbiddenTwin(bot);
+    if (!mine || !other)
+        return false;
+
+    float const dX = mine->GetPositionX() - other->GetPositionX();
+    float const dY = mine->GetPositionY() - other->GetPositionY();
+    float const ecart = std::sqrt(dX * dX + dY * dY);
+    if (ecart < 1.0f)
+        return false;
+
+    // Un attaquant physique se place AU CONTACT, pas en retrait : sa place est
+    // derriere son jumeau, pas a huit yards de lui. L'ecartement actif, lui,
+    // vise plus loin exprès pour faire marcher le boss - mais il ne tourne que
+    // quand la separation est deja perdue, et il coute le DPS de la melee.
+    // Celle-ci ne coute rien et sert tout le temps.
+    float const recul = RaidAq40Utils::IsSpellDamageDealer(bot) ? CASTER_FAR_SIDE_OFFSET
+                                                                : bot->GetMeleeRange(mine);
+
+    float const targetX = mine->GetPositionX() + recul * (dX / ecart);
+    float const targetY = mine->GetPositionY() + recul * (dY / ecart);
+
+    if (bot->GetExactDist2d(targetX, targetY) < 2.0f)
+        return false;
+
+    return MoveTo(bot->GetMapId(), targetX, targetY, mine->GetPositionZ(), false, false, false, false,
+                  MovementPriority::MOVEMENT_COMBAT, true, false);
+}

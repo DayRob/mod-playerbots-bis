@@ -40,6 +40,11 @@ constexpr float MELEE_STAY_AWAY_FROM_VEKLOR = 15.0f;
 // grabs its nearest target with 2000 threat, which is how casters end up tanking.
 constexpr float CASTER_STAY_AWAY_FROM_VEKNILASH = 25.0f;
 
+// Where a spell dealer stands once it is on the right side of Vek'lor: close
+// enough to cast, far enough that Vek'lor has no reason to walk back towards
+// his brother (he only moves when his victim is over 45 yards away).
+constexpr float CASTER_FAR_SIDE_OFFSET = 25.0f;
+
 // The chamber is large; the twins have to be found from either end of it. Kept
 // short enough that a bot busy elsewhere in the temple is never dragged in.
 constexpr float TWIN_SCAN_RANGE = 150.0f;

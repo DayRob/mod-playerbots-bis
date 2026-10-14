@@ -32,13 +32,27 @@ d'un cote :
 
 Le chasseur va sur Vek'nilash malgre sa distance : ses tirs sont physiques.
 
-**2. Personne ne reste collé au jumeau qu'il ne peut pas blesser.** Les
+**2. Personne ne reste colle au jumeau qu'il ne peut pas blesser.** Les
 physiques s'ecartent a 15 yards de Vek'lor — y rester ne rapporte rien et
 declenche Arcane Burst (568), qui les repousse. Les casters s'ecartent a
 25 yards de Vek'nilash, qui frappe au contact et qui, apres chaque
 teleportation, agresse la cible la plus proche avec 2000 de menace offerte.
 
-**3. Les physiques eloignent Vek'nilash de son frere.** Heal Brother (7393)
+**3. Personne ne se tient ENTRE les deux Empereurs.** C'est la moitie
+preventive de la separation, et c'est la regle qui compte le plus : un raid
+place entre les deux les fait converger sans que personne fasse de faute,
+parce que chaque boss marche vers celui qui le tient. Un bot est du mauvais
+cote des qu'il est plus pres du jumeau interdit que son propre jumeau ne
+l'est ; il traverse alors derriere le sien — au contact pour un physique,
+a 25 yards pour un lanceur de sorts, donc sans perdre une seconde de degats.
+
+Twin Teleport echange les positions toutes les 30 a 40 secondes : les deux
+groupes se retrouvent du mauvais cote d'un seul coup. Cette regle les renvoie
+au tick suivant, sans attendre que la separation soit perdue. C'est
+l'equivalent automatique de ce qu'un raid humain fait en se replacant avant
+l'echange, avec un WeakAura pour l'annoncer.
+
+**4. Les physiques eloignent Vek'nilash de son frere.** Heal Brother (7393)
 part toutes les 3,6 secondes, mais seulement si les deux jumeaux sont a moins
 de **60 yards** l'un de l'autre. C'est la seule chose qui fait perdre le
 combat.
@@ -163,6 +177,7 @@ le pull, une fois par boss.
 | `HEAL_BROTHER_RANGE` | 60 | `IsWithinDist(twin, 60.f)` avant Heal Brother |
 | `SAFE_SEPARATION` | 70 | 60 plus une marge |
 | `MELEE_STAY_AWAY_FROM_VEKLOR` | 15 | Arcane Burst sur `NOMINAL_MELEE_RANGE` |
+| `CASTER_FAR_SIDE_OFFSET` | 25 | ou se tient un lanceur de sorts derriere Vek'lor : a portee de sort, et Vek'lor n'a aucune raison de revenir (il ne bouge qu'au-dela de 45 yards) |
 | `CASTER_STAY_AWAY_FROM_VEKNILASH` | 25 | `AddThreat(victim, 2000.f)` sur le plus proche apres teleportation |
 | carte | 531 | Temple d'Ahn'Qiraj |
 

@@ -17,12 +17,14 @@ public:
     {
         creators["aq40 twins too close together"] = &RaidAq40TriggerContext::twins_too_close_together;
         creators["aq40 twins wrong side"] = &RaidAq40TriggerContext::twins_wrong_side;
+        creators["aq40 twins between the emperors"] = &RaidAq40TriggerContext::twins_wrong_side_of_room;
         creators["aq40 twins wrong target"] = &RaidAq40TriggerContext::twins_wrong_target;
     }
 
 private:
     static Trigger* twins_too_close_together(PlayerbotAI* botAI) { return new Aq40TwinsDragApartTrigger(botAI); }
     static Trigger* twins_wrong_side(PlayerbotAI* botAI) { return new Aq40TwinsKeepDistanceTrigger(botAI); }
+    static Trigger* twins_wrong_side_of_room(PlayerbotAI* botAI) { return new Aq40TwinsWrongSideTrigger(botAI); }
     static Trigger* twins_wrong_target(PlayerbotAI* botAI) { return new Aq40TwinsWrongTargetTrigger(botAI); }
 };
 
