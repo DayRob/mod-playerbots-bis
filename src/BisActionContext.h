@@ -29,11 +29,21 @@ public:
     {
         creators["loot roll"] = &BisActionContext::loot_roll;
         creators["equip upgrades packet action"] = &BisActionContext::equip_upgrades;
+
+        // Les deux autres chemins d'equipement de playerbots. Ils vivent dans
+        // le ChatActionContext, qui est dans la MEME liste partagee, donc le
+        // meme mecanisme les atteint. Leur comportement ne change pas : ces
+        // deux-la ne font qu'ajouter l'annonce - par quoi la piece est
+        // remplacee, et a quel rang - que l'originale ne dit pas.
+        creators["equip"] = &BisActionContext::equip;
+        creators["equip upgrade"] = &BisActionContext::equip_upgrade;
     }
 
 private:
     static Action* loot_roll(PlayerbotAI* botAI) { return new BisLootRollAction(botAI); }
     static Action* equip_upgrades(PlayerbotAI* botAI) { return new BisEquipUpgradesAction(botAI); }
+    static Action* equip(PlayerbotAI* botAI) { return new BisAnnonceEquipement<EquipAction>(botAI); }
+    static Action* equip_upgrade(PlayerbotAI* botAI) { return new BisAnnonceEquipement<EquipUpgradeAction>(botAI); }
 };
 
 #endif

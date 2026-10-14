@@ -8,8 +8,72 @@
 #define MOD_PLAYERBOTS_BIS_EQUIPACTION_H
 
 #include "EquipAction.h"
+#include "Player.h"
 
 class ChatHandler;
+
+// CE QUE LE BOT PORTAIT, CRENEAU PAR CRENEAU, A UN INSTANT DONNE.
+//
+// POURQUOI CECI EXISTE. Playerbots equipe lui-meme une bonne part des pieces -
+// c'est son EquipAction qui le fait - et il l'annonce dans ses propres mots :
+// "Equipping [X]". Sans rang, sans palier, et sans nommer la piece qui part.
+// Le module ne peut pas reprendre cette phrase a la source : EquipItem() est
+// privee et non virtuelle, il n'y a rien a redefinir.
+//
+// Mais ce que l'equipement a CHANGE se lit toujours : on releve les creneaux
+// avant de laisser l'action agir, on les compare apres, et chaque creneau qui
+// a change se dit alors dans les mots du module - rang de la piece qui arrive,
+// rang de celle qui part, palier - et TOUJOURS apres l'equipement, puisque la
+// comparaison n'est possible qu'une fois la piece en place.
+class BisWornSnapshot
+{
+public:
+    // Releve les creneaux d'equipement si - et seulement si - le module a
+    // quelque chose a dire pour ce bot : tables chargees, module actif, bot
+    // concerne, annonces autorisees. Renvoie vrai quand le releve a eu lieu.
+    //
+    // Le gardien est ICI et pas chez l'appelant pour une raison simple : trois
+    // actions differentes font ce releve, et une condition oubliee dans l'une
+    // des trois ferait parler un bot dont le maitre a demande le silence.
+    bool TakeIfAnnouncing(Player* bot, PlayerbotAI* botAI);
+
+    // Compare le port actuel au releve et annonce chaque creneau qui a change.
+    // Renvoie le nombre de creneaux annonces. Ne dit rien quand le releve n'a
+    // pas eu lieu, donc l'appel est toujours sans danger.
+    uint32 TellWhatChanged(Player* bot, PlayerbotAI* botAI) const;
+
+private:
+    uint32 _worn[EQUIPMENT_SLOT_END] = {};
+    bool _taken = false;
+};
+
+// LES DEUX AUTRES CHEMINS PAR LESQUELS PLAYERBOTS EQUIPE.
+//
+// "equip" est la commande du maitre ("equip [objet]"), "equip upgrade" la passe
+// que playerbots declenche lui-meme - au sortir d'un combat de raid, par
+// exemple. Les deux finissent dans le meme EquipItem() muet sur les rangs.
+//
+// Rien ne change ici du comportement de l'action : l'originale decide seule, et
+// seule l'annonce s'ajoute, apres coup.
+template <class Base>
+class BisAnnonceEquipement : public Base
+{
+public:
+    explicit BisAnnonceEquipement(PlayerbotAI* botAI) : Base(botAI) {}
+
+    bool Execute(Event event) override
+    {
+        BisWornSnapshot avant;
+        bool const releve = avant.TakeIfAnnouncing(this->bot, this->botAI);
+
+        bool const acted = Base::Execute(event);
+
+        if (releve)
+            avant.TellWhatChanged(this->bot, this->botAI);
+
+        return acted;
+    }
+};
 
 // Replacement for playerbots' "equip upgrades packet action", the action that
 // runs when a bot receives an item.

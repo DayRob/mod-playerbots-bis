@@ -539,6 +539,49 @@ Contrairement à la revendication au moment du butin, **un niveau manquant
 disqualifie ici** : le cœur refuse l'équipement, donc forcer ne ferait que
 dépenser un paquet par tick jusqu'à ce que le bot grandisse.
 
+### Dire par quoi la pièce est remplacée, à chaque fois
+
+Une pièce sur deux est équipée par playerbots lui-même, et il l'annonce dans ses
+propres mots :
+
+```
+[Driruld] chuchote : Equipping [Scaled Leggings of Qiraji Fury]
+```
+
+Pas de rang, pas de palier, et **rien sur la pièce qui part**. Le module ne peut
+pas reprendre cette phrase à la source : `EquipAction::EquipItem()` est privée et
+non virtuelle, il n'y a rien à redéfinir.
+
+Mais ce que l'équipement a **changé** se lit toujours. `BisWornSnapshot` relève
+les dix-neuf créneaux avant de laisser l'action agir, les compare après, et dit
+chaque créneau qui a bougé :
+
+```
+[Driruld] chuchote : J'équipe [Jambières de fureur qiraji en écailles] rang 4
+à la place de [Jambières de la Tempête] hors liste
+(Vanilla Phase 4 - Ahn Qiraj (20 et 40))
+```
+
+Trois chemins équipent, et les trois passent par ce relevé : l'arrivée d'un objet
+(`equip upgrades packet action`), la commande du maître (`equip`), et la passe que
+playerbots déclenche lui-même (`equip upgrade`). Aucun des trois ne change de
+comportement — seule l'annonce s'ajoute, **toujours après** l'équipement, puisque
+la comparaison n'est possible qu'une fois la pièce en place.
+
+La phrase est écrite **une seule fois**, dans `PhraseEquipement`, et la passe du
+module s'en sert aussi : une correction apportée à l'une ne peut plus oublier
+l'autre.
+
+Deux détails qui comptent :
+
+- Un créneau devenu **vide** n'a pas de ligne à lui. La main gauche qu'une arme à
+  deux mains fait ranger se dit dans la ligne de la main droite — qui est la
+  raison de son départ — sous la forme `, et je range [<pièce>]`.
+- `hors liste` se décide sur la **priorité**, pas sur le rang : une ligne dont le
+  rang vaut zéro reste une ligne.
+
+Le tout sous `AnnounceOwnBis`, et seulement pour les bots que le module suit.
+
 ## Savoir ce qui manque à chaque bot
 
 La spé n'est stockée nulle part : `AiFactory` la recalcule depuis les talents à chaque

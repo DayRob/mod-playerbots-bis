@@ -53,6 +53,12 @@ PlayerbotsBis.LeaveOtherSpecsBis = 1
 # a cet emplacement". Celles-la n'ont aucune liste derriere elles, donc sans un
 # mot un bot qui fait NEED sur un objet absent des tables ressemble a un bug
 # plutot qu'a la regle qu'il applique.
+#
+# Couvre enfin l'EQUIPEMENT, a chaque fois et quel que soit celui des deux qui
+# a tranche - le module ou playerbots lui-meme :
+# "J'equipe <objet> rang 4 a la place de <objet porte> rang 7 (<palier>)".
+# Playerbots, seul, dit "Equipping <objet>" sans rang ni piece remplacee ; cette
+# ligne-la s'ajoute apres la sienne.
 # Defaut : 1 (active)
 PlayerbotsBis.AnnounceOwnBis = 1
 

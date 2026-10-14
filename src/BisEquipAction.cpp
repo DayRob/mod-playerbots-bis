@@ -23,12 +23,151 @@
 #include <string>
 #include <vector>
 
+namespace
+{
+    // LA MEME PHRASE, QUEL QUE SOIT LE CHEMIN QUI A EQUIPE LA PIECE.
+    //
+    // Trois chemins equipent : la passe du module, l'action d'origine de
+    // playerbots, et la commande du maitre. Le maitre, lui, n'a pas a deviner
+    // lequel a parle - il lit toujours la meme ligne, avec le rang de ce qui
+    // arrive, le rang de ce qui part, et le palier pour fermer.
+    //
+    // "hors liste" se decide sur la PRIORITE, pas sur le rang : une ligne dont
+    // le rang vaut zero est une ligne quand meme, et l'appeler "hors liste"
+    // serait un mensonge sur la seule chose que cette phrase doit garantir.
+    std::string PhraseEquipement(Player* bot, ItemTemplate const* arrive, ItemTemplate const* parti,
+                                 ItemTemplate const* mainGaucheRangee)
+    {
+        uint16 palier = 0;
+        uint8 rang = 0;
+        uint32 const priorite = sBisPriorityMgr->GetItemPriority(bot, arrive->ItemId, nullptr, &palier, &rang);
+
+        std::ostringstream out;
+        out << "J'equipe " << ChatHelper::FormatItem(arrive);
+        if (rang)
+            out << " rang " << uint32(rang);
+        else if (!priorite)
+            out << " hors liste";
+
+        if (parti)
+        {
+            uint8 rangParti = 0;
+            uint32 const prioriteParti =
+                sBisPriorityMgr->GetItemPriority(bot, parti->ItemId, nullptr, nullptr, &rangParti);
+
+            out << " a la place de " << ChatHelper::FormatItem(parti);
+            if (rangParti)
+                out << " rang " << uint32(rangParti);
+            else if (!prioriteParti)
+                out << " hors liste";
+        }
+        else
+            out << " sur un creneau vide";
+
+        if (mainGaucheRangee)
+            out << ", et je range " << ChatHelper::FormatItem(mainGaucheRangee);
+
+        // Le palier seul en fin de phrase : chaque piece porte deja son rang
+        // juste apres son nom, le repeter ici brouillerait la lecture.
+        std::string const nomDuPalier = sBisPriorityMgr->GetTierName(palier);
+        if (!nomDuPalier.empty())
+            out << " (" << nomDuPalier << ")";
+
+        return out.str();
+    }
+}
+
+bool BisWornSnapshot::TakeIfAnnouncing(Player* bot, PlayerbotAI* botAI)
+{
+    _taken = false;
+
+    if (!bot || !botAI)
+        return false;
+
+    if (!sBisPriorityMgr->IsEnabled() || !sBisPriorityMgr->IsLoaded() || !sBisPriorityMgr->AnnounceOwnBis())
+        return false;
+
+    if (!sBisPriorityMgr->AppliesTo(bot))
+        return false;
+
+    for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+    {
+        Item const* const porte = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+        _worn[slot] = porte ? porte->GetEntry() : 0;
+    }
+
+    _taken = true;
+    return true;
+}
+
+uint32 BisWornSnapshot::TellWhatChanged(Player* bot, PlayerbotAI* botAI) const
+{
+    if (!_taken || !bot || !botAI)
+        return 0;
+
+    // La main gauche qu'une arme a deux mains fait ranger : son creneau est
+    // VIDE apres coup, donc il n'aura pas de ligne a lui. Elle se dit dans la
+    // ligne de la main droite, qui est la raison de son depart - sinon elle
+    // cesse simplement d'etre portee, sans un mot.
+    ItemTemplate const* mainGaucheRangee = nullptr;
+    if (_worn[EQUIPMENT_SLOT_OFFHAND] && !bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+        mainGaucheRangee = sObjectMgr->GetItemTemplate(_worn[EQUIPMENT_SLOT_OFFHAND]);
+
+    uint32 dites = 0;
+
+    for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+    {
+        Item const* const maintenant = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+        uint32 const apres = maintenant ? maintenant->GetEntry() : 0;
+
+        if (apres == _worn[slot])
+            continue;
+
+        // Un creneau devenu vide n'est pas un equipement : c'est une piece qui
+        // sort, et elle est deja nommee par la ligne du creneau qui l'a fait
+        // sortir. Une ligne a elle se lirait comme un second equipement.
+        if (!apres)
+            continue;
+
+        ItemTemplate const* const arrive = maintenant->GetTemplate();
+        if (!arrive)
+            continue;
+
+        // Le MODELE de la piece qui part, pas l'objet : apres l'echange il est
+        // quelque part dans les sacs, ou detruit. Un ItemTemplate, lui, vit
+        // dans le gestionnaire d'objets pour toute la duree du serveur.
+        ItemTemplate const* const parti = _worn[slot] ? sObjectMgr->GetItemTemplate(_worn[slot]) : nullptr;
+
+        botAI->TellMaster(PhraseEquipement(bot, arrive, parti,
+                                           slot == EQUIPMENT_SLOT_MAINHAND ? mainGaucheRangee : nullptr));
+        ++dites;
+    }
+
+    return dites;
+}
+
 bool BisEquipUpgradesAction::Execute(Event event)
 {
+    // CE QUE PLAYERBOTS EQUIPE LUI-MEME SE DIT AUSSI.
+    //
+    // L'originale ci-dessous equipe une bonne part des pieces, et elle l'annonce
+    // dans ses propres mots : "Equipping [X]", sans rang ni piece remplacee. Le
+    // releve pris ici, puis compare juste apres, rend cette ligne-la au meme
+    // format que les autres : le maitre voit par quoi la piece est remplacee
+    // quel que soit celui des deux qui a tranche.
+    BisWornSnapshot avant;
+    bool const releve = avant.TakeIfAnnouncing(bot, botAI);
+
     // The original keeps every case it already handles well - armour, rings,
     // trinkets, and the weapon arbitration when its own score agrees with us.
     // This only picks up what it leaves behind.
     bool const acted = EquipUpgradesPacketAction::Execute(event);
+
+    // AVANT la passe du module, qui annonce ses propres pieces elle-meme : ce
+    // qu'elle equipera n'a pas encore bouge, donc chaque piece est nommee une
+    // fois et une seule.
+    if (releve)
+        avant.TellWhatChanged(bot, botAI);
 
     if (!sBisPriorityMgr->IsEnabled() || !sBisPriorityMgr->IsLoaded() ||
         !sBisPriorityMgr->AppliesTo(bot))
@@ -323,10 +462,10 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         // que sa liste ne couvre pas encore - et c'est alors "hors liste", ce
         // qui est une information en soi.
         //
-        // Declare ICI et non dans le bloc d'annonce : la ligne de rapport, plus
-        // bas, s'en sert aussi.
+        // Pour la ligne de rapport uniquement : l'annonce au maitre, elle, tire
+        // les deux rangs de PhraseEquipement.
         uint8 rangRemplace = 0;
-        if (replaced)
+        if (report && replaced)
             sBisPriorityMgr->GetItemPriority(bot, replaced->ItemId, nullptr, nullptr, &rangRemplace);
 
         // Said out loud for the same reason the claim is: the bot is putting on
@@ -334,31 +473,13 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         // that reads as the item jumping slots by itself. Naming what leaves
         // matters as much as naming what arrives - on a paired slot it is the
         // only way to know WHICH ring went.
+        //
+        // LA PHRASE EST CELLE DU HAUT DU FICHIER, partagee avec le releve qui
+        // rend compte des pieces equipees par playerbots lui-meme : le maitre
+        // lit la meme ligne dans les deux cas, et une correction apportee a
+        // l'une ne peut plus oublier l'autre.
         if (sBisPriorityMgr->AnnounceOwnBis() && botAI)
-        {
-            std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
-            std::ostringstream out;
-            out << "J'equipe " << ChatHelper::FormatItem(proto);
-            if (rank)
-                out << " rang " << uint32(rank);
-            if (replaced)
-            {
-                out << " a la place de " << ChatHelper::FormatItem(replaced);
-                if (rangRemplace)
-                    out << " rang " << uint32(rangRemplace);
-                else
-                    out << " hors liste";
-            }
-            else
-                out << " sur un creneau vide";
-            if (displacedOffHand)
-                out << ", et je range " << ChatHelper::FormatItem(displacedOffHand);
-            // Le palier seul en fin de phrase : chaque piece porte deja son
-            // rang juste apres son nom, le repeter ici brouillerait la lecture.
-            if (!tierName.empty())
-                out << " (" << tierName << ")";
-            botAI->TellMaster(out.str());
-        }
+            botAI->TellMaster(PhraseEquipement(bot, proto, replaced, displacedOffHand));
 
         if (report)
         {
