@@ -15,7 +15,6 @@ public:
     RaidAq40Strategy(PlayerbotAI* botAI) : Strategy(botAI) {}
     virtual std::string const getName() override { return "aq40"; }
     virtual void InitTriggers(std::vector<TriggerNode*>& triggers) override;
-    virtual void InitMultipliers(std::vector<Multiplier*>& multipliers) override;
 };
 
 #endif

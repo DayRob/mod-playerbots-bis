@@ -97,27 +97,3 @@ bool RaidAq40Utils::IsAngryBugNear(Player* bot)
 
     return false;
 }
-
-bool RaidAq40Utils::IsIdleQirajiBug(PlayerbotAI* botAI, Unit* unit)
-{
-    if (!botAI || !unit)
-        return false;
-
-    uint32 const entry = unit->GetEntry();
-    if (entry != NPC_QIRAJI_SCARAB && entry != NPC_QIRAJI_SCORPION)
-        return false;
-
-    // A bug the emperors wake attacks somebody, which puts it on a group
-    // member's threat list, which is what "attackers" is built from. So does a
-    // skull the raid leader sets. Either way it becomes fair game again. A bug
-    // that appears nowhere in that list is still asleep, and nobody has any
-    // business waking it.
-    AiObjectContext* context = botAI->GetAiObjectContext();
-    for (ObjectGuid const guid : AI_VALUE(GuidVector, "attackers"))
-    {
-        if (guid == unit->GetGUID())
-            return false;
-    }
-
-    return true;
-}

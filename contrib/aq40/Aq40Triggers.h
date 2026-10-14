@@ -29,16 +29,6 @@ public:
     bool IsActive() override;
 };
 
-// This bot has taken aim at one of the chamber's bugs, which nothing in the
-// raid is fighting. Unlike the three below, this one does not wait for the
-// emperors to be engaged: waking a bug is exactly how they get pulled.
-class Aq40IdleQirajiBugTargetTrigger : public Trigger
-{
-public:
-    Aq40IdleQirajiBugTargetTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 idle qiraji bug target") {}
-    bool IsActive() override;
-};
-
 // This bot is hitting the twin that is immune to what it does.
 class Aq40TwinsWrongTargetTrigger : public Trigger
 {

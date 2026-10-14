@@ -281,8 +281,6 @@ $attendus = @(
     'Aq40ActionContext.h',
     'Aq40Actions.cpp',
     'Aq40Actions.h',
-    'Aq40Multipliers.cpp',
-    'Aq40Multipliers.h',
     'Aq40Strategy.cpp',
     'Aq40Strategy.h',
     'Aq40TriggerContext.h',
@@ -307,6 +305,16 @@ foreach ($nom in $attendus) {
         throw "La copie de $nom ne correspond pas a la source ($($a.Length) vs $($b.Length) octets)."
     }
     Write-Host "  $nom ($($a.Length) octets)"
+}
+
+# Les fichiers d'une version precedente qui ne sont plus de la liste doivent
+# partir : CMake les ramasse quand meme, et ils referencent des fonctions qui
+# n'existent plus. Un build casse, pour un fichier que personne ne regarde.
+$restes = @(Get-ChildItem -LiteralPath $dossierAq40 -File |
+            Where-Object { $attendus -notcontains $_.Name })
+foreach ($reste in $restes) {
+    Remove-Item -LiteralPath $reste.FullName -Force
+    Write-Host "  retire (plus de la strategie) : $($reste.Name)" -ForegroundColor Yellow
 }
 
 Write-Host ''

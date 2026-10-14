@@ -56,11 +56,3 @@ bool Aq40TwinsWrongTargetTrigger::IsActive()
 
     return AI_VALUE(Unit*, "current target") != assigned;
 }
-
-bool Aq40IdleQirajiBugTargetTrigger::IsActive()
-{
-    if (!bot->IsAlive())
-        return false;
-
-    return RaidAq40Utils::IsIdleQirajiBug(botAI, AI_VALUE(Unit*, "current target"));
-}

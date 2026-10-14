@@ -56,35 +56,52 @@ jusqu'a 45 yards, puis `StopMoving`. Il ne frappe jamais au contact. Donc la
 separation se joue entierement sur Vek'nilash — c'est pour ca qu'un seul
 groupe tire.
 
-**4. Personne ne reveille un scarabee de lui-meme.** C'est la seule regle qui
-s'applique AVANT le pull, parce que reveiller une bestiole est precisement
-comment les Empereurs se font prendre par accident.
+**Rien de tout ca ne bouge avant le pull.** Les trois declencheurs repondent
+non tant qu'aucun jumeau n'est en combat. En dehors du combat lui-meme, les
+bots restent entierement sous le controle de ce qui les mene d'habitude —
+mod-dungeon-clear compris.
 
-`npc_ahnqiraji_critter::Reset()` epargne tout spawn que `linked_respawn`
-rattache a un spawn de Vek'lor, et dans la salle des Empereurs ils le sont
-tous — releve sur une base reelle : **100 scarabes et scorpions, les 100 lies
-a Vek'lor**. Ils ne frappent donc jamais les premiers. Les 83 autres de la
-carte 531, eux, mordent tout joueur en combat a moins de 10 yards, mais le
-plus proche est a **156,7 yards** d'un Empereur : ils ne peuvent pas etre la
-cause d'un pull dans la salle.
+## Les scarabes de la salle : pas pour cette strategie
 
-Donc un bot qui en attaque un dans la salle a commence. Et le moteur ne les
-voit pas comme des critters (`creature_template.type` vaut 10,
-`NOT_SPECIFIED`, pas 8), donc `Player::isHonorOrXPTarget` dit oui et la
-selection de cible d'un bot ira volontiers en chercher un — en traversant le
-rayon d'agression des Empereurs.
+Il y a **100 scarabes et scorpions dans la salle des Empereurs**, et ils ne
+frappent jamais les premiers : `npc_ahnqiraji_critter::Reset()` sort avant son
+planificateur pour tout spawn que `linked_respawn` rattache a un spawn de
+Vek'lor, et les 100 le sont. Les 83 autres de la carte 531, eux, mordent tout
+joueur en combat a moins de 10 yards, mais le plus proche est a **156,7 yards**
+d'un Empereur : ils ne peuvent pas pull la salle.
 
-La strategie coupe ca a deux endroits : un multiplicateur met a zero
-`attack anything` et `aggressive target` (les deux seules actions de
-playerbots qui choisissent une cible que le raid ne combat pas deja), et un
-declencheur lache la cible si quelque chose est passe quand meme. Un scarabe
-reveille par un boss attaque quelqu'un, donc il entre dans la liste
-`attackers` et redevient une cible legitime — comme un scarabe que tu marques
-d'une tete de mort.
+Donc un bot qui attaque un scarabe de la salle a ete **envoye**. Ce n'est pas
+son initiative : `creature_template.type` vaut 10 (`NOT_SPECIFIED`, pas 8
+`CRITTER`), donc `Player::isHonorOrXPTarget` les accepte comme proies, mais
+`grind` et `aggressive` ne sont pas poses sur un bot en groupe.
 
-**5. Un bot occupe par un scarabee reveille ne se fait pas rappeler.** Tant
-qu'un de ces insectes hostile est a moins de 15 yards d'un bot, les regles 2
-et 3 le laissent s'en occuper.
+Sur un serveur avec **[mod-dungeon-clear](https://github.com/jrad7/mod-dungeon-clear)**,
+c'est lui : il nettoie le trash en route vers chaque boss, et sa propre conf
+decrit le resultat mot pour mot —
+
+> the party follows imperfectly and cuts the corner, so a tight skirt on the
+> aggro edge pulls the boss anyway (the SM Cathedral / Mograine failure mode)
+
+Cette strategie ne tente **rien** contre ca, volontairement. Son echelle de
+priorites va de 60 a 62, celle de mod-dungeon-clear de 25 a 42 : tout ce
+qu'elle poserait avant le pull gagnerait contre lui en silence, et ferait
+caler un module qui fait son travail. Un livelock de 30 secondes
+(`DungeonClear.RoomClearTimeout`) avant chaque boss n'est pas un correctif.
+
+Les leviers sont les siens, et ils sont par run — rien a changer globalement :
+
+| Commande | Effet |
+|---|---|
+| `.dc off` | arrete le run et rend les bots au joueur |
+| `.dc pause` | stoppe sur place ; la meme commande reprend |
+| `.dc go <boss>` | route directement vers un boss nomme |
+| `.dc config` | affiche les valeurs effectives du run en cours |
+
+Le plus propre : `.dc on` pour tout le temple, `.dc pause` en arrivant chez les
+Jumeaux, le combat a la main avec cette strategie, puis reprise. Et
+`DungeonClear.WaitAtBoss = 1`, reglable par run depuis le panneau de l'addon,
+fait que le tank arrive au boss et s'arrete au lieu de pull — le joueur garde
+le pull, une fois par boss.
 
 ## Ce que la strategie ne fait pas
 
@@ -105,6 +122,9 @@ et 3 le laissent s'en occuper.
 - **Elle ne remplace pas ton placement.** Si c'est toi qui tanke
   Vek'nilash, c'est toi qui dois l'eloigner : les bots ne tirent que ce
   qu'ils tiennent.
+- **Elle ne touche a rien hors du combat des Jumeaux.** Pas de regle avant le
+  pull, pas de multiplicateur, aucune interference avec ce qui mene les bots
+  dans le reste du temple.
 
 ## Les chiffres, et d'ou ils viennent
 
@@ -118,7 +138,12 @@ et 3 le laissent s'en occuper.
 | `SAFE_SEPARATION` | 70 | 60 plus une marge |
 | `MELEE_STAY_AWAY_FROM_VEKLOR` | 15 | Arcane Burst sur `NOMINAL_MELEE_RANGE` |
 | `CASTER_STAY_AWAY_FROM_VEKNILASH` | 25 | `AddThreat(victim, 2000.f)` sur le plus proche apres teleportation |
+| `BUG_ALERT_RANGE` | 15 | un bot aux prises avec un scarabe reveille est laisse tranquille |
 | carte | 531 | Temple d'Ahn'Qiraj |
+
+Deux mesures prises sur une base reelle, pas supposees : les deux jumeaux
+naissent a **158,2 yards** l'un de l'autre, et le scarabe mordeur le plus
+proche est a **156,7 yards** d'un Empereur.
 
 A verifier sur ta base avant d'entrer :
 
@@ -149,7 +174,7 @@ Les fichiers arrivant par `git pull` ne portent pas la marque de zone
 d'Internet, donc `RemoteSigned` les laisse passer sans `Unblock-File`.
 
 
-Le script copie les douze fichiers dans
+Le script copie les dix fichiers dans
 `mod-playerbots\src\Ai\Raid\Aq40\` et branche la strategie a quatre endroits :
 
 - `src\Ai\Raid\RaidStrategyContext.h` — include, `creators["aq40"]`, fabrique
