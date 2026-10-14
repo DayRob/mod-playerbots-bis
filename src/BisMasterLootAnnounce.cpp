@@ -94,8 +94,9 @@ public:
             for (uint32 const itemId : itemIds)
             {
                 uint16 tierId = 0;
+                uint8 rank = 0;
                 bool tooLowLevel = false;
-                if (!sBisPriorityMgr->WantsAsUpgrade(bot, itemId, &tierId, &tooLowLevel))
+                if (!sBisPriorityMgr->WantsAsUpgrade(bot, itemId, &tierId, &tooLowLevel, &rank))
                     continue;
 
                 ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemId);
@@ -113,8 +114,16 @@ public:
                 if (ItemTemplate const* const replaced = sBisPriorityMgr->WouldReplace(bot, itemId))
                     wanted << " a la place de " << ChatHelper::FormatItem(replaced);
 
+                // Meme forme que les deux autres annonces. Ici le rang pese
+                // plus qu'ailleurs : le maitre arbitre entre plusieurs bots
+                // qui reclament la meme piece, et "rang 1" contre "rang 5" est
+                // precisement ce qui departage.
                 std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
-                if (!tierName.empty())
+                if (rank && !tierName.empty())
+                    wanted << " (rang " << uint32(rank) << ", " << tierName << ")";
+                else if (rank)
+                    wanted << " (rang " << uint32(rank) << ")";
+                else if (!tierName.empty())
                     wanted << " (" << tierName << ")";
 
                 // Say so plainly rather than let the master hand over a piece the

@@ -44,7 +44,8 @@ namespace
 
         uint8 slot = 0;
         uint16 tierId = 0;
-        uint32 const priority = sBisPriorityMgr->GetItemPriority(bot, itemId, &slot, &tierId);
+        uint8 rank = 0;
+        uint32 const priority = sBisPriorityMgr->GetItemPriority(bot, itemId, &slot, &tierId, &rank);
 
         // ── Branch 2 ──────────────────────────────────────────────────────────
         if (!priority)
@@ -176,8 +177,16 @@ namespace
         {
             std::string const tierName = sBisPriorityMgr->GetTierName(tierId);
             std::ostringstream out;
+            // LE RANG AVANT LE PALIER, dans la meme parenthese. Il compte
+            // autant depuis que les listes ne s'arretent plus a trois : "rang
+            // 1" et "rang 6" sont deux choses tres differentes, et l'annonce
+            // les disait pareil.
             out << ChatHelper::FormatItem(proto) << " - c'est mon BiS";
-            if (!tierName.empty())
+            if (rank && !tierName.empty())
+                out << " (rang " << uint32(rank) << ", " << tierName << ")";
+            else if (rank)
+                out << " (rang " << uint32(rank) << ")";
+            else if (!tierName.empty())
                 out << " (" << tierName << ")";
             if (worn && worn->GetTemplate())
                 out << ", a la place de " << ChatHelper::FormatItem(worn->GetTemplate());

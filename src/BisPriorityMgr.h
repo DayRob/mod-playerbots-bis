@@ -95,9 +95,14 @@ public:
     // Priority of itemId for this bot's class/spec, or 0 when the item is not on
     // the bot's list (wrong spec, unknown item, or tier above the current cap).
     // Higher wins. outSlot receives the slot the list assigns it to, outTierId
-    // the tier the entry belongs to.
+    // the tier the entry belongs to, outRank the rank it holds there.
+    //
+    // LE RANG EST RENDU, PAS DEDUIT. Il se lit dans la priorite - elle vaut
+    // tier * 1000 + (255 - rang) - mais le jour ou cette formule change, tout
+    // ce qui l'aurait defaite afficherait un chiffre faux sans rien casser.
+    // Une sortie de plus coute un parametre et supprime la question.
     uint32 GetItemPriority(Player* bot, uint32 itemId, uint8* outSlot = nullptr,
-                           uint16* outTierId = nullptr);
+                           uint16* outTierId = nullptr, uint8* outRank = nullptr);
 
     // True when this bot's class/spec has at least one row it can actually reach
     // (a tier at or below its cap). False means nothing is maintained for that
@@ -193,7 +198,7 @@ public:
     // disqualify the claim, unlike class, race, faction or proficiency, which
     // never change.
     bool WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId = nullptr,
-                        bool* outTooLowLevel = nullptr);
+                        bool* outTooLowLevel = nullptr, uint8* outRank = nullptr);
 
     // The other claim: an item NO list names, whose tooltip names this class
     // and no other, for a slot the lists have not settled and at an item level

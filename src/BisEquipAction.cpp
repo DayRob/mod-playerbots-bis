@@ -182,7 +182,8 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
 
         uint8 slot = 0;
         uint16 tierId = 0;
-        uint32 const priority = sBisPriorityMgr->GetItemPriority(bot, proto->ItemId, &slot, &tierId);
+        uint8 rank = 0;
+        uint32 const priority = sBisPriorityMgr->GetItemPriority(bot, proto->ItemId, &slot, &tierId, &rank);
         if (!priority)
         {
             // No list names it AT THIS BOT'S CAP - which is not the same as
@@ -325,7 +326,13 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
                 out << " sur un creneau vide";
             if (displacedOffHand)
                 out << ", et je range " << ChatHelper::FormatItem(displacedOffHand);
-            if (!tierName.empty())
+            // Meme forme que l'annonce de reclamation, pour qu'on lise les
+            // deux de la meme facon.
+            if (rank && !tierName.empty())
+                out << " (rang " << uint32(rank) << ", " << tierName << ")";
+            else if (rank)
+                out << " (rang " << uint32(rank) << ")";
+            else if (!tierName.empty())
                 out << " (" << tierName << ")";
             botAI->TellMaster(out.str());
         }
@@ -341,7 +348,7 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
                 line << " (creneau vide)";
             if (displacedOffHand)
                 line << ", main gauche rangee : " << ChatHelper::FormatItem(displacedOffHand);
-            line << " (" << sBisPriorityMgr->GetTierName(tierId) << ")";
+            line << " (rang " << uint32(rank) << ", " << sBisPriorityMgr->GetTierName(tierId) << ")";
             report->PSendSysMessage("{}", line.str());
         }
 

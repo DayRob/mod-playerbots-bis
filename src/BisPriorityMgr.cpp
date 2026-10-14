@@ -394,7 +394,8 @@ uint16 BisPriorityMgr::GetEffectiveTierCap(Player* bot)
     return allowed;
 }
 
-uint32 BisPriorityMgr::GetItemPriority(Player* bot, uint32 itemId, uint8* outSlot, uint16* outTierId)
+uint32 BisPriorityMgr::GetItemPriority(Player* bot, uint32 itemId, uint8* outSlot,
+                                       uint16* outTierId, uint8* outRank)
 {
     if (!_loaded || !itemId)
         return 0;
@@ -450,6 +451,8 @@ uint32 BisPriorityMgr::GetItemPriority(Player* bot, uint32 itemId, uint8* outSlo
         *outSlot = found->slot;
     if (outTierId)
         *outTierId = found->tierId;
+    if (outRank)
+        *outRank = found->rank;
 
     return uint32(found->tierId) * TIER_WEIGHT + (255u - std::min<uint32>(found->rank, 255u));
 }
@@ -787,7 +790,8 @@ bool BisPriorityMgr::WantsQuestToken(Player* bot, uint32 itemId, uint16* outTier
     return true;
 }
 
-bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId, bool* outTooLowLevel)
+bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId,
+                                    bool* outTooLowLevel, uint8* outRank)
 {
     if (outTooLowLevel)
         *outTooLowLevel = false;
@@ -804,9 +808,13 @@ bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierI
 
     uint8 slot = 0;
     uint16 tierId = 0;
-    uint32 const priority = GetItemPriority(bot, itemId, &slot, &tierId);
+    uint8 rank = 0;
+    uint32 const priority = GetItemPriority(bot, itemId, &slot, &tierId, &rank);
     if (!priority)
         return false;
+
+    if (outRank)
+        *outRank = rank;
 
     // Same reason the equip sweep refuses it: a two-hander leaves no off-hand to
     // fill. Claiming it here would have the bot roll NEED on a piece the core
