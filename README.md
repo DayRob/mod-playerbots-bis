@@ -901,10 +901,12 @@ n'est rattachée à aucune stratégie, et les bots y combattent avec leur IA
 générique. Les Jumeaux sont le premier boss que ça rend infaisable, parce que
 chacun est immunisé à la moitié du raid.
 
-`contrib/aq40/` contient dix fichiers de code **mod-playerbots** — pas
+`contrib/aq40/` contient douze fichiers de code **mod-playerbots** — pas
 mod-playerbots-bis — qui répartissent les bots sur le bon jumeau, les écartent
-de celui qu'ils ne peuvent pas blesser, et font éloigner Vek'nilash de son
-frère jusqu'au-delà des 60 yards de Heal Brother.
+de celui qu'ils ne peuvent pas blesser, font éloigner Vek'nilash de son frère
+jusqu'au-delà des 60 yards de Heal Brother, et surtout **empêchent un bot de
+réveiller un scarabé de la salle de lui-même** — c'est comme ça que les
+Empereurs se font prendre par accident.
 
 Ils vivent ici parce qu'un `git pull` dans mod-playerbots écrase son
 arborescence. L'installateur les recopie au bon endroit et branche la

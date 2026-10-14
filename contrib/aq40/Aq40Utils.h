@@ -48,6 +48,15 @@ constexpr float TWIN_SCAN_RANGE = 150.0f;
 // A bot busy with one of those is left alone rather than dragged back to the boss.
 constexpr float BUG_ALERT_RANGE = 15.0f;
 
+// The chamber's own bugs never strike first. npc_ahnqiraji_critter::Reset()
+// returns early for any spawn that linked_respawn ties to a Vek'lor spawn, and
+// in the emperors' hall every one of them is tied that way - so a bot fighting
+// one there started it. They carry no loot (lootid 0) and give nothing; they
+// are the emperors' ammunition. But the engine does not see them as critters
+// either (creature_template.type is 10, NOT_SPECIFIED, not 8), so
+// Player::isHonorOrXPTarget says yes to them and a bot's own target picking
+// will happily walk one down - straight through the emperors' aggro radius.
+
 class RaidAq40Utils
 {
 public:
@@ -73,6 +82,9 @@ public:
     static float Separation(Unit* veklor, Unit* veknilash);
 
     static bool IsAngryBugNear(Player* bot);
+
+    // A Qiraji Scarab or Scorpion that nothing in the raid is fighting yet.
+    static bool IsIdleQirajiBug(PlayerbotAI* botAI, Unit* unit);
 };
 
 #endif

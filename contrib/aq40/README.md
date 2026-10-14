@@ -41,7 +41,12 @@ teleportation, agresse la cible la plus proche avec 2000 de menace offerte.
 **3. Les physiques eloignent Vek'nilash de son frere.** Heal Brother (7393)
 part toutes les 3,6 secondes, mais seulement si les deux jumeaux sont a moins
 de **60 yards** l'un de l'autre. C'est la seule chose qui fait perdre le
-combat. Vek'nilash suit qui le frappe, donc les attaquants physiques se
+combat.
+
+Mesure sur une base reelle : les deux spawns sont a **158,2 yards** l'un de
+l'autre. Ils commencent donc deja separes, et cette regle ne sert qu'a
+rattraper une separation perdue en cours de combat, pas a faire le travail du
+pull. Vek'nilash suit qui le frappe, donc les attaquants physiques se
 placent 8 yards derriere lui, cote oppose a Vek'lor, et il les suit. Ils
 repetent jusqu'a **70 yards** de separation, puis ils arretent et tapent
 normalement.
@@ -51,10 +56,35 @@ jusqu'a 45 yards, puis `StopMoving`. Il ne frappe jamais au contact. Donc la
 separation se joue entierement sur Vek'nilash — c'est pour ca qu'un seul
 groupe tire.
 
-**4. Un bot occupe par un scarabee ne se fait pas rappeler.** Mutate Bug
-(802) et Explode Bug (804) reveillent un Qiraji Scarab (15316) ou un Qiraji
-Scorpion (15317). Tant qu'un de ces insectes hostile est a moins de 15 yards
-d'un bot, la strategie le laisse s'en occuper.
+**4. Personne ne reveille un scarabee de lui-meme.** C'est la seule regle qui
+s'applique AVANT le pull, parce que reveiller une bestiole est precisement
+comment les Empereurs se font prendre par accident.
+
+`npc_ahnqiraji_critter::Reset()` epargne tout spawn que `linked_respawn`
+rattache a un spawn de Vek'lor, et dans la salle des Empereurs ils le sont
+tous — releve sur une base reelle : **100 scarabes et scorpions, les 100 lies
+a Vek'lor**. Ils ne frappent donc jamais les premiers. Les 83 autres de la
+carte 531, eux, mordent tout joueur en combat a moins de 10 yards, mais le
+plus proche est a **156,7 yards** d'un Empereur : ils ne peuvent pas etre la
+cause d'un pull dans la salle.
+
+Donc un bot qui en attaque un dans la salle a commence. Et le moteur ne les
+voit pas comme des critters (`creature_template.type` vaut 10,
+`NOT_SPECIFIED`, pas 8), donc `Player::isHonorOrXPTarget` dit oui et la
+selection de cible d'un bot ira volontiers en chercher un — en traversant le
+rayon d'agression des Empereurs.
+
+La strategie coupe ca a deux endroits : un multiplicateur met a zero
+`attack anything` et `aggressive target` (les deux seules actions de
+playerbots qui choisissent une cible que le raid ne combat pas deja), et un
+declencheur lache la cible si quelque chose est passe quand meme. Un scarabe
+reveille par un boss attaque quelqu'un, donc il entre dans la liste
+`attackers` et redevient une cible legitime — comme un scarabe que tu marques
+d'une tete de mort.
+
+**5. Un bot occupe par un scarabee reveille ne se fait pas rappeler.** Tant
+qu'un de ces insectes hostile est a moins de 15 yards d'un bot, les regles 2
+et 3 le laissent s'en occuper.
 
 ## Ce que la strategie ne fait pas
 
@@ -97,10 +127,9 @@ Get-Content tools\jumeaux_aq40.sql -Raw | & "C:\Program Files\MySQL\MySQL Server
 ```
 
 Attendu : Vek'lor immunise `physique`, Vek'nilash immunise
-`feu, nature, givre, ombre, arcane`. La seconde requete donne aussi leurs
-positions de spawn — si elles sont a moins de 70 yards des murs du fond, la
-separation visee n'est pas atteignable et il faudra baisser
-`SAFE_SEPARATION`.
+`feu, nature, givre, ombre, arcane`. Les requetes suivantes donnent les
+positions de spawn, la faction des scarabes au repos, et surtout la colonne
+`mord_tout_seul` : tout scarabe de la salle doit y lire `non`.
 
 ## Installation
 
@@ -109,7 +138,7 @@ cd C:\Azerothcore\modules\mod-playerbots-bis
 .\tools\installer_aq40_twins.ps1
 ```
 
-Le script copie les dix fichiers dans
+Le script copie les douze fichiers dans
 `mod-playerbots\src\Ai\Raid\Aq40\` et branche la strategie a quatre endroits :
 
 - `src\Ai\Raid\RaidStrategyContext.h` — include, `creators["aq40"]`, fabrique

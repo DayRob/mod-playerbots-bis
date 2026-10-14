@@ -281,6 +281,8 @@ $attendus = @(
     'Aq40ActionContext.h',
     'Aq40Actions.cpp',
     'Aq40Actions.h',
+    'Aq40Multipliers.cpp',
+    'Aq40Multipliers.h',
     'Aq40Strategy.cpp',
     'Aq40Strategy.h',
     'Aq40TriggerContext.h',
