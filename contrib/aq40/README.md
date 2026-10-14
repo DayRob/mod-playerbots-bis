@@ -379,9 +379,23 @@ que l'ecriture a atterri, et se relance sans danger : il saute ce qui est
 deja fait. `-Retirer` (ajoute a la meme ligne de commande) annule tout et rend les
 quatre fichiers identiques a l'original.
 
-**Il faut reconfigurer CMake, pas seulement rebuild.** AzerothCore liste les
-fichiers des modules a la configuration : un dossier neuf n'existe pas pour un
-rebuild seul. Clean Full Build, ou "Delete Cache and Reconfigure" puis rebuild.
+**Quel build, et pourquoi.** AzerothCore liste les fichiers des modules A LA
+CONFIGURATION de CMake, pas a la compilation : `CollectSourceFiles` fait un
+`file(GLOB)` sans `CONFIGURE_DEPENDS`. Donc :
 
-En jeu, dans le Temple, `/w <bot> co` doit faire apparaitre `aq40` dans la
-liste des strategies de combat.
+| Ce qui a change | Ce qu'il faut |
+|---|---|
+| la LISTE des fichiers (un ajout, un retrait) | Clean Full Build, ou "Delete Cache and Reconfigure" puis rebuild |
+| seulement le CONTENU | **Rebuild only** — les fichiers sont deja dans la liste |
+| rien | rien du tout |
+
+**L'installeur le dit lui-meme** a la fin de chaque passage : il compare les
+empreintes avant de copier et nomme le build qui s'impose. Le premier cas est
+rare — il ne se presente qu'a la toute premiere installation, ou le jour ou la
+strategie gagne un fichier. Les autres fois, un build complet coute cinquante
+minutes pour rien.
+
+En jeu, dans le Temple, `/w <bot> co ?` doit faire apparaitre `aq40` dans la
+liste des strategies de combat. Le point d'interrogation compte :
+`Engine::ChangeStrategy` ne traite que `+ - ~ ?`, donc un `co` seul ne repond
+rien.

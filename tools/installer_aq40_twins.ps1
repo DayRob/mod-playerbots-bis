@@ -290,12 +290,36 @@ $attendus = @(
     'Aq40Utils.h'
 )
 
+# CE QUI DECIDE DU TYPE DE BUILD.
+#
+# Reclamer un build complet a chaque passage coute cinquante minutes pour
+# recopier dix fichiers souvent identiques. Il n'est necessaire que lorsque la
+# LISTE des fichiers change : AzerothCore la fige a la configuration de CMake
+# (CollectSourceFiles fait un file(GLOB) sans CONFIGURE_DEPENDS), donc un
+# fichier nouveau serait ignore et un fichier retire casserait le lien. Un
+# fichier dont seul le CONTENU change est deja dans la liste - une compilation
+# incrementale suffit.
+$ajoutes = @()
+$retires = @()
+$modifies = @()
+
 foreach ($nom in $attendus) {
     $source = Join-Path $dossierSources $nom
     if (-not (Test-Path -LiteralPath $source)) {
         throw "Source manquante : $source"
     }
     $cible = Join-Path $dossierAq40 $nom
+
+    # L'etat AVANT la copie : apres, les deux fichiers sont identiques et la
+    # question ne se pose plus.
+    if (-not (Test-Path -LiteralPath $cible)) {
+        $ajoutes += $nom
+    }
+    elseif ((Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -ne
+            (Get-FileHash -LiteralPath $cible -Algorithm SHA256).Hash) {
+        $modifies += $nom
+    }
+
     Copy-Item -LiteralPath $source -Destination $cible -Force
 
     # Relecture : meme taille et meme contenu que la source.
@@ -314,6 +338,7 @@ $restes = @(Get-ChildItem -LiteralPath $dossierAq40 -File |
             Where-Object { $attendus -notcontains $_.Name })
 foreach ($reste in $restes) {
     Remove-Item -LiteralPath $reste.FullName -Force
+    $retires += $reste.Name
     Write-Host "  retire (plus de la strategie) : $($reste.Name)" -ForegroundColor Yellow
 }
 
@@ -406,13 +431,44 @@ if ($texte.Contains('strategyName = "aq40"')) {
 Write-Host ''
 Write-Host 'Installation terminee.' -ForegroundColor Cyan
 Write-Host ''
-Write-Host 'Il reste a reconstruire. Un nouveau dossier source veut un passage de' -ForegroundColor Yellow
-Write-Host 'CMake : AzerothCore liste les fichiers des modules a la configuration,' -ForegroundColor Yellow
-Write-Host 'pas a la compilation. Un simple rebuild ne suffira pas.' -ForegroundColor Yellow
-Write-Host ''
-Write-Host '  Clean Full Build  (ou "Delete Cache and Reconfigure" puis rebuild)'
-Write-Host ''
+# QUEL BUILD, ET POURQUOI CELUI-LA.
+#
+# Reclamer un Clean Full Build a chaque passage coute cinquante minutes pour
+# recopier dix fichiers souvent identiques. Il n'est necessaire que lorsque la
+# LISTE des fichiers change : AzerothCore la fige a la configuration de CMake
+# (file(GLOB) sans CONFIGURE_DEPENDS), donc un fichier nouveau serait ignore et
+# un fichier retire casserait le lien. Un contenu qui change, lui, est deja
+# dans la liste.
+if ($ajoutes.Count -gt 0 -or $retires.Count -gt 0) {
+    Write-Host 'La LISTE des fichiers a change :' -ForegroundColor Yellow
+    foreach ($nom in $ajoutes) { Write-Host "  nouveau : $nom" -ForegroundColor Yellow }
+    foreach ($nom in $retires) { Write-Host "  retire  : $nom" -ForegroundColor Yellow }
+    Write-Host ''
+    Write-Host 'CMake liste les sources des modules A LA CONFIGURATION, pas a la' -ForegroundColor Yellow
+    Write-Host 'compilation. Il faut donc un passage de CMake, sinon le nouveau' -ForegroundColor Yellow
+    Write-Host 'fichier est ignore et l''absence de l''ancien casse le lien.' -ForegroundColor Yellow
+    Write-Host ''
+    Write-Host '  Clean Full Build  (ou "Delete Cache and Reconfigure" puis rebuild)'
+    Write-Host ''
+}
+elseif ($modifies.Count -gt 0) {
+    Write-Host "Contenu modifie ($($modifies.Count) fichier(s)), liste inchangee :" -ForegroundColor Green
+    foreach ($nom in $modifies) { Write-Host "  $nom" -ForegroundColor Green }
+    Write-Host ''
+    Write-Host 'Ces fichiers sont deja dans la liste de CMake. Une compilation' -ForegroundColor Green
+    Write-Host 'INCREMENTALE suffit - inutile de tout refaire.' -ForegroundColor Green
+    Write-Host ''
+    Write-Host '  Rebuild only'
+    Write-Host ''
+}
+else {
+    Write-Host 'Rien n''a change : les dix fichiers etaient deja a jour.' -ForegroundColor Green
+    Write-Host 'AUCUN BUILD N''EST NECESSAIRE.' -ForegroundColor Green
+    Write-Host ''
+}
 Write-Host 'Puis en jeu, dans le Temple d''Ahn''Qiraj, verifier sur un bot :'
-Write-Host '  /w <bot> co'
-Write-Host 'La liste des strategies de combat doit contenir aq40.'
+Write-Host '  /w <bot> co ?'
+Write-Host 'La liste des strategies de combat doit contenir aq40. Le point'
+Write-Host 'd''interrogation compte : ChangeStrategy ne traite que + - ~ et ?,'
+Write-Host 'donc un "co" seul ne repond rien.'
 Write-Host ''
