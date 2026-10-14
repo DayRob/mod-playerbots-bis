@@ -181,6 +181,19 @@ public:
     // rang.
     uint32 QuestTokenReward(uint32 tokenId, uint8 cls, uint8 spec) const;
 
+    // Un objet que le bot doit RECLAMER sans qu'il soit sur sa liste
+    // d'equipement, tant qu'il en possede moins que le compte voulu.
+    //
+    // Les montures d'Ahn'Qiraj sont le cas qui l'a fait naitre : un cristal
+    // resonnant n'est ni arme ni armure, donc tous les chemins de ce module
+    // l'ecartent, et il partait au premier venu alors que les bots s'en
+    // servent. Ecrire ce cas-la dans le code aurait repondu a lui seul ; une
+    // table repond a tous ceux de la meme forme et se corrige sans recompiler.
+    //
+    // La table est FACULTATIVE : une base ou le fichier 76 n'a jamais tourne
+    // reste valide, les bots ne reclameront simplement rien de plus.
+    bool WantsExtraItem(Player* bot, uint32 itemId) const;
+
     // What this item would push out if the bot put it on: the piece worn in the
     // slot the list assigns it, or nullptr when that slot is empty. Pairs are
     // resolved first, so on a ring or a trinket it names WHICH of the two goes -
@@ -277,6 +290,9 @@ private:
     // Remplit _questTokens depuis playerbots_bis_quest_token, si la table existe.
     void LoadQuestTokens();
 
+    // Remplit _wantedItems depuis playerbots_bis_wanted_item, si elle existe.
+    void LoadWantedItems();
+
     // Resolves the bot's spec, including the Druid Bear sentinel.
     static uint8 ResolveSpec(Player* bot);
 
@@ -306,6 +322,9 @@ private:
     // deja sur plus de 16 bits, et la spe d'ours vaut 10 - les deux decalages de
     // huit laissent la place aux trois sans se chevaucher.
     std::unordered_map<uint64, uint32> _questTokens;
+
+    // objet -> nombre au-dela duquel le bot cesse d'en vouloir.
+    std::unordered_map<uint32, uint32> _wantedItems;
     size_t _itemCount = 0;
     bool _loaded = false;
 

@@ -93,6 +93,29 @@ public:
 
             for (uint32 const itemId : itemIds)
             {
+                // LES OBJETS RECLAMES HORS LISTE d'abord - montures d'AQ et
+                // ce que la table 76 nommera ensuite. WantsAsUpgrade les
+                // refuse : ils ne sont ni arme ni armure et n'occupent aucun
+                // creneau. Sans ce branchement, un bot sous butin de maitre
+                // ne demanderait jamais un cristal qirajien, alors qu'il vote
+                // Besoin dessus quand le groupe tire aux des.
+                if (sBisPriorityMgr->WantsExtraItem(bot, itemId))
+                {
+                    // L'objet est resolu AVANT la virgule de separation : la
+                    // poser puis sortir sur un objet introuvable laisserait
+                    // une virgule orpheline dans la phrase.
+                    ItemTemplate const* const extra = sObjectMgr->GetItemTemplate(itemId);
+                    if (!extra)
+                        continue;
+
+                    if (count)
+                        wanted << ", ";
+
+                    wanted << ChatHelper::FormatItem(extra) << " (je n'en ai pas)";
+                    ++count;
+                    continue;
+                }
+
                 uint16 tierId = 0;
                 uint8 rank = 0;
                 bool tooLowLevel = false;

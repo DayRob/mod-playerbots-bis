@@ -76,6 +76,7 @@ void BisPriorityMgr::LoadTables()
     _minTierByCombo.clear();
     _bisOwners.clear();
     _questTokens.clear();
+    _wantedItems.clear();
     _itemCount = 0;
     _loaded = false;
 
@@ -171,6 +172,7 @@ void BisPriorityMgr::LoadTables()
                  skipped);
 
     LoadQuestTokens();
+    LoadWantedItems();
 
     _loaded = true;
     LOG_INFO("server.loading", "[mod-playerbots-bis] Loaded {} tiers, {} item rows and {} quest-token conversions",
@@ -252,6 +254,45 @@ bool BisPriorityMgr::AnnounceOnce(Player* bot, uint32 itemId)
     }
 
     return true;
+}
+
+// Facultative, comme playerbots_bis_quest_token et pour la meme raison : une
+// base ou le fichier 76 n'a pas tourne n'est pas une base cassee.
+void BisPriorityMgr::LoadWantedItems()
+{
+    QueryResult result = WorldDatabase.Query(
+        "SELECT `item_id`, `max_count` FROM `playerbots_bis_wanted_item`");
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 const itemId = fields[0].Get<uint32>();
+        uint32 const maxCount = fields[1].Get<uint32>();
+
+        // Un compte a zero voudrait dire "n'en veut jamais", ce qui s'ecrit en
+        // retirant la ligne. Le lire comme 1 evitera une table ou une ligne
+        // presente ne fait rien.
+        if (itemId)
+            _wantedItems[itemId] = maxCount ? maxCount : 1;
+    } while (result->NextRow());
+}
+
+bool BisPriorityMgr::WantsExtraItem(Player* bot, uint32 itemId) const
+{
+    if (!bot || !_loaded)
+        return false;
+
+    auto const it = _wantedItems.find(itemId);
+    if (it == _wantedItems.end())
+        return false;
+
+    // GetItemCount part de EQUIPMENT_SLOT_START : ce qui est porte compte
+    // autant que ce qui dort dans un sac. Un bot qui en tient deja un n'a rien
+    // a gagner a un second, et le prendre le retirerait a un bot qui n'en a
+    // aucun - la meme regle que pour les pieces.
+    return bot->GetItemCount(itemId, true) < it->second;
 }
 
 uint32 BisPriorityMgr::QuestTokenReward(uint32 tokenId, uint8 cls, uint8 spec) const

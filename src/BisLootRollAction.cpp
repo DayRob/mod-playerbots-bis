@@ -141,6 +141,27 @@ bool BisLootRollAction::Execute(Event event)
             continue;
         }
 
+        // LES OBJETS RECLAMES HORS LISTE, avant le filtre arme/armure qui les
+        // ecarterait. Les montures d'Ahn'Qiraj sont le cas d'origine : les
+        // bots s'en servent, mais un cristal resonnant n'est ni arme ni
+        // armure, donc aucun ne votait dessus et il partait au premier venu.
+        //
+        // NEED et non GREED, pour la meme raison que les jetons : un GREED le
+        // laisserait a n'importe quel bot qui cupidite au hasard, y compris a
+        // ceux qui en ont deja un. Et le compte voulu etant verifie par
+        // WantsExtraItem, un bot servi cesse de voter : le suivant passe
+        // devant sans qu'on ait a les departager.
+        //
+        // Rien n'est annonce ici. Un jet fait evaluer l'objet par tous les
+        // bots presents, donc chaque phrase se repeterait autant de fois qu'il
+        // y a de pretendants - et le client dit deja "X a choisi Besoin pour
+        // [objet]", ce qui porte l'essentiel.
+        if (forceNeed && sBisPriorityMgr->WantsExtraItem(bot, roll->itemid))
+        {
+            need.push_back(roll->itemGUID);
+            continue;
+        }
+
         // Only gear is arbitrated. Recipes, armor tokens, trade goods and the
         // rest keep playerbots' own vote.
         if (proto->Class != ITEM_CLASS_WEAPON && proto->Class != ITEM_CLASS_ARMOR)
