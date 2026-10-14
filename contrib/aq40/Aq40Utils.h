@@ -113,6 +113,19 @@ constexpr float PREPULL_GATHER_RANGE = 100.0f;
 constexpr float MELEE_PREPULL_OFFSET = 10.0f;
 constexpr float CASTER_PREPULL_OFFSET = 20.0f;
 
+// COMBIEN DE TEMPS LES TANKS RETIENNENT LE PULL.
+//
+// Un tank deja a son poste rend faux des qu'il n'a plus rien a faire, et c'est
+// ce qui laisse dungeon-clear pull. Tant que ses collegues marchent encore, il
+// retient au contraire - sa regle siege bien au-dessus de la bande de
+// dungeon-clear, donc le pull attend que les trois postes soient tenus. Sans
+// toi, sans commande.
+//
+// Avec une limite, parce qu'un tank mort, bloque ou hors de la salle ne doit
+// pas pouvoir geler le run pour toujours. Passe ce delai, chacun rend la main
+// et dungeon-clear pull comme il l'aurait fait.
+constexpr uint32 PREPULL_HOLD_MAX_MS = 20000;
+
 // L'ecartement lateral entre deux bots du meme groupe, gradue sur leur GUID :
 // sans lui, trente-six bots visent le meme point et s'empilent.
 constexpr float PREPULL_SPREAD_STEP = 4.0f;
@@ -232,6 +245,10 @@ public:
     // du cote de Vek'lor, chacun decale de ses voisins. Faux pour les
     // soigneurs : ils suivent, et c'est tres bien comme ca.
     static bool GetPrePullStation(Player* bot, Position& out);
+
+    // Vrai quand chaque bot tank qui a un poste s'y trouve. C'est la condition
+    // du pull : tant qu'elle est fausse, les tanks deja arrives retiennent.
+    static bool AllTanksPosted(Player* bot);
 };
 
 #endif

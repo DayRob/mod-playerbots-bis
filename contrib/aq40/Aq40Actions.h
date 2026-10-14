@@ -65,7 +65,14 @@ public:
     bool Execute(Event event) override;
 };
 
-// Rejoint l'endroit d'ou ce bot doit partir, avant que le combat commence.
+// Rejoint l'endroit d'ou ce bot doit partir, avant que le combat commence - et,
+// pour un tank, RETIENT le pull tant que les trois postes ne sont pas tenus.
+//
+// Le maintien ne consiste pas a empecher quoi que ce soit : il suffit de rendre
+// vrai. Cette regle siege bien au-dessus de la bande de dungeon-clear, donc tant
+// qu'elle agit, l'action d'engagement du module de donjon n'est pas atteinte, et
+// le pull attend. Des que tout le monde est en place, elle rend faux et le pull
+// part - sans commande, sans pause a reprendre.
 class Aq40TakeStationAction : public MovementAction
 {
 public:
@@ -75,6 +82,12 @@ public:
     }
 
     bool Execute(Event event) override;
+
+private:
+    // Depuis quand ce bot retient. Zero tant qu'il marche encore. L'objet vit
+    // aussi longtemps que le bot - le contexte le garde une fois cree - donc
+    // cette date traverse les ticks.
+    uint32 _retientDepuis = 0;
 };
 
 // Tient son piedestal, et le jumeau qui va avec.

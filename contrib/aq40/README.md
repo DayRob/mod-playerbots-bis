@@ -25,16 +25,24 @@ lanceurs de sorts a 20 yards de celui de Vek'lor, chacun decale lateralement de
 ses voisins — l'ecart est gradue sur le GUID, donc stable d'un tick a l'autre.
 Les soigneurs ne sont pas places : ils suivent, et c'est tres bien comme ca.
 
-**La fenetre est celle de `DungeonClear.WaitAtBoss = 1`**, qui met le run en
-pause juste avant le pull. La documentation de mod-dungeon-clear le dit :
+**Aucune commande n'est necessaire.** Les tanks deja arrives RETIENNENT le pull
+tant qu'un de leurs collegues marche encore : leur regle siege bien au-dessus de
+la bande de pertinence de dungeon-clear, donc tant qu'elle agit, l'action
+d'engagement du module de donjon n'est pas atteinte. Des que les trois postes
+sont tenus, elle rend faux — et le pull part tout seul, par la voie normale de
+dungeon-clear.
 
-> the driving ladder above is inert when paused and followers stop trailing the
-> leader
+Un corps-a-corps ou un lanceur de sorts en retard ne retient rien : son retard
+ne coute que son propre temps de trajet, et le boss marchera vers son tank de
+toute facon.
 
-Rien ne tire donc les bots pendant qu'ils se placent. **Et rien n'est bloque non
-plus** : des qu'un bot est a son poste, la regle rend faux, donc le pull — le
-tien, `.dc pull`, ou la reprise du run — part sans avoir a lui ceder quoi que ce
-soit. La mise en place ne pulle jamais d'elle-meme.
+**Le maintien a une limite de 20 secondes.** Un tank mort, bloque ou reste
+dehors ne doit pas pouvoir geler le run : passe ce delai, chacun rend la main et
+dungeon-clear pull comme il l'aurait fait.
+
+`DungeonClear.WaitAtBoss = 1` reste utile si tu veux garder le pull a la main —
+il met le run en pause juste avant, et la reprise (`.dc pause`, qui est un
+interrupteur unique) pull. Mais ce n'est plus necessaire.
 
 Deux gardes : au-dela de **100 yards du milieu de la salle** on ne touche a
 rien, parce qu'un bot encore dans le couloir appartient a dungeon-clear qui

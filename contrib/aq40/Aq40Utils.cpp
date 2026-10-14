@@ -377,3 +377,38 @@ bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
                  poste.GetPositionZ());
     return true;
 }
+
+bool RaidAq40Utils::AllTanksPosted(Player* bot)
+{
+    if (!bot)
+        return false;
+
+    Group* groupe = bot->GetGroup();
+    if (!groupe)
+        return false;
+
+    for (GroupReference* ref = groupe->GetFirstMember(); ref; ref = ref->next())
+    {
+        Player* membre = ref->GetSource();
+        if (!membre || !membre->IsAlive() || !GET_PLAYERBOT_AI(membre))
+            continue;
+
+        // Seuls les trois postes comptent. Un corps-a-corps en retard rejoindra
+        // le sien pendant que le boss marche vers son tank; un tank en retard,
+        // lui, c'est un Empereur qui part sur un soigneur.
+        if (TankIndex(membre) > 2)
+            continue;
+
+        Position poste;
+        if (!GetPrePullStation(membre, poste))
+            continue;
+
+        // Deux fois la tolerance pour les AUTRES : un bot pose a trois yards et
+        // demi de sa marque est arrive, et exiger la precision qu'on exige de
+        // soi-meme ferait osciller la condition d'un tick a l'autre.
+        if (membre->GetExactDist2d(poste.GetPositionX(), poste.GetPositionY()) > TANK_ANCHOR_TOLERANCE * 2.0f)
+            return false;
+    }
+
+    return true;
+}

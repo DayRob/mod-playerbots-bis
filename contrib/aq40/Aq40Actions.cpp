@@ -6,6 +6,7 @@
 
 #include "Aq40Actions.h"
 #include "Aq40Utils.h"
+#include "Timer.h"
 #include <cmath>
 #include <string>
 #include <vector>
@@ -281,9 +282,36 @@ bool Aq40TakeStationAction::Execute(Event /*event*/)
     if (!RaidAq40Utils::GetPrePullStation(bot, station))
         return false;
 
-    if (bot->GetExactDist2d(station.GetPositionX(), station.GetPositionY()) < TANK_ANCHOR_TOLERANCE)
+    if (bot->GetExactDist2d(station.GetPositionX(), station.GetPositionY()) >= TANK_ANCHOR_TOLERANCE)
+    {
+        _retientDepuis = 0;
+        return MoveTo(bot->GetMapId(), station.GetPositionX(), station.GetPositionY(), station.GetPositionZ(),
+                      false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+    }
+
+    // ── EN PLACE ──────────────────────────────────────────────────────────
+    //
+    // Un corps-a-corps ou un lanceur de sorts rend la main tout de suite : son
+    // retard ne coute que son propre temps de trajet, et le boss marchera vers
+    // son tank de toute facon.
+    if (RaidAq40Utils::TankIndex(bot) > 2)
         return false;
 
-    return MoveTo(bot->GetMapId(), station.GetPositionX(), station.GetPositionY(), station.GetPositionZ(),
-                  false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+    // Un TANK, lui, retient le pull tant qu'un de ses collegues marche encore.
+    // Un Empereur pulle alors qu'il n'y a personne a son poste part sur le
+    // joueur le plus proche, et ce sera un soigneur.
+    if (RaidAq40Utils::AllTanksPosted(bot))
+        return false;
+
+    uint32 const maintenant = getMSTime();
+    if (!_retientDepuis)
+        _retientDepuis = maintenant;
+
+    // La limite. Un tank mort, bloque ou reste dehors ne doit pas pouvoir geler
+    // le run : passe le delai, on rend la main et dungeon-clear pull comme il
+    // l'aurait fait sans nous.
+    if (getMSTimeDiff(_retientDepuis, maintenant) > PREPULL_HOLD_MAX_MS)
+        return false;
+
+    return true;
 }

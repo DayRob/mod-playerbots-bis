@@ -183,8 +183,9 @@ bool Aq40PrePullTrigger::IsActive()
     if (bot->GetExactDist2d(milieu.GetPositionX(), milieu.GetPositionY()) > PREPULL_GATHER_RANGE)
         return false;
 
-    // DEJA EN PLACE : on rend faux, et rien n'est bloque. C'est ce qui permet
-    // au pull de partir - le tien, ou celui de dungeon-clear a la reprise -
-    // sans que cette regle ait a lui ceder quoi que ce soit.
-    return bot->GetExactDist2d(station.GetPositionX(), station.GetPositionY()) >= TANK_ANCHOR_TOLERANCE;
+    // PAS DE TEST DE POSITION ICI, et c'est voulu. Un tank arrive a son poste a
+    // encore quelque chose a faire - retenir le pull pendant que ses collegues
+    // marchent - et c'est l'action qui le sait. Elle rend faux des qu'il n'y a
+    // plus rien a tenir, et le pull part alors tout seul.
+    return true;
 }
