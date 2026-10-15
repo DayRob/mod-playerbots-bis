@@ -374,6 +374,7 @@ le pull, une fois par boss.
 | `NPC_VEKLOR` | 15276 | `temple_of_ahnqiraj.h` |
 | `NPC_VEKNILASH` | 15275 | `temple_of_ahnqiraj.h` |
 | `NPC_QIRAJI_SCARAB` | 15316 | `temple_of_ahnqiraj.h` |
+| `TWIN_SCAN_RANGE` | 250 | mesure : 166 et 168 yards entre chaque poste et la plateforme d'en face |
 | `NPC_QIRAJI_SCORPION` | 15317 | `temple_of_ahnqiraj.h` |
 | `HEAL_BROTHER_RANGE` | 60 | `IsWithinDist(twin, 60.f)` avant Heal Brother |
 | `SAFE_SEPARATION` | 70 | 60 plus une marge |

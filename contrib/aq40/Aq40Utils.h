@@ -46,9 +46,15 @@ constexpr float CASTER_STAY_AWAY_FROM_VEKNILASH = 25.0f;
 // his brother (he only moves when his victim is over 45 yards away).
 constexpr float CASTER_FAR_SIDE_OFFSET = 25.0f;
 
-// The chamber is large; the twins have to be found from either end of it. Kept
-// short enough that a bot busy elsewhere in the temple is never dragged in.
-constexpr float TWIN_SCAN_RANGE = 150.0f;
+// La salle est grande, et les POSTES sont encore plus loin l'un de l'autre que
+// les plateformes : 166 et 168 yards separent chaque tete de mort de la
+// plateforme d'en face. A 150, un tank sur sa marque ne voyait jamais les deux
+// Empereurs - toutes les regles qui en ont besoin echouaient en silence, et le
+// pull n'arrivait jamais. Mesure en jeu, pas supposee.
+//
+// 250 couvre la salle entiere avec de la marge, et reste bien en deca de ce
+// qu'il faudrait pour aller chercher quelque chose dans un autre couloir.
+constexpr float TWIN_SCAN_RANGE = 250.0f;
 
 // LES DEUX POSTES DE TANK.
 //

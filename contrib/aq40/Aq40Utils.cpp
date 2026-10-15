@@ -24,12 +24,18 @@ Creature* RaidAq40Utils::GetVeknilash(Player* bot)
 
 bool RaidAq40Utils::AreTwinsEngaged(Player* bot)
 {
-    Creature* veklor = GetVeklor(bot);
-    Creature* veknilash = GetVeknilash(bot);
-    if (!veklor || !veknilash)
-        return false;
+    // UN SEUL SUFFIT. Exiger les deux coutait une seconde recherche en grille a
+    // chaque appel, et surtout rendait faux pour un bot trop loin de l'autre
+    // bout de la salle - alors que le combat, lui, avait bel et bien commence.
+    if (Creature* veknilash = GetVeknilash(bot))
+        if (veknilash->IsInCombat())
+            return true;
 
-    return veklor->IsInCombat() || veknilash->IsInCombat();
+    if (Creature* veklor = GetVeklor(bot))
+        if (veklor->IsInCombat())
+            return true;
+
+    return false;
 }
 
 bool RaidAq40Utils::IsSpellDamageDealer(Player* bot)
@@ -143,42 +149,33 @@ uint8 RaidAq40Utils::TankIndex(Player* bot)
 
 bool RaidAq40Utils::GetPosts(Player* bot, Position& poste0, Position& poste1)
 {
+    auto defini = [](Aq40TankPost const& poste) { return poste.x != 0.0f || poste.y != 0.0f; };
+
+    // AUCUNE CREATURE CHERCHEE ICI, ET C'EST VOULU.
+    //
+    // Les deux postes sont des constantes : TANK_POST_A est, par construction,
+    // celui qui fait face a la plateforme de Vek'nilash - mesure a 82 yards
+    // contre 166 pour l'autre. Il n'y a donc rien a decider a l'execution, et
+    // cette fonction est appelee par tout le chemin d'avant-pull, pour chaque
+    // bot, a chaque tick. Une recherche en grille a 250 yards a cet endroit-la
+    // couterait cher pour repondre une chose qui ne change jamais.
+    if (defini(TANK_POST_A) && defini(TANK_POST_B))
+    {
+        poste0.Relocate(TANK_POST_A.x, TANK_POST_A.y, TANK_POST_A.z);
+        poste1.Relocate(TANK_POST_B.x, TANK_POST_B.y, TANK_POST_B.z);
+        return true;
+    }
+
+    // Postes non renseignes : on se rabat sur les plateformes d'apparition.
+    // 158,2 yards les separent, donc Heal Brother ne part pas - mais les
+    // Empereurs restent sur leurs socles au lieu d'etre tires contre les murs.
     Creature* const veklor = GetVeklor(bot);
     Creature* const veknilash = GetVeknilash(bot);
     if (!veklor || !veknilash)
         return false;
 
-    // La plateforme d'apparition de Vek'nilash sert de reference, pour une
-    // seule raison : elle ne bouge jamais. Le rang 0 tient le poste qui en est
-    // le plus proche, donc chaque tank garde son cote du debut a la fin.
-    Position const& plateformeZero = veknilash->GetHomePosition();
-
-    auto defini = [](Aq40TankPost const& poste) { return poste.x != 0.0f || poste.y != 0.0f; };
-
-    // Postes non renseignes : on se rabat sur les plateformes d'apparition.
-    // 158,2 yards les separent, donc Heal Brother ne part pas - mais les
-    // Empereurs restent sur leurs socles au lieu d'etre tires contre les murs.
-    if (!defini(TANK_POST_A) || !defini(TANK_POST_B))
-    {
-        poste0 = plateformeZero;
-        poste1 = veklor->GetHomePosition();
-        return true;
-    }
-
-    auto ecart = [](Aq40TankPost const& poste, Position const& repere)
-    {
-        float const dX = poste.x - repere.GetPositionX();
-        float const dY = poste.y - repere.GetPositionY();
-        return dX * dX + dY * dY;
-    };
-
-    bool const aEstLePremier = ecart(TANK_POST_A, plateformeZero) <= ecart(TANK_POST_B, plateformeZero);
-
-    Aq40TankPost const& premier = aEstLePremier ? TANK_POST_A : TANK_POST_B;
-    Aq40TankPost const& second = aEstLePremier ? TANK_POST_B : TANK_POST_A;
-
-    poste0.Relocate(premier.x, premier.y, premier.z);
-    poste1.Relocate(second.x, second.y, second.z);
+    poste0 = veknilash->GetHomePosition();
+    poste1 = veklor->GetHomePosition();
     return true;
 }
 
