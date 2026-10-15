@@ -64,6 +64,15 @@ class Aq40PullTogetherTrigger : public Trigger
 public:
     Aq40PullTogetherTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 ready to pull") {}
     bool IsActive() override;
+
+private:
+    // DEPUIS QUAND CE PULLEUR EST-IL PRET. Sans cette sortie, un seul tank qui
+    // n'arrive pas a son poste - bloque, assis, mort, ou simplement en
+    // surnombre sur un point deja occupe - gele le raid pour toujours : la
+    // retenue de la mise en place expire au bout de vingt secondes et rend la
+    // main, mais le pull, lui, attendait une condition qui ne devenait jamais
+    // vraie. Personne ne retenait plus rien et personne ne partait.
+    uint32 _pretDepuis = 0;
 };
 
 // Un tank, pendant le combat. L'action decide s'il tient Vek'nilash ou s'il

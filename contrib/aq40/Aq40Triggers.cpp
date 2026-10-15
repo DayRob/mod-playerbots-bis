@@ -6,6 +6,7 @@
 
 #include "Aq40Triggers.h"
 #include "Aq40Utils.h"
+#include "Timer.h"
 
 bool Aq40TakeStationTrigger::IsActive()
 {
@@ -84,7 +85,27 @@ bool Aq40PullTogetherTrigger::IsActive()
 
     // ET SEULEMENT QUAND TOUT LE MONDE EST EN PLACE. Les partants voient cette
     // condition devenir vraie au MEME tick, donc ils s'elancent ensemble.
-    return RaidAq40Utils::AllTanksPosted(bot);
+    if (RaidAq40Utils::AllTanksPosted(bot))
+        return true;
+
+    // MAIS L'ATTENTE A UNE FIN. Ce pulleur est a son poste et attend les
+    // autres; si au bout de vingt secondes la condition n'est toujours pas
+    // vraie, elle ne le sera probablement jamais - et un raid qui ne pulle
+    // jamais est pire qu'un pull imparfait. Le compteur ne demarre que lorsque
+    // CE bot est arrive, donc il ne court pas pendant que lui-meme marche.
+    Position poste;
+    if (!RaidAq40Utils::GetPrePullStation(bot, poste) ||
+        bot->GetExactDist2d(poste.GetPositionX(), poste.GetPositionY()) > MARK_TOLERANCE * 2.0f)
+    {
+        _pretDepuis = 0;
+        return false;
+    }
+
+    uint32 const maintenant = getMSTime();
+    if (!_pretDepuis)
+        _pretDepuis = maintenant;
+
+    return getMSTimeDiff(_pretDepuis, maintenant) > PREPULL_HOLD_MAX_MS;
 }
 
 bool Aq40TankTrigger::IsActive()

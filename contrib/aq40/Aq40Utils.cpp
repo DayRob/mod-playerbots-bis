@@ -378,10 +378,19 @@ bool RaidAq40Utils::AllTanksPosted(Player* bot)
         if (!membre || !membre->IsAlive() || !GET_PLAYERBOT_AI(membre))
             continue;
 
-        // Seuls les tanks comptent. Un corps-a-corps en retard rejoindra sa
-        // place pendant que le boss marche vers son tank; un tank en retard,
-        // lui, c'est un Empereur qui part sur un soigneur.
-        if (TankIndex(membre) == TANK_INDEX_NONE)
+        // SEULS LES TROIS POSTES COMPTENT, et c'est le coeur de la condition.
+        //
+        // Un corps-a-corps en retard rejoindra sa place pendant que le boss
+        // marche vers son tank; un tank en retard, lui, c'est un Empereur qui
+        // part sur un soigneur. Mais les tanks EN SURNOMBRE - rang 3 et au-dela,
+        // et un raid de quarante bots en compte facilement cinq - n'ont pas de
+        // poste a eux : ils visent tous le MEME point, celui du cote de
+        // Vek'nilash. Les y exiger a six yards pres, c'est exiger qu'ils se
+        // tiennent les uns dans les autres : la collision en laisse toujours un
+        // dehors, la condition reste fausse pour toujours, et le pull ne part
+        // jamais. Observe en jeu : tout le monde en place, aucun pull.
+        uint8 const rang = TankIndex(membre);
+        if (rang == TANK_INDEX_NONE || rang > 2)
             continue;
 
         Position poste;
