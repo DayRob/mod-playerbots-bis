@@ -108,6 +108,17 @@ constexpr float MARK_TOLERANCE = 3.0f;
 // portee de la provocation.
 constexpr float TANK_GRAB_RANGE = 25.0f;
 
+// A QUELLE DISTANCE ON ENGAGE VRAIMENT, et ce n'est pas la meme pour les deux
+// pulleurs. Le tank doit etre au CONTACT; le lanceur de sorts, lui, s'arrete
+// des qu'il peut lancer - Vek'lor viendra a lui, puisqu'il suit sa cible
+// jusqu'a 45 yards puis s'arrete, et c'est precisement ce qu'on veut.
+//
+// Le pull partait a 25 yards pour tout le monde : trop loin pour qu'un tank
+// frappe, donc rien ne s'engageait, donc la regle de mise en place - juste en
+// dessous dans la file - le renvoyait a sa marque. Aller-retour sans fin, et
+// aucun pull. Vu en jeu.
+constexpr float PULL_SPELL_RANGE = 28.0f;
+
 // Un attaquant physique colle a Vek'lor ne gagne rien - il est immunise - et
 // declenche Arcane Burst (568), qui repousse des qu'un joueur est a portee de
 // contact. Un lanceur de sorts colle a Vek'nilash prend ses Uppercuts, qui

@@ -82,21 +82,40 @@ bool Aq40TakeStationAction::Execute(Event /*event*/)
 bool Aq40PullTogetherAction::Execute(Event /*event*/)
 {
     // Celui qui tient Vek'lor engage Vek'lor; les tanks engagent Vek'nilash.
-    Unit* mien = RaidAq40Utils::IsVeklorHolder(bot) ? static_cast<Unit*>(RaidAq40Utils::GetVeklor(bot))
-                                                    : static_cast<Unit*>(RaidAq40Utils::GetVeknilash(bot));
+    bool const demoniste = RaidAq40Utils::IsVeklorHolder(bot);
+
+    Unit* mien = demoniste ? static_cast<Unit*>(RaidAq40Utils::GetVeklor(bot))
+                           : static_cast<Unit*>(RaidAq40Utils::GetVeknilash(bot));
     if (!mien || !mien->IsAlive())
         return false;
 
+    // LA PORTEE A LAQUELLE CE BOT PEUT REELLEMENT ENGAGER, et elle n'est pas la
+    // meme pour les deux. Le tank doit etre au CONTACT - GetMeleeRange tient
+    // compte de l'allonge du boss, qui est un gros modele. Le lanceur de sorts,
+    // lui, s'arrete des qu'il peut lancer : Vek'lor viendra a lui, puisqu'il
+    // suit sa cible jusqu'a 45 yards puis s'arrete.
+    float const portee = demoniste ? PULL_SPELL_RANGE : bot->GetMeleeRange(mien);
+
     // On marche dessus. Les partants font ce trajet en meme temps, chacun vers
     // le sien, puisque leur declencheur est devenu vrai au meme tick.
-    if (bot->GetExactDist2d(mien) > TANK_GRAB_RANGE)
-        return MoveTo(bot->GetMapId(), mien->GetPositionX(), mien->GetPositionY(), mien->GetPositionZ(),
-                      false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+    if (bot->GetExactDist2d(mien) > portee)
+    {
+        MoveTo(bot->GetMapId(), mien->GetPositionX(), mien->GetPositionY(), mien->GetPositionZ(),
+               false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+
+        // ON NE REND JAMAIS LA MAIN EN CHEMIN, et c'est tout le correctif.
+        // Rendre faux ici laissait la file descendre d'un cran jusqu'a la mise
+        // en place, qui renvoyait le pulleur a sa marque : il repartait, se
+        // faisait rappeler, et le boss n'etait jamais touche.
+        return true;
+    }
 
     if (AI_VALUE(Unit*, "current target") != mien)
-        return Attack(mien);
+        Attack(mien);
 
-    return false;
+    // Vrai jusqu'a ce que le combat commence - le declencheur s'eteint alors de
+    // lui-meme, puisqu'il exige que les Empereurs ne soient pas engages.
+    return true;
 }
 
 bool Aq40TankAction::Execute(Event /*event*/)
