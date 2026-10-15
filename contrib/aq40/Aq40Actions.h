@@ -112,6 +112,19 @@ public:
 };
 
 // S'ecarte du jumeau qu'il ne peut pas blesser.
+// NE PAS FRAPPER tant que l'Empereur n'est pas pose, et lacher la cible qu'on
+// avait deja prise.
+//
+// Lacher ne suffirait pas : l'IA de classe en reprendrait une au tick suivant.
+// L'action rend donc VRAI, ce qui arrete la file au-dessus des regles
+// d'attaque - c'est ce "vrai" qui retient le raid, pas le lacher lui-meme.
+class Aq40HoldFireAction : public AttackAction
+{
+public:
+    Aq40HoldFireAction(PlayerbotAI* botAI) : AttackAction(botAI, "aq40 hold your fire") {}
+    bool Execute(Event event) override;
+};
+
 class Aq40KeepAwayAction : public MovementAction
 {
 public:

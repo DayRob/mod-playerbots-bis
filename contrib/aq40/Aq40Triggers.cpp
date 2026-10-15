@@ -142,7 +142,10 @@ bool Aq40KeepAwayTrigger::IsActive()
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 
-    // Les trois postes ont leur propre consigne, qui sait ou elle va.
+    // Les trois postes ont leur propre consigne, qui sait ou elle va. LES
+    // SOIGNEURS, EUX, PASSENT ICI : ils n'attaquent personne, mais la
+    // teleportation offre 2000 de menace au joueur le PLUS PROCHE, et ce doit
+    // etre un tank. Un soigneur colle a un Empereur se retrouve a le tanker.
     if (RaidAq40Utils::IsVeknilashTank(bot) || RaidAq40Utils::IsBugTank(bot) ||
         RaidAq40Utils::IsVeklorHolder(bot))
         return false;
@@ -154,10 +157,29 @@ bool Aq40KeepAwayTrigger::IsActive()
     if (!interdit)
         return false;
 
-    float const ecart = RaidAq40Utils::IsSpellDamageDealer(bot) ? CASTER_STAY_AWAY_FROM_VEKNILASH
-                                                                : MELEE_STAY_AWAY_FROM_VEKLOR;
+    return bot->GetExactDist2d(interdit) < RaidAq40Utils::GetStayAwayRange(bot);
+}
 
-    return bot->GetExactDist2d(interdit) < ecart;
+bool Aq40HoldFireTrigger::IsActive()
+{
+    if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // Les trois postes travaillent pendant le trajet : c'est leur trajet.
+    if (RaidAq40Utils::IsVeknilashTank(bot) || RaidAq40Utils::IsBugTank(bot) ||
+        RaidAq40Utils::IsVeklorHolder(bot))
+        return false;
+
+    // Une bestiole le mord : qu'il la tue, elle ne fera pas perdre le placement.
+    if (RaidAq40Utils::IsBugOnMe(bot))
+        return false;
+
+    // Les soigneurs n'ont rien a retenir - GetAssignedTwin leur rend nullptr.
+    Unit* assigne = RaidAq40Utils::GetAssignedTwin(bot);
+    if (!assigne || !assigne->IsAlive())
+        return false;
+
+    return !RaidAq40Utils::IsTwinPlaced(assigne);
 }
 
 bool Aq40WrongTargetTrigger::IsActive()

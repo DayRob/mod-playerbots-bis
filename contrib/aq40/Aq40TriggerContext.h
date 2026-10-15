@@ -21,6 +21,7 @@ public:
         creators["aq40 tank off his mark"] = &RaidAq40TriggerContext::tank_off_his_mark;
         creators["aq40 veklor adrift"] = &RaidAq40TriggerContext::veklor_adrift;
         creators["aq40 bugs on the raid"] = &RaidAq40TriggerContext::bugs_on_the_raid;
+        creators["aq40 twin not placed yet"] = &RaidAq40TriggerContext::twin_not_placed;
         creators["aq40 too close to the wrong twin"] = &RaidAq40TriggerContext::too_close;
         creators["aq40 twins wrong target"] = &RaidAq40TriggerContext::wrong_target;
     }
@@ -32,6 +33,7 @@ private:
     static Trigger* tank_off_his_mark(PlayerbotAI* botAI) { return new Aq40TankTrigger(botAI); }
     static Trigger* veklor_adrift(PlayerbotAI* botAI) { return new Aq40VeklorHolderTrigger(botAI); }
     static Trigger* bugs_on_the_raid(PlayerbotAI* botAI) { return new Aq40BugTankTrigger(botAI); }
+    static Trigger* twin_not_placed(PlayerbotAI* botAI) { return new Aq40HoldFireTrigger(botAI); }
     static Trigger* too_close(PlayerbotAI* botAI) { return new Aq40KeepAwayTrigger(botAI); }
     static Trigger* wrong_target(PlayerbotAI* botAI) { return new Aq40WrongTargetTrigger(botAI); }
 };

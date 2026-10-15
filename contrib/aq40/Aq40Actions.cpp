@@ -287,16 +287,30 @@ bool Aq40BugTankAction::Execute(Event /*event*/)
                   MovementPriority::MOVEMENT_COMBAT, true, false);
 }
 
+bool Aq40HoldFireAction::Execute(Event /*event*/)
+{
+    // On lache ce qu'on avait pris, s'il y avait quelque chose.
+    if (AI_VALUE(Unit*, "current target"))
+    {
+        context->GetValue<Unit*>("current target")->Set(nullptr);
+        bot->SetTarget();
+        bot->AttackStop();
+    }
+
+    // ET ON REND VRAI, MEME SI ON N'A RIEN LACHE. C'est ce "vrai" qui retient
+    // le raid : il arrete la file au-dessus des regles d'attaque, donc l'IA de
+    // classe ne reprend pas de cible au tick suivant. Rendre faux quand il n'y
+    // avait rien a lacher rouvrirait le feu a chaque tick.
+    return true;
+}
+
 bool Aq40KeepAwayAction::Execute(Event /*event*/)
 {
     Unit* interdit = RaidAq40Utils::GetForbiddenTwin(bot);
     if (!interdit)
         return false;
 
-    float const ecart = RaidAq40Utils::IsSpellDamageDealer(bot) ? CASTER_STAY_AWAY_FROM_VEKNILASH
-                                                                : MELEE_STAY_AWAY_FROM_VEKLOR;
-
-    return FleePosition(interdit->GetPosition(), ecart, 1000);
+    return FleePosition(interdit->GetPosition(), RaidAq40Utils::GetStayAwayRange(bot), 1000);
 }
 
 bool Aq40AttackMyTwinAction::Execute(Event /*event*/)

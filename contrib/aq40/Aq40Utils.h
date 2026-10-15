@@ -187,6 +187,22 @@ constexpr uint32 PREPULL_HOLD_MAX_MS = 20000;
 // Portee de recherche des bestioles reveillees.
 constexpr float BUG_SCAN_RANGE = 60.0f;
 
+// A QUELLE DISTANCE DE SA MARQUE UN EMPEREUR EST "PLACE".
+//
+// Large, et pour une raison : les deux ne s'arretent pas au meme endroit.
+// Vek'nilash finit SUR la marque, son tank l'y amene au contact. Vek'lor, lui,
+// s'arrete a 45 yards de sa cible et ne bouge plus - avec celui qui le tient
+// poste a 25 yards de la marque vers le milieu, il se plante une vingtaine de
+// yards EN DECA. Trente couvre les deux sans jamais se tromper de camp : les
+// marques sont a 133 yards l'une de l'autre.
+constexpr float TWIN_PLACED_RANGE = 30.0f;
+
+// Les soigneurs ne sont pas places, mais ils ne doivent PAS etre le joueur le
+// plus proche d'un Empereur : la teleportation offre 2000 de menace au plus
+// proche, et ce doit etre un tank. Vingt-cinq yards les en ecartent tout en les
+// laissant largement a portee de soin - un sort porte a 40.
+constexpr float HEALER_STAY_AWAY = 25.0f;
+
 // Pas de poste : ni tank, ni en groupe.
 constexpr uint8 TANK_INDEX_NONE = 255;
 
@@ -211,8 +227,22 @@ public:
     static bool IsPhysicalDamageDealer(Player* bot);
 
     // Le jumeau que ce bot peut blesser, et celui dont il doit s'ecarter.
+    //
+    // Pour un SOIGNEUR, "interdit" vaut les DEUX : il n'attaque personne, mais
+    // il ne doit etre le plus proche d'aucun des deux quand l'echange distribue
+    // ses 2000 de menace. GetForbiddenTwin lui rend donc le plus proche.
     static Unit* GetAssignedTwin(Player* bot);
     static Unit* GetForbiddenTwin(Player* bot);
+
+    // L'ECART QUE CE BOT DOIT GARDER avec le jumeau qui lui est interdit. Ce
+    // n'est pas la meme chose pour un corps-a-corps, un lanceur de sorts et un
+    // soigneur, et c'est la seule question que pose la regle d'ecartement.
+    static float GetStayAwayRange(Player* bot);
+
+    // CET EMPEREUR EST-IL ARRIVE OU IL DOIT ETRE ? C'est ce qui libere les
+    // degats du raid : tant qu'il est en chemin, le frapper le ferait se
+    // retourner sur celui qui frappe, et le placement serait perdu.
+    static bool IsTwinPlaced(Unit* jumeau);
 
     // Le rang de ce bot parmi les bots TANKS du groupe, par ordre de GUID - un
     // ordre qui ne change jamais, et c'est tout ce qu'on lui demande. Le rang 2

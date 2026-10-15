@@ -113,6 +113,24 @@ public:
     bool IsActive() override;
 };
 
+// L'Empereur de ce bot n'est pas encore arrive ou il doit etre, et le bot n'est
+// ni tank ni celui qui le tient : il ne frappe pas.
+//
+// C'EST LA REGLE DU VRAI RAID. Un tank qui traine Vek'nilash sur soixante
+// yards ne tient que par sa provocation; trente-cinq attaquants qui ouvrent
+// pendant le trajet lui prennent la menace, l'Empereur se retourne sur eux, et
+// le placement - donc l'ecart entre les deux freres, donc le combat - est
+// perdu. On attend qu'il soit pose, puis tout le monde ouvre en meme temps.
+//
+// Les soigneurs n'en sont pas : ils soignent pendant le trajet, c'est meme la
+// qu'on a le plus besoin d'eux.
+class Aq40HoldFireTrigger : public Trigger
+{
+public:
+    Aq40HoldFireTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 twin not placed yet") {}
+    bool IsActive() override;
+};
+
 // Ce bot frappe le jumeau qui est immunise a ce qu'il fait.
 class Aq40WrongTargetTrigger : public Trigger
 {

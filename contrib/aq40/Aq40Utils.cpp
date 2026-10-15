@@ -12,6 +12,16 @@
 #include "Playerbots.h"
 #include <list>
 
+namespace
+{
+    float EcartPlan(Position const& a, Position const& b)
+    {
+        float const dX = a.GetPositionX() - b.GetPositionX();
+        float const dY = a.GetPositionY() - b.GetPositionY();
+        return std::sqrt(dX * dX + dY * dY);
+    }
+}
+
 Creature* RaidAq40Utils::GetVeklor(Player* bot)
 {
     return bot ? bot->FindNearestCreature(NPC_VEKLOR, TWIN_SCAN_RANGE) : nullptr;
@@ -74,7 +84,44 @@ Unit* RaidAq40Utils::GetForbiddenTwin(Player* bot)
     if (IsPhysicalDamageDealer(bot))
         return GetVeklor(bot);
 
-    return nullptr;
+    // UN SOIGNEUR N'A PAS DE JUMEAU AUTORISE : les deux lui sont interdits. Il
+    // n'attaque personne, mais il ne doit etre le plus proche d'aucun des deux
+    // quand l'echange distribue ses 2000 de menace - ce doit etre un tank. On
+    // lui rend donc celui dont il est le plus pres, le seul qui le menace.
+    Creature* const veklor = GetVeklor(bot);
+    Creature* const veknilash = GetVeknilash(bot);
+    if (!veklor)
+        return veknilash;
+    if (!veknilash)
+        return veklor;
+
+    return bot->GetExactDist2d(veklor) <= bot->GetExactDist2d(veknilash) ? static_cast<Unit*>(veklor)
+                                                                         : static_cast<Unit*>(veknilash);
+}
+
+float RaidAq40Utils::GetStayAwayRange(Player* bot)
+{
+    // Un attaquant physique colle a Vek'lor declenche Arcane Burst; un lanceur
+    // de sorts colle a Vek'nilash prend ses Uppercuts; un soigneur, lui, ne
+    // craint pas le coup mais la teleportation.
+    if (IsSpellDamageDealer(bot))
+        return CASTER_STAY_AWAY_FROM_VEKNILASH;
+    if (IsPhysicalDamageDealer(bot))
+        return MELEE_STAY_AWAY_FROM_VEKLOR;
+
+    return HEALER_STAY_AWAY;
+}
+
+bool RaidAq40Utils::IsTwinPlaced(Unit* jumeau)
+{
+    if (!jumeau)
+        return false;
+
+    Position marque;
+    if (!GetMarkNear(jumeau, marque))
+        return false;
+
+    return EcartPlan(jumeau->GetPosition(), marque) <= TWIN_PLACED_RANGE;
 }
 
 uint8 RaidAq40Utils::TankIndex(Player* bot)
@@ -175,16 +222,6 @@ void RaidAq40Utils::GetMiddle(Position& out)
     out.Relocate((MARQUE_A.x + MARQUE_B.x) / 2.0f,
                  (MARQUE_A.y + MARQUE_B.y) / 2.0f,
                  (MARQUE_A.z + MARQUE_B.z) / 2.0f);
-}
-
-namespace
-{
-    float EcartPlan(Position const& a, Position const& b)
-    {
-        float const dX = a.GetPositionX() - b.GetPositionX();
-        float const dY = a.GetPositionY() - b.GetPositionY();
-        return std::sqrt(dX * dX + dY * dY);
-    }
 }
 
 bool RaidAq40Utils::IsInTwinsRoom(Player* bot)

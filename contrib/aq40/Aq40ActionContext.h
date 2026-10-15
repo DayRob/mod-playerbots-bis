@@ -22,6 +22,7 @@ public:
         creators["aq40 tank your side"] = &RaidAq40ActionContext::tank_your_side;
         creators["aq40 hold veklor"] = &RaidAq40ActionContext::hold_veklor;
         creators["aq40 tank the bugs"] = &RaidAq40ActionContext::tank_the_bugs;
+        creators["aq40 hold your fire"] = &RaidAq40ActionContext::hold_your_fire;
         creators["aq40 keep away"] = &RaidAq40ActionContext::keep_away;
         creators["aq40 attack my twin"] = &RaidAq40ActionContext::attack_my_twin;
     }
@@ -33,6 +34,7 @@ private:
     static Action* tank_your_side(PlayerbotAI* botAI) { return new Aq40TankAction(botAI); }
     static Action* hold_veklor(PlayerbotAI* botAI) { return new Aq40HoldVeklorAction(botAI); }
     static Action* tank_the_bugs(PlayerbotAI* botAI) { return new Aq40BugTankAction(botAI); }
+    static Action* hold_your_fire(PlayerbotAI* botAI) { return new Aq40HoldFireAction(botAI); }
     static Action* keep_away(PlayerbotAI* botAI) { return new Aq40KeepAwayAction(botAI); }
     static Action* attack_my_twin(PlayerbotAI* botAI) { return new Aq40AttackMyTwinAction(botAI); }
 };

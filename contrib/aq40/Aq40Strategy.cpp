@@ -109,6 +109,15 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new TriggerNode("aq40 too close to the wrong twin",
             { NextAction("aq40 keep away", ACTION_RAID + 2.0f) }));
 
+    // 6. ET PERSONNE NE FRAPPE TANT QUE SON EMPEREUR N'EST PAS POSE. Un tank
+    //    qui traine Vek'nilash sur soixante yards ne tient que par sa
+    //    provocation : trente-cinq attaquants qui ouvrent pendant le trajet lui
+    //    prennent la menace, l'Empereur se retourne, et l'ecart entre les deux
+    //    freres - donc le combat - est perdu. Les soigneurs n'en sont pas.
+    triggers.push_back(
+        new TriggerNode("aq40 twin not placed yet",
+            { NextAction("aq40 hold your fire", ACTION_RAID + 1.0f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 twins wrong target",
             { NextAction("aq40 attack my twin", ACTION_RAID) }));
