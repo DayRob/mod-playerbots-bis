@@ -209,14 +209,14 @@ bool Aq40TankAnchorAction::Execute(Event /*event*/)
             return MoveTo(bot->GetMapId(), posteX, posteY, posteZ, false, false, false, false,
                           MovementPriority::MOVEMENT_COMBAT, true, false);
 
-        // EN POSTE. Et tant que Vek'lor traine loin de ce poste, chaque
-        // provocation disponible le ramene de 45 yards vers ici - c'est le seul
-        // levier qu'un tank ait sur lui, et il ne coute rien puisque ce tank
-        // n'a rien d'autre a faire.
-        if (mien->GetVictim() != bot && dPoste > HEAL_BROTHER_RANGE &&
-            bot->GetExactDist2d(mien) <= TANK_GRAB_RANGE && Provoque(botAI, mien))
-            return true;
-
+        // EN POSTE, ET ON ATTEND. Aucun levier sur Vek'lor : immunise au
+        // physique ET a la provocation, il ne connaitra jamais ce tank. Sa
+        // position est decidee par qui tient sa menace - le demoniste - et il
+        // s'arrete a 45 yards de lui.
+        //
+        // Ce tank est la pour l'ECHANGE : c'est Vek'nilash qui lui arrivera
+        // dessus dans trente secondes, et celui-la, il sait le tenir.
+        //
         // Rendre faux ici rendrait la main a l'IA de classe, qui enverrait le
         // tank chercher une cible a frapper a l'autre bout de la salle - c'est
         // a dire exactement ce que ce poste existe pour empecher. Un tank qui
@@ -341,7 +341,10 @@ bool Aq40TakeStationAction::Execute(Event /*event*/)
 
 bool Aq40PullTogetherAction::Execute(Event /*event*/)
 {
-    Unit* mien = RaidAq40Utils::GetTwinForTank(bot);
+    // Celui qui tient Vek'lor n'a pas de poste de tank : son Empereur, c'est
+    // celui qu'il peut blesser.
+    Unit* mien = RaidAq40Utils::IsVeklorHolder(bot) ? RaidAq40Utils::GetVeklor(bot)
+                                                    : RaidAq40Utils::GetTwinForTank(bot);
     if (!mien || !mien->IsAlive())
         return false;
 
@@ -352,17 +355,11 @@ bool Aq40PullTogetherAction::Execute(Event /*event*/)
         return MoveTo(bot->GetMapId(), mien->GetPositionX(), mien->GetPositionY(), mien->GetPositionZ(),
                       false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
 
-    // LA PROVOCATION EST LE SEUL MOYEN SUR VEK'LOR. Il est immunise a tout ce
-    // qu'un tank frappe, donc aucun coup ne lui donnera jamais de menace. Sans
-    // elle, l'AttackStart que le script declenche sur lui l'envoie vers le tank
-    // qui a engage Vek'nilash, et les deux Empereurs se rejoignent.
-    //
-    // Apres le pull il ne le provoque plus : le garder demanderait une
-    // provocation toutes les huit secondes pour un boss que les lanceurs de
-    // sorts tiennent tres bien, et le tank doit retourner a son poste.
-    if (mien->GetEntry() == NPC_VEKLOR && Provoque(botAI, mien))
-        return true;
-
+    // PAS DE PROVOCATION SUR VEK'LOR. Il est immunise a la provocation comme au
+    // reste de ce qu'un guerrier lui envoie - verifie en jeu - donc la tenter
+    // ne ferait que gaspiller le temps d'incantation du tank au moment precis
+    // ou il ne faut pas. C'est le lanceur de sorts qui l'engage, et c'est lui
+    // seul qui lui fera de la menace.
     if (AI_VALUE(Unit*, "current target") != mien)
         return Attack(mien);
 

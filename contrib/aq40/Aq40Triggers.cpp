@@ -200,9 +200,14 @@ bool Aq40PullTogetherTrigger::IsActive()
     if (RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 
-    // Seuls les deux tanks de postes pullent. Le tank des bestioles et tout le
-    // reste du raid attendent que ca commence.
-    if (RaidAq40Utils::TankIndex(bot) > 1)
+    // QUI PULLE : les deux tanks de postes, et celui qui tient Vek'lor.
+    //
+    // Ce dernier n'est pas un tank et c'est tout l'interet : Vek'lor est
+    // immunise au physique, donc aucun guerrier ne lui fera jamais un point de
+    // menace - provocation comprise. Sans un lanceur de sorts dessus au meme
+    // instant, l'AttackStart que le script declenche sur lui l'envoie vers le
+    // tank qui a engage Vek'nilash, et les deux Empereurs se rejoignent.
+    if (RaidAq40Utils::TankIndex(bot) > 1 && !RaidAq40Utils::IsVeklorHolder(bot))
         return false;
 
     // ET SEULEMENT QUAND TOUT LE MONDE EST EN PLACE. C'est toute la raison

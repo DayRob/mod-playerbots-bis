@@ -211,6 +211,18 @@ public:
     // socles et les feraient repartir vers le milieu.
     static bool IsOnAnchorDuty(Player* bot);
 
+    // CELUI QUI TIENT VEK'LOR, ET CE N'EST PAS UN TANK.
+    //
+    // Vek'lor est immunise au physique : un guerrier ne lui fera jamais un
+    // point de menace, provocation comprise. C'est la strategie vanilla
+    // d'origine - un DEMONISTE le tient, parce que seuls des degats magiques
+    // en produisent. Le tank du poste, lui, attend la teleportation qui lui
+    // amenera Vek'nilash.
+    //
+    // Choisi par GUID parmi les lanceurs de sorts, demonistes d'abord : un
+    // ordre qui ne change jamais, et c'est tout ce qu'on lui demande.
+    static bool IsVeklorHolder(Player* bot);
+
     // ── LE TANK DES BESTIOLES ─────────────────────────────────────────────
     //
     // Vek'lor lance Explode Bug (804) toutes les 4,5 a 10 secondes et

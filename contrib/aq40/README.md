@@ -67,12 +67,19 @@ donc les deux tanks le voient devenir vrai au MEME tick et partent ensemble,
 chacun vers le sien. Puis chacun ramene le sien chez lui, et le combat commence
 deja place.
 
-**Sur Vek'lor, la provocation est le seul moyen.** Il est immunise a tout ce
-qu'un tank frappe, donc aucun coup ne lui donnera jamais de menace : sans
-provocation au moment du pull, l'`AttackStart` que le script declenche sur lui
-l'envoie vers le tank d'en face. Apres le pull il ne le provoque plus — le
-garder demanderait une provocation toutes les huit secondes pour un boss que
-les lanceurs de sorts tiennent tres bien, et le tank doit retourner a son poste.
+**Vek'lor n'est pas tenu par un tank, mais par un DEMONISTE.** C'est la
+strategie vanilla d'origine, et c'est une necessite mecanique : il est immunise
+au physique ET a la provocation, donc aucun guerrier ne lui fera jamais un seul
+point de menace. Seuls des degats magiques en produisent.
+
+Le troisieme larron du pull est donc le lanceur de sorts designe — demoniste
+d'abord, par ordre de GUID a defaut. Sans lui dessus au meme instant,
+l'`AttackStart` que le script declenche sur Vek'lor l'envoie vers le tank qui a
+engage Vek'nilash, et les deux Empereurs se rejoignent avant le premier coup.
+
+Il se tient a sa place de lanceur de sorts, pas sur le poste : apres la
+teleportation, les 2000 de menace vont au joueur le PLUS PROCHE, et ce doit
+etre le tank — c'est Vek'nilash qui arrive.
 
 **0. Un tank par piedestal, et ils priment sur tout le reste.** Chaque
 Empereur apparait sur son socle, aux deux bouts de la salle — mesure sur une

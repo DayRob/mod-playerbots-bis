@@ -234,6 +234,45 @@ bool RaidAq40Utils::IsOnAnchorDuty(Player* bot)
     return TankIndex(bot) <= 1 && AreTwinsEngaged(bot);
 }
 
+bool RaidAq40Utils::IsVeklorHolder(Player* bot)
+{
+    // Le test le moins cher d'abord : tout le raid sauf les lanceurs de sorts
+    // s'arrete ici, et la liste du groupe n'est jamais parcourue pour eux.
+    if (!bot || !bot->IsAlive() || !IsSpellDamageDealer(bot) || !GET_PLAYERBOT_AI(bot))
+        return false;
+
+    Group* groupe = bot->GetGroup();
+    if (!groupe)
+        return false;
+
+    bool const jeSuisDemoniste = bot->getClass() == CLASS_WARLOCK;
+
+    for (GroupReference* ref = groupe->GetFirstMember(); ref; ref = ref->next())
+    {
+        Player* membre = ref->GetSource();
+        if (!membre || membre == bot || !membre->IsAlive())
+            continue;
+
+        if (!GET_PLAYERBOT_AI(membre) || !IsSpellDamageDealer(membre))
+            continue;
+
+        // UN DEMONISTE PASSE AVANT TOUT LE MONDE. C'est le tank de Vek'lor de
+        // la strategie d'origine : Drain de vie, Lien spirituel et une armure
+        // demoniaque font de lui le seul lanceur de sorts qui encaisse ce que
+        // Vek'lor rend.
+        bool const luiDemoniste = membre->getClass() == CLASS_WARLOCK;
+        if (luiDemoniste && !jeSuisDemoniste)
+            return false;
+        if (jeSuisDemoniste && !luiDemoniste)
+            continue;
+
+        if (membre->GetGUID().GetCounter() < bot->GetGUID().GetCounter())
+            return false;
+    }
+
+    return true;
+}
+
 bool RaidAq40Utils::IsBugTank(Player* bot)
 {
     return TankIndex(bot) == 2;
