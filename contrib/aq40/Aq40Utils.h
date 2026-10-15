@@ -14,156 +14,139 @@
 class Player;
 class PlayerbotAI;
 
-// Temple of Ahn'Qiraj. Every number below is taken from the core script
-// (src/server/scripts/Kalimdor/TempleOfAhnQiraj/boss_twinemperors.cpp) so the bot
-// behaviour and the encounter stay in agreement.
+// ═══ LES EMPEREURS JUMEAUX ═══════════════════════════════════════════════════
+//
+// Tout ce qui suit sort du script du coeur
+// (src/server/scripts/Kalimdor/TempleOfAhnQiraj/boss_twinemperors.cpp) ou d'une
+// mesure faite en jeu. Rien d'un guide, rien de memoire.
+//
+// CE QUI FAIT PERDRE LE COMBAT, et c'est la seule chose :
+//
+//     .Schedule(3600ms, [this](TaskContext context)
+//     {
+//         if (Creature* twin = GetTwin())
+//             if (me->IsWithinDist(twin, 60.f))
+//                 DoCast(twin, SPELL_HEAL_BROTHER, true);
+//         context.Repeat();
+//     });
+//
+// Chacun soigne son frere toutes les 3,6 secondes, mais SEULEMENT a moins de
+// 60 yards. Et les degats sont partages entre les deux (Twin Empathy, 1177),
+// donc deux Empereurs cote a cote annulent le raid entier. Toute la strategie
+// tient a les garder ecartes.
+//
+// CE QUE CHACUN PERMET, et qui decide de qui fait quoi :
+//
+//   Vek'lor    immunise au PHYSIQUE, et a la PROVOCATION (constate en jeu).
+//              Ne frappe jamais au contact. Suit sa cible jusqu'a 45 yards puis
+//              s'arrete. Donc AUCUN TANK N'A DE PRISE SUR LUI - ni pour le
+//              tenir, ni pour le deplacer. Ce sont les lanceurs de sorts qui le
+//              tiennent, et un demoniste en premier.
+//
+//   Vek'nilash immunise au magique sauf au sacre. Frappe au contact, suit son
+//              attaquant. C'est le SEUL des deux qu'un tank puisse tenir, et le
+//              seul qu'on puisse emmener quelque part.
+//
+// D'OU LA REGLE CENTRALE : l'ecartement se fait en emmenant Vek'nilash loin de
+// son frere, et tous les tanks sauf celui des bestioles s'en chargent.
+//
+// L'ECHANGE, toutes les 30 a 40 secondes :
+//
+//     DoResetThreatList();
+//     ... 2 secondes plus tard ...
+//     if (Unit* victim = me->SelectNearestTarget())
+//     {
+//         me->AddThreat(victim, 2000.f);
+//         AttackStart(victim);
+//     }
+//
+// Les positions sont echangees, les menaces remises a zero, et 2000 sont
+// offerts au joueur le PLUS PROCHE - un soigneur, un voleur, n'importe qui.
+// Vek'nilash se retrouve donc a l'autre bout de la salle sur quelqu'un qui ne
+// peut pas l'encaisser, a cote de son frere. C'est la que tout se joue : il
+// faut aller le reprendre et le ramener.
+// ═════════════════════════════════════════════════════════════════════════════
+
 constexpr uint32 TEMPLE_OF_AHNQIRAJ_MAP_ID = 531;
 
-constexpr uint32 NPC_VEKLOR = 15276;     // caster twin, immune to physical damage
-constexpr uint32 NPC_VEKNILASH = 15275;  // melee twin, immune to magic except holy
+constexpr uint32 NPC_VEKLOR = 15276;     // immunise au physique et a la provocation
+constexpr uint32 NPC_VEKNILASH = 15275;  // immunise au magique sauf au sacre
 constexpr uint32 NPC_QIRAJI_SCARAB = 15316;
 constexpr uint32 NPC_QIRAJI_SCORPION = 15317;
 
-// The twins heal each other with Heal Brother (7393) every 3.6 seconds, but only
-// while they are within 60 yards of one another. Keeping them apart is the whole
-// fight, so the bots aim a little past that range and leave it there.
+// Heal Brother (7393) ne part qu'en deca de cette distance.
 constexpr float HEAL_BROTHER_RANGE = 60.0f;
-constexpr float SAFE_SEPARATION = 70.0f;
 
-// Vek'lor never melees: he chases only until he is 45 yards from his victim and
-// then stops. He does cast Arcane Burst (568) on anything in melee contact, which
-// knocks it back, so a physical attacker standing on him gains nothing and loses
-// its position.
-constexpr float MELEE_STAY_AWAY_FROM_VEKLOR = 15.0f;
-
-// Vek'nilash melees, uppercuts and strikes whoever is nearest. A caster does zero
-// damage to him, so being close is pure downside - and after a teleport each twin
-// grabs its nearest target with 2000 threat, which is how casters end up tanking.
-constexpr float CASTER_STAY_AWAY_FROM_VEKNILASH = 25.0f;
-
-// Where a spell dealer stands once it is on the right side of Vek'lor: close
-// enough to cast, far enough that Vek'lor has no reason to walk back towards
-// his brother (he only moves when his victim is over 45 yards away).
-constexpr float CASTER_FAR_SIDE_OFFSET = 25.0f;
-
-// La salle est grande, et les POSTES sont encore plus loin l'un de l'autre que
-// les plateformes : 166 et 168 yards separent chaque tete de mort de la
-// plateforme d'en face. A 150, un tank sur sa marque ne voyait jamais les deux
-// Empereurs - toutes les regles qui en ont besoin echouaient en silence, et le
-// pull n'arrivait jamais. Mesure en jeu, pas supposee.
+// ─── LES DEUX MARQUES ────────────────────────────────────────────────────────
 //
-// 250 couvre la salle entiere avec de la marge, et reste bien en deca de ce
-// qu'il faudrait pour aller chercher quelque chose dans un autre couloir.
-constexpr float TWIN_SCAN_RANGE = 250.0f;
-
-// LES DEUX POSTES DE TANK.
+// Relevees en jeu au ".gps", sur les deux tetes de mort du schema de guilde.
+// 133,3 yards les separent - plus du double des 60 de Heal Brother.
 //
-// Ce NE SONT PAS les points d'apparition. Les deux Empereurs poussent sur les
-// plateformes du fond, aux deux coins hauts de la salle; le raid les tire
-// contre les murs gauche et droit, a mi-hauteur - c'est la qu'on les tient, et
-// c'est ce que montre le schema de guilde. Hors des bestioles du milieu, hors
-// du chemin des deux groupes qui se croisent a chaque echange.
-//
-// A zero, les postes se rabattent sur GetHomePosition(), donc sur les
-// plateformes d'apparition. La strategie marche toujours - 158,2 yards
-// separent les deux, soit bien plus que les 60 de Heal Brother - mais ce n'est
-// pas le placement de la guilde. Pour les remplir : se placer sur chaque tete
-// de mort du schema, faire ".gps" en jeu, et coller les deux relevés ici.
-// L'ORDRE N'A PAS D'IMPORTANCE : le code attribue a chaque rang le poste le
-// plus proche de la plateforme qui lui revient.
-struct Aq40TankPost
+// Ce ne sont PAS les points d'apparition : les Empereurs poussent sur les
+// plateformes du fond, et le raid les tire contre les murs gauche et droit.
+struct Aq40Mark
 {
     float x;
     float y;
     float z;
 };
 
-// Relevés en jeu sur la carte 531, sur les deux tetes de mort du schema de
-// guilde. 133,3 yards les separent, et chacun est a une bonne quatre-vingtaine
-// de yards de la plateforme d'apparition qui lui fait face.
-constexpr Aq40TankPost TANK_POST_A = { -8896.308f, 1283.0752f, -112.292564f };  // tete de mort gauche
-constexpr Aq40TankPost TANK_POST_B = { -9027.637f, 1259.976f, -112.294556f };   // tete de mort droite
+constexpr Aq40Mark MARQUE_A = { -8896.308f, 1283.0752f, -112.292564f };  // tete de mort gauche
+constexpr Aq40Mark MARQUE_B = { -9027.637f, 1259.976f, -112.294556f };   // tete de mort droite
 
-// Assez pres pour que le poste soit tenu. Trois yards laissent au bot de quoi
-// se replacer sans repartir a chaque tick.
-constexpr float TANK_ANCHOR_TOLERANCE = 3.0f;
+// ─── LES DISTANCES ───────────────────────────────────────────────────────────
 
-// Pas de poste : ce bot n'est pas un tank, ou n'est pas en groupe.
-constexpr uint8 TANK_INDEX_NONE = 255;
+// Chaque marque est a 166 et 168 yards de la plateforme d'en face. A 150, un
+// bot poste ne trouvait jamais les deux Empereurs et toutes les regles qui en
+// ont besoin echouaient en silence. Mesure, pas supposee.
+constexpr float TWIN_SCAN_RANGE = 250.0f;
 
-constexpr float VEKLOR_TANK_DISTANCE = 10.0f;
+// Assez pres pour qu'une marque soit tenue.
+constexpr float MARK_TOLERANCE = 3.0f;
 
-// Au-dela, le tank va CHERCHER son jumeau au lieu de l'attendre sur son socle :
-// c'est le cas de la capture ou les deux Empereurs ont fini sur le meme
-// piedestal. En deca, il rentre et le jumeau suit.
+// Au-dela, un tank va CHERCHER Vek'nilash au lieu de l'attendre. C'est aussi la
+// portee de la provocation.
 constexpr float TANK_GRAB_RANGE = 25.0f;
 
-// ── LA MISE EN PLACE AVANT LE PULL ────────────────────────────────────────
-//
-// Elle n'existe que dans UNE fenetre : les Jumeaux pas encore engages, le bot
-// hors combat, et le raid deja dans la salle. C'est exactement l'etat ou
-// mod-dungeon-clear met le run quand DungeonClear.WaitAtBoss = 1 : il met en
-// pause juste avant le pull, et sa propre documentation dit que "the driving
-// ladder is inert when paused and followers stop trailing the leader". Rien ne
-// tire donc les bots pendant qu'ils se placent, et rien n'est bloque non plus :
-// des qu'un bot est a son poste, le declencheur rend faux et le pull - le tien
-// ou celui de dungeon-clear - part sans rien avoir a attendre.
-//
-// ARRIVER, PUIS SE PLACER - ET DANS CET ORDRE.
-//
-// La mise en place ne COMMENCE que lorsqu'un Empereur est a moins de cette
-// distance : c'est le signe que dungeon-clear a fini d'amener le raid. Sans ce
-// seuil elle demarrait des 100 yards du centre de la salle, c'est-a-dire en
-// plein trajet, et tirait le tank hors du chemin que le module de donjon etait
-// en train de suivre - "off-line rejoin made no progress" dans ses logs.
-constexpr float PREPULL_ARRIVED_RANGE = 60.0f;
+// Un attaquant physique colle a Vek'lor ne gagne rien - il est immunise - et
+// declenche Arcane Burst (568), qui repousse des qu'un joueur est a portee de
+// contact. Un lanceur de sorts colle a Vek'nilash prend ses Uppercuts, qui
+// visent au hasard parmi ce qui est a sa portee.
+constexpr float MELEE_STAY_AWAY_FROM_VEKLOR = 15.0f;
+constexpr float CASTER_STAY_AWAY_FROM_VEKNILASH = 25.0f;
 
-// Une fois COMMENCEE, elle ne s'arrete plus a une distance : les postes sont a
-// plus de 80 yards des plateformes, donc un bot en route vers le sien sortirait
-// du seuil ci-dessus en chemin et s'arreterait a mi-parcours. Ce plafond-la ne
-// sert qu'a ne jamais agir hors de la salle.
-constexpr float PREPULL_GATHER_RANGE = 150.0f;
+// Ou se tient celui qui tient Vek'lor : assez pres pour lancer, assez loin pour
+// qu'Arcane Burst ne le trouve pas, et surtout a poste FIXE - c'est sa position
+// a lui qui decide ou Vek'lor se plante, puisque Vek'lor s'arrete a 45 yards de
+// sa cible et ne bouge plus.
+constexpr float VEKLOR_HOLDER_OFFSET = 25.0f;
 
-// De combien chacun se decale de son poste vers le milieu, pour ne pas se tenir
-// sur son tank. Un corps-a-corps n'a que quelques pas a faire au pull; un
-// lanceur de sorts est deja a portee.
+// De combien chacun se decale de sa marque vers le milieu avant le pull, pour
+// ne pas se tenir sur son tank.
 constexpr float MELEE_PREPULL_OFFSET = 10.0f;
-constexpr float CASTER_PREPULL_OFFSET = 20.0f;
-
-// COMBIEN DE TEMPS LES TANKS RETIENNENT LE PULL.
-//
-// Un tank deja a son poste rend faux des qu'il n'a plus rien a faire, et c'est
-// ce qui laisse dungeon-clear pull. Tant que ses collegues marchent encore, il
-// retient au contraire - sa regle siege bien au-dessus de la bande de
-// dungeon-clear, donc le pull attend que les trois postes soient tenus. Sans
-// toi, sans commande.
-//
-// Avec une limite, parce qu'un tank mort, bloque ou hors de la salle ne doit
-// pas pouvoir geler le run pour toujours. Passe ce delai, chacun rend la main
-// et dungeon-clear pull comme il l'aurait fait.
-constexpr uint32 PREPULL_HOLD_MAX_MS = 20000;
 
 // L'ecartement lateral entre deux bots du meme groupe, gradue sur leur GUID :
-// sans lui, trente-six bots visent le meme point et s'empilent.
+// sans lui, trente bots visent le meme point et s'empilent.
 constexpr float PREPULL_SPREAD_STEP = 4.0f;
 
-// How far the bug tank looks for a woken bug. Wide enough to cover the raid he
-// is protecting - the healers stand behind their own group, not on him - and
-// short enough that he never leaves the fight to chase something at the far end
-// of the chamber.
+// La mise en place ne COMMENCE que lorsqu'un Empereur est a portee : c'est le
+// signe que mod-dungeon-clear a fini d'amener le raid. Sans ce seuil elle
+// demarrait en plein trajet et sortait le tank du chemin qu'il suivait.
+constexpr float PREPULL_ARRIVED_RANGE = 60.0f;
+
+// Et jamais hors de la salle.
+constexpr float PREPULL_GATHER_RANGE = 150.0f;
+
+// Combien de temps les tanks deja en place retiennent le pull en attendant les
+// autres. Avec une limite, parce qu'un tank mort ou bloque ne doit pas pouvoir
+// geler le run pour toujours.
+constexpr uint32 PREPULL_HOLD_MAX_MS = 20000;
+
+// Portee de recherche des bestioles reveillees.
 constexpr float BUG_SCAN_RANGE = 60.0f;
 
-// Mutate Bug (802) and Explode Bug (804) turn a scarab or scorpion hostile, and
-// it goes for somebody. Only the bot it actually reached is left alone with it;
-// everyone else stays on the emperors, because a woken bug is a rank-0 level-60
-// nuisance and both emperors share one health pool on a 15-minute timer.
-
-// The chamber's own bugs never strike first: npc_ahnqiraji_critter::Reset()
-// returns early for any spawn that linked_respawn ties to a Vek'lor spawn, and
-// in the emperors' hall every one of them is tied that way. So a bot fighting
-// one there was sent. Nothing in this folder tries to stop that - a bot's own
-// initiative is not what sends it, and overriding whatever does would reach
-// outside this one fight. See the README.
+// Pas de poste : ni tank, ni en groupe.
+constexpr uint8 TANK_INDEX_NONE = 255;
 
 class RaidAq40Utils
 {
@@ -171,113 +154,110 @@ public:
     static Creature* GetVeklor(Player* bot);
     static Creature* GetVeknilash(Player* bot);
 
-    // True once at least one twin is alive and fighting.
+    // Vrai des qu'un des deux est en combat. UN SEUL SUFFIT : exiger les deux
+    // coutait une seconde recherche en grille et rendait faux pour un bot trop
+    // loin de l'autre bout de la salle, alors que le combat avait commence.
     static bool AreTwinsEngaged(Player* bot);
 
-    // Spell damage only hurts Vek'lor, physical damage only hurts Vek'nilash.
-    // Healers are deliberately left out of every assignment: they follow the raid
-    // and heal, and forcing them around would only break that.
+    // ─── LES ROLES ───────────────────────────────────────────────────────────
+
+    // Les degats magiques ne touchent que Vek'lor, les physiques que
+    // Vek'nilash. Les soigneurs sont exclus de toute assignation : ils suivent
+    // le raid et soignent, et les pousser quelque part ne ferait que les couper
+    // de ce qu'ils doivent voir.
     static bool IsSpellDamageDealer(Player* bot);
     static bool IsPhysicalDamageDealer(Player* bot);
 
-    // The twin this bot can actually damage, or nullptr for healers and for
-    // anything we have no business steering.
+    // Le jumeau que ce bot peut blesser, et celui dont il doit s'ecarter.
     static Unit* GetAssignedTwin(Player* bot);
-
-    // The twin this bot must stay away from, or nullptr.
     static Unit* GetForbiddenTwin(Player* bot);
 
-    static float Separation(Unit* veklor, Unit* veknilash);
-
-    // A woken scarab or scorpion is in melee on this bot specifically.
-    static bool IsBugOnMe(Player* bot);
-
-    // ── LES TANKS, PAR PIEDESTAL ──────────────────────────────────────────
+    // Le rang de ce bot parmi les bots TANKS du groupe, par ordre de GUID - un
+    // ordre qui ne change jamais, et c'est tout ce qu'on lui demande. Le rang 2
+    // prend les bestioles; tous les autres vont sur Vek'nilash.
     //
-    // Les bots tanks du groupe sont ranges par GUID - un ordre qui ne change
-    // jamais, et c'est tout ce qu'on lui demande : un choix "malin" qui changerait
-    // d'avis d'un tick a l'autre ferait osciller deux tanks entre les deux bouts
-    // de la salle. Le rang donne le poste :
-    //
-    //   rang 0 -> le piedestal de Vek'nilash
-    //   rang 1 -> le piedestal de Vek'lor
-    //   rang 2 -> les bestioles du milieu
-    //   au-dela -> rien de particulier, ils se battent comme les autres
-    //
-    // Un humain n'est jamais range : rien ici ne le ferait bouger. Si c'est toi
-    // qui tiens un cote, le bot de rang 0 doublera ton poste - inoffensif, et
-    // visible d'un coup d'oeil.
+    // Le role TENU, pas la specialisation : celui qui tiendra un Empereur est
+    // celui qui tourne avec la strategie de tank. C'est aussi la reponse qui ne
+    // coute rien, et elle est demandee pour chaque membre du groupe.
     static uint8 TankIndex(Player* bot);
 
-    // Les deux postes, ranges : poste0 pour le rang 0, poste1 pour le rang 1.
-    // Faux tant que les deux Empereurs ne sont pas trouves.
-    static bool GetPosts(Player* bot, Position& poste0, Position& poste1);
+    // Tous les tanks sauf le rang 2.
+    static bool IsVeknilashTank(Player* bot);
 
-    // Le poste que ce tank doit tenir. Faux s'il n'a pas de poste.
-    static bool GetAnchor(Player* bot, Position& out);
+    // Le rang 2, et seulement s'il existe (il faut donc au moins trois tanks).
+    static bool IsBugTank(Player* bot);
 
-    // Le jumeau confie a ce tank. CE N'EST PAS une distance : les deux socles
-    // se partagent les deux Empereurs, celui qui est le plus pres du socle du
-    // rang 0 lui revient et l'autre va au rang 1. Les deux tanks font le meme
-    // calcul, donc ils ne peuvent pas se retrouver sur le meme jumeau - y
-    // compris quand les deux ont fini colles sur le meme piedestal.
-    static Unit* GetTwinForTank(Player* bot);
-
-    // Vrai pour les rangs 0 et 1 pendant le combat : leur consigne de poste
-    // remplace alors les quatre regles de placement, qui ne savent rien des
-    // socles et les feraient repartir vers le milieu.
-    static bool IsOnAnchorDuty(Player* bot);
-
-    // CELUI QUI TIENT VEK'LOR, ET CE N'EST PAS UN TANK.
-    //
-    // Vek'lor est immunise au physique : un guerrier ne lui fera jamais un
-    // point de menace, provocation comprise. C'est la strategie vanilla
-    // d'origine - un DEMONISTE le tient, parce que seuls des degats magiques
-    // en produisent. Le tank du poste, lui, attend la teleportation qui lui
-    // amenera Vek'nilash.
-    //
-    // Choisi par GUID parmi les lanceurs de sorts, demonistes d'abord : un
-    // ordre qui ne change jamais, et c'est tout ce qu'on lui demande.
+    // Celui qui tient Vek'lor, et ce n'est pas un tank : demoniste d'abord,
+    // sinon le premier lanceur de sorts par GUID.
     static bool IsVeklorHolder(Player* bot);
 
-    // ── LE TANK DES BESTIOLES ─────────────────────────────────────────────
+    // ─── LES PLACES ──────────────────────────────────────────────────────────
+
+    // Les deux marques, dans l'ordre : A fait face a la plateforme de
+    // Vek'nilash (82 yards contre 166), B a celle de Vek'lor.
+    static void GetMarks(Position& marqueA, Position& marqueB);
+
+    // LA MARQUE DE CE TANK, et elle ne change JAMAIS.
+    //
+    // Rang 0 a gauche, rang 1 a droite, et chacun garde son bout de salle pour
+    // tout le combat. C'est le guide qui le dit, et c'est la clef de l'echange :
+    //
+    //     "le tank guerrier pourra se deplacer le long du mur derriere lui.
+    //      Ce sera proche de l'endroit ou le guerrier tankera APRES la
+    //      teleportation."
+    //
+    // Celui qui a Vek'nilash de son cote le tient; l'autre attend sur sa marque
+    // que l'echange le lui amene. Les faire traverser la salle a chaque fois
+    // couterait 133 yards de course et l'aggro avec.
+    //
+    // Les tanks en SURNOMBRE (rang 3 et au-dela) n'ont pas de marque a eux :
+    // ils vont preter main-forte sur Vek'nilash, ou qu'il soit.
+    static bool GetMyMark(Player* bot, Position& out);
+
+    // Vek'nilash est-il du cote de ce tank ? C'est ce qui decide, a chaque
+    // instant, s'il tient ou s'il attend. Pas d'etat a conserver : la geometrie
+    // repond, et elle bascule d'elle-meme a l'echange.
+    static bool IsVeknilashOnMySide(Player* bot);
+
+    // OU SE TIENT CELUI QUI TIENT VEK'LOR : la marque du cote de Vek'lor,
+    // decalee vers le milieu. Sa position decide celle de Vek'lor, qui s'arrete
+    // a 45 yards de sa cible.
+    //
+    //     "Il est essentiel que le Demoniste soit vigilant et RECULE
+    //      legerement. S'il ne reagit pas assez rapidement, Vek'lor lancera son
+    //      Jaillissement des arcanes sur le Demo Tank."
+    static bool GetVeklorStation(Player* bot, Position& out);
+
+    // Le milieu des deux marques : la ou tombent les bestioles et ou se
+    // tiennent les soigneurs.
+    static void GetMiddle(Position& out);
+
+    // Ou ce bot doit se tenir AVANT le pull, selon son role. Faux pour les
+    // soigneurs, qui ne sont pas places.
+    static bool GetPrePullStation(Player* bot, Position& out);
+
+    // Vrai quand chaque tank qui a une place s'y trouve. C'est la condition du
+    // pull : tant qu'elle est fausse, les tanks deja arrives retiennent.
+    static bool AllTanksPosted(Player* bot);
+
+    // ─── LES BESTIOLES ───────────────────────────────────────────────────────
     //
     // Vek'lor lance Explode Bug (804) toutes les 4,5 a 10 secondes et
     // Vek'nilash Mutate Bug (802) toutes les 10 a 20 : chaque incantation
-    // retourne UNE bestiole de la salle (le script du sort fait
-    // RandomResize(targets, 1)), qui passe hostile et entre en combat avec la
-    // zone entiere. Sans menace sur personne, elle part vers qui lui en donne -
-    // et c'est le soigneur, parce que chaque sort de soin en fabrique sur tout
-    // ce qui est en combat avec lui.
-    static bool IsBugTank(Player* bot);
+    // retourne UNE bestiole de la salle - le script du sort fait
+    // RandomResize(targets, 1) - qui passe hostile et entre en combat avec la
+    // zone. Sans menace sur personne, elle part vers qui lui en donne, et c'est
+    // le soigneur : chaque sort de soin en fabrique sur tout ce qui est en
+    // combat avec lui.
 
-    // La bestiole reveillee dont ce bot doit s'occuper, la plus urgente
-    // d'abord : celle qui mange un soigneur, puis celle qui mange quelqu'un
-    // d'autre, puis la sienne ou celle qui n'a encore personne. nullptr quand
-    // la salle est calme.
+    // Une bestiole reveillee est en melee sur ce bot precisement.
+    static bool IsBugOnMe(Player* bot);
+
+    // La plus urgente : celle qui mange un soigneur, puis celle qui mange
+    // quelqu'un d'autre, puis la sienne ou celle qui n'a encore personne.
     static Unit* GetBugToTank(Player* bot);
 
-    // Vrai pendant tout le combat pour le tank des bestioles - c'est un poste,
-    // pas une reaction. Les quatre regles des Empereurs se taisent alors pour
-    // lui : sans ca, "mauvaise cible" le rappellerait sur Vek'nilash des que la
-    // salle se calme, et la bestiole suivante tomberait a quatre-vingts yards
-    // de la ou il est reparti.
-    static bool IsOnBugDuty(Player* bot);
-
-    // Le milieu des deux postes : la ou les bestioles se reveillent et ou se
-    // tiennent les soigneurs. Le poste du tank des bestioles quand la salle est
-    // calme.
-    static bool GetBugStation(Player* bot, Position& out);
-
-    // Ou ce bot doit se tenir AVANT le pull. Les trois tanks sur leurs postes,
-    // les corps-a-corps du cote ou Vek'nilash sera tenu, les lanceurs de sorts
-    // du cote de Vek'lor, chacun decale de ses voisins. Faux pour les
-    // soigneurs : ils suivent, et c'est tres bien comme ca.
-    static bool GetPrePullStation(Player* bot, Position& out);
-
-    // Vrai quand chaque bot tank qui a un poste s'y trouve. C'est la condition
-    // du pull : tant qu'elle est fausse, les tanks deja arrives retiennent.
-    static bool AllTanksPosted(Player* bot);
+    static float Separation(Unit* veklor, Unit* veknilash);
 };
 
 #endif

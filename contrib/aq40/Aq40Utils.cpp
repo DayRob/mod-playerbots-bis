@@ -10,7 +10,7 @@
 #include "Player.h"
 #include "PlayerbotAI.h"
 #include "Playerbots.h"
-#include <initializer_list>
+#include <list>
 
 Creature* RaidAq40Utils::GetVeklor(Player* bot)
 {
@@ -24,9 +24,6 @@ Creature* RaidAq40Utils::GetVeknilash(Player* bot)
 
 bool RaidAq40Utils::AreTwinsEngaged(Player* bot)
 {
-    // UN SEUL SUFFIT. Exiger les deux coutait une seconde recherche en grille a
-    // chaque appel, et surtout rendait faux pour un bot trop loin de l'autre
-    // bout de la salle - alors que le combat, lui, avait bel et bien commence.
     if (Creature* veknilash = GetVeknilash(bot))
         if (veknilash->IsInCombat())
             return true;
@@ -43,8 +40,8 @@ bool RaidAq40Utils::IsSpellDamageDealer(Player* bot)
     if (!bot)
         return false;
 
-    // bySpec on purpose: the answer has to match the character's talents, not
-    // whichever strategies happen to be loaded on it right now.
+    // bySpec a dessein : la reponse doit coller aux talents du personnage, pas
+    // aux strategies qui se trouvent chargees sur lui a cet instant.
     return PlayerbotAI::IsCaster(bot, true) && !PlayerbotAI::IsHeal(bot, true);
 }
 
@@ -53,9 +50,8 @@ bool RaidAq40Utils::IsPhysicalDamageDealer(Player* bot)
     if (!bot)
         return false;
 
-    // Hunters count here: their shots are physical, so Vek'lor is immune to them
-    // even though they fight at range. Tanks count too - Vek'nilash is the twin a
-    // warrior can hold.
+    // Les chasseurs comptent ici : leurs tirs sont physiques, donc Vek'lor y
+    // est immunise meme s'ils combattent a distance. Les tanks aussi.
     return !PlayerbotAI::IsCaster(bot, true) && !PlayerbotAI::IsHeal(bot, true);
 }
 
@@ -81,46 +77,9 @@ Unit* RaidAq40Utils::GetForbiddenTwin(Player* bot)
     return nullptr;
 }
 
-float RaidAq40Utils::Separation(Unit* veklor, Unit* veknilash)
-{
-    if (!veklor || !veknilash)
-        return 0.0f;
-
-    return veklor->GetExactDist2d(veknilash);
-}
-
-bool RaidAq40Utils::IsBugOnMe(Player* bot)
-{
-    if (!bot)
-        return false;
-
-    // Unit::getAttackers() is exactly the question: who has this bot in melee
-    // right now. Asking it beats looking for the nearest bug and hoping it is
-    // the one doing the biting - a second bug behind the first used to make the
-    // whole raid stand down from the boss.
-    for (Unit* attaquant : bot->getAttackers())
-    {
-        if (!attaquant)
-            continue;
-
-        uint32 const entry = attaquant->GetEntry();
-        if (entry == NPC_QIRAJI_SCARAB || entry == NPC_QIRAJI_SCORPION)
-            return true;
-    }
-
-    return false;
-}
-
 uint8 RaidAq40Utils::TankIndex(Player* bot)
 {
-    // LE ROLE TENU, PAS LA SPECIALISATION. Partout ailleurs dans ce dossier la
-    // question se pose "bySpec", parce qu'elle porte sur ce qu'un personnage
-    // PEUT faire - un mage reste un mage. Ici elle porte sur ce qu'un bot FAIT :
-    // celui qui tiendra un Empereur est celui qui tourne avec la strategie de
-    // tank, pas celui dont les talents disent "protection". C'est aussi la
-    // reponse qui ne coute rien, et elle est demandee pour chaque membre du
-    // groupe a chaque tick.
-    if (!bot || !bot->IsAlive() || !PlayerbotAI::IsTank(bot, false) || !GET_PLAYERBOT_AI(bot))
+    if (!bot || !bot->IsAlive() || !GET_PLAYERBOT_AI(bot) || !PlayerbotAI::IsTank(bot, false))
         return TANK_INDEX_NONE;
 
     Group* groupe = bot->GetGroup();
@@ -136,7 +95,7 @@ uint8 RaidAq40Utils::TankIndex(Player* bot)
             continue;
 
         // Un humain n'est jamais range : rien ici ne le ferait bouger, et lui
-        // donner un poste reviendrait a ne donner ce poste a personne.
+        // donner un poste reviendrait a ne le donner a personne.
         if (!GET_PLAYERBOT_AI(membre) || !PlayerbotAI::IsTank(membre, false))
             continue;
 
@@ -147,95 +106,22 @@ uint8 RaidAq40Utils::TankIndex(Player* bot)
     return rang;
 }
 
-bool RaidAq40Utils::GetPosts(Player* bot, Position& poste0, Position& poste1)
-{
-    auto defini = [](Aq40TankPost const& poste) { return poste.x != 0.0f || poste.y != 0.0f; };
-
-    // AUCUNE CREATURE CHERCHEE ICI, ET C'EST VOULU.
-    //
-    // Les deux postes sont des constantes : TANK_POST_A est, par construction,
-    // celui qui fait face a la plateforme de Vek'nilash - mesure a 82 yards
-    // contre 166 pour l'autre. Il n'y a donc rien a decider a l'execution, et
-    // cette fonction est appelee par tout le chemin d'avant-pull, pour chaque
-    // bot, a chaque tick. Une recherche en grille a 250 yards a cet endroit-la
-    // couterait cher pour repondre une chose qui ne change jamais.
-    if (defini(TANK_POST_A) && defini(TANK_POST_B))
-    {
-        poste0.Relocate(TANK_POST_A.x, TANK_POST_A.y, TANK_POST_A.z);
-        poste1.Relocate(TANK_POST_B.x, TANK_POST_B.y, TANK_POST_B.z);
-        return true;
-    }
-
-    // Postes non renseignes : on se rabat sur les plateformes d'apparition.
-    // 158,2 yards les separent, donc Heal Brother ne part pas - mais les
-    // Empereurs restent sur leurs socles au lieu d'etre tires contre les murs.
-    Creature* const veklor = GetVeklor(bot);
-    Creature* const veknilash = GetVeknilash(bot);
-    if (!veklor || !veknilash)
-        return false;
-
-    poste0 = veknilash->GetHomePosition();
-    poste1 = veklor->GetHomePosition();
-    return true;
-}
-
-bool RaidAq40Utils::GetAnchor(Player* bot, Position& out)
+bool RaidAq40Utils::IsVeknilashTank(Player* bot)
 {
     uint8 const rang = TankIndex(bot);
-    if (rang > 1)
-        return false;
-
-    Position poste0;
-    Position poste1;
-    if (!GetPosts(bot, poste0, poste1))
-        return false;
-
-    out = (rang == 0) ? poste0 : poste1;
-    return true;
+    return rang != TANK_INDEX_NONE && rang != 2;
 }
 
-Unit* RaidAq40Utils::GetTwinForTank(Player* bot)
+bool RaidAq40Utils::IsBugTank(Player* bot)
 {
-    uint8 const rang = TankIndex(bot);
-    if (rang > 1)
-        return nullptr;
-
-    Creature* const veklor = GetVeklor(bot);
-    Creature* const veknilash = GetVeknilash(bot);
-    if (!veklor || !veknilash)
-        return nullptr;
-
-    Position poste0;
-    Position poste1;
-    if (!GetPosts(bot, poste0, poste1))
-        return nullptr;
-
-    // LE PARTAGE SE FAIT EN UNE SEULE COMPARAISON, et les deux tanks font la
-    // meme : le jumeau le plus proche du poste du rang 0 lui revient, l'autre
-    // va au rang 1. Donner a chacun "le jumeau le plus proche de MON poste"
-    // aurait donne le meme aux deux le jour ou les deux Empereurs se retrouvent
-    // au meme endroit - c'est-a-dire exactement le jour ou cette regle doit
-    // servir.
-    bool const veklorAuPosteZero =
-        veklor->GetExactDist2d(poste0.GetPositionX(), poste0.GetPositionY()) <
-        veknilash->GetExactDist2d(poste0.GetPositionX(), poste0.GetPositionY());
-
-    if (rang == 0)
-        return veklorAuPosteZero ? static_cast<Unit*>(veklor) : static_cast<Unit*>(veknilash);
-
-    return veklorAuPosteZero ? static_cast<Unit*>(veknilash) : static_cast<Unit*>(veklor);
-}
-
-bool RaidAq40Utils::IsOnAnchorDuty(Player* bot)
-{
-    return TankIndex(bot) <= 1 && AreTwinsEngaged(bot);
+    return TankIndex(bot) == 2;
 }
 
 bool RaidAq40Utils::IsVeklorHolder(Player* bot)
 {
     // Le test le moins cher d'abord : tout le raid sauf les lanceurs de sorts
     // s'arrete ici, et la liste du groupe n'est jamais parcourue pour eux.
-    if (!bot || !bot->IsAlive() || !IsSpellDamageDealer(bot) || !GET_PLAYERBOT_AI(bot))
+    if (!bot || !bot->IsAlive() || !GET_PLAYERBOT_AI(bot) || !IsSpellDamageDealer(bot))
         return false;
 
     Group* groupe = bot->GetGroup();
@@ -253,8 +139,8 @@ bool RaidAq40Utils::IsVeklorHolder(Player* bot)
         if (!GET_PLAYERBOT_AI(membre) || !IsSpellDamageDealer(membre))
             continue;
 
-        // UN DEMONISTE PASSE AVANT TOUT LE MONDE. C'est le tank de Vek'lor de
-        // la strategie d'origine : Drain de vie, Lien spirituel et une armure
+        // UN DEMONISTE PASSE AVANT TOUT LE MONDE : c'est le tank de Vek'lor de
+        // la strategie d'origine. Drain de vie, Lien spirituel et une armure
         // demoniaque font de lui le seul lanceur de sorts qui encaisse ce que
         // Vek'lor rend.
         bool const luiDemoniste = membre->getClass() == CLASS_WARLOCK;
@@ -270,9 +156,234 @@ bool RaidAq40Utils::IsVeklorHolder(Player* bot)
     return true;
 }
 
-bool RaidAq40Utils::IsBugTank(Player* bot)
+void RaidAq40Utils::GetMarks(Position& marqueA, Position& marqueB)
 {
-    return TankIndex(bot) == 2;
+    // Des constantes, donc aucune creature a chercher : MARQUE_A est par
+    // construction celle qui fait face a la plateforme de Vek'nilash - 82 yards
+    // contre 166 pour l'autre. Appelee par tout le chemin d'avant-pull, pour
+    // chaque bot, a chaque tick : une recherche en grille a 250 yards couterait
+    // cher pour repondre une chose qui ne change jamais.
+    marqueA.Relocate(MARQUE_A.x, MARQUE_A.y, MARQUE_A.z);
+    marqueB.Relocate(MARQUE_B.x, MARQUE_B.y, MARQUE_B.z);
+}
+
+void RaidAq40Utils::GetMiddle(Position& out)
+{
+    out.Relocate((MARQUE_A.x + MARQUE_B.x) / 2.0f,
+                 (MARQUE_A.y + MARQUE_B.y) / 2.0f,
+                 (MARQUE_A.z + MARQUE_B.z) / 2.0f);
+}
+
+namespace
+{
+    float EcartPlan(Position const& a, Position const& b)
+    {
+        float const dX = a.GetPositionX() - b.GetPositionX();
+        float const dY = a.GetPositionY() - b.GetPositionY();
+        return std::sqrt(dX * dX + dY * dY);
+    }
+}
+
+bool RaidAq40Utils::GetMyMark(Player* bot, Position& out)
+{
+    uint8 const rang = TankIndex(bot);
+    if (rang == TANK_INDEX_NONE || rang == 2)
+        return false;
+
+    Position marqueA;
+    Position marqueB;
+    GetMarks(marqueA, marqueB);
+
+    if (rang == 0)
+    {
+        out = marqueA;
+        return true;
+    }
+    if (rang == 1)
+    {
+        out = marqueB;
+        return true;
+    }
+
+    // Les tanks en surnombre n'ont pas de marque : ils suivent Vek'nilash, donc
+    // leur destination est la marque de son cote a lui.
+    Creature* const veknilash = GetVeknilash(bot);
+    if (!veknilash)
+        return false;
+
+    out = (EcartPlan(veknilash->GetPosition(), marqueA) <= EcartPlan(veknilash->GetPosition(), marqueB))
+              ? marqueA
+              : marqueB;
+    return true;
+}
+
+bool RaidAq40Utils::IsVeknilashOnMySide(Player* bot)
+{
+    uint8 const rang = TankIndex(bot);
+    if (rang == TANK_INDEX_NONE || rang == 2)
+        return false;
+
+    // Un tank en surnombre est toujours "de son cote" : il n'a pas de marque a
+    // garder, il va ou Vek'nilash est.
+    if (rang > 2)
+        return true;
+
+    Creature* const veknilash = GetVeknilash(bot);
+    if (!veknilash)
+        return false;
+
+    Position marqueA;
+    Position marqueB;
+    GetMarks(marqueA, marqueB);
+
+    bool const enA = EcartPlan(veknilash->GetPosition(), marqueA) <= EcartPlan(veknilash->GetPosition(), marqueB);
+    return (rang == 0) ? enA : !enA;
+}
+
+bool RaidAq40Utils::GetVeklorStation(Player* bot, Position& out)
+{
+    Position marqueA;
+    Position marqueB;
+    GetMarks(marqueA, marqueB);
+
+    Creature* const veklor = GetVeklor(bot);
+    if (!veklor)
+        return false;
+
+    // La marque du cote de Vek'lor, et l'autre pour donner la direction du
+    // milieu.
+    bool const enA = EcartPlan(veklor->GetPosition(), marqueA) <= EcartPlan(veklor->GetPosition(), marqueB);
+
+    Position const& mienne = enA ? marqueA : marqueB;
+    Position const& autre = enA ? marqueB : marqueA;
+
+    float dX = autre.GetPositionX() - mienne.GetPositionX();
+    float dY = autre.GetPositionY() - mienne.GetPositionY();
+    float const ecart = std::sqrt(dX * dX + dY * dY);
+    if (ecart < 1.0f)
+        return false;
+
+    out.Relocate(mienne.GetPositionX() + VEKLOR_HOLDER_OFFSET * (dX / ecart),
+                 mienne.GetPositionY() + VEKLOR_HOLDER_OFFSET * (dY / ecart),
+                 mienne.GetPositionZ());
+    return true;
+}
+
+bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
+{
+    if (!bot)
+        return false;
+
+    // Les trois tanks d'abord.
+    if (IsBugTank(bot))
+    {
+        GetMiddle(out);
+        return true;
+    }
+
+    if (IsVeknilashTank(bot))
+        return GetMyMark(bot, out);
+
+    // Puis celui qui tient Vek'lor.
+    if (IsVeklorHolder(bot))
+        return GetVeklorStation(bot, out);
+
+    // Les soigneurs ne sont pas places : ils suivent le raid et soignent.
+    bool const sorts = IsSpellDamageDealer(bot);
+    bool const physique = IsPhysicalDamageDealer(bot);
+    if (!sorts && !physique)
+        return false;
+
+    // Les corps-a-corps partent du cote de Vek'nilash, les lanceurs de sorts
+    // du cote de Vek'lor. Avant le pull, chacun est sur sa plateforme : la
+    // marque A fait face a celle de Vek'nilash, la B a celle de Vek'lor.
+    Position marqueA;
+    Position marqueB;
+    GetMarks(marqueA, marqueB);
+
+    Position const marque = physique ? marqueA : marqueB;
+
+    // Et un ecartement lateral propre a chaque bot, pour qu'ils ne se marchent
+    // pas dessus : la perpendiculaire a l'axe des deux marques, graduee sur son
+    // GUID - stable d'un tick a l'autre, puisqu'un GUID ne change jamais.
+    float dX = marqueB.GetPositionX() - marqueA.GetPositionX();
+    float dY = marqueB.GetPositionY() - marqueA.GetPositionY();
+    float const axe = std::sqrt(dX * dX + dY * dY);
+    if (axe < 1.0f)
+    {
+        out = marque;
+        return true;
+    }
+
+    dX /= axe;
+    dY /= axe;
+
+    float const lateral = (float(bot->GetGUID().GetCounter() % 7u) - 3.0f) * PREPULL_SPREAD_STEP;
+    float const recul = physique ? MELEE_PREPULL_OFFSET : 0.0f;
+
+    // Les corps-a-corps se decalent aussi vers le milieu, pour ne pas se tenir
+    // sur leurs tanks; les lanceurs de sorts sont deja en retrait.
+    out.Relocate(marque.GetPositionX() + recul * dX - lateral * dY,
+                 marque.GetPositionY() + recul * dY + lateral * dX,
+                 marque.GetPositionZ());
+    return true;
+}
+
+bool RaidAq40Utils::AllTanksPosted(Player* bot)
+{
+    if (!bot)
+        return false;
+
+    Group* groupe = bot->GetGroup();
+    if (!groupe)
+        return false;
+
+    for (GroupReference* ref = groupe->GetFirstMember(); ref; ref = ref->next())
+    {
+        Player* membre = ref->GetSource();
+        if (!membre || !membre->IsAlive() || !GET_PLAYERBOT_AI(membre))
+            continue;
+
+        // Seuls les tanks comptent. Un corps-a-corps en retard rejoindra sa
+        // place pendant que le boss marche vers son tank; un tank en retard,
+        // lui, c'est un Empereur qui part sur un soigneur.
+        if (TankIndex(membre) == TANK_INDEX_NONE)
+            continue;
+
+        Position poste;
+        if (!GetPrePullStation(membre, poste))
+            continue;
+
+        // Deux fois la tolerance pour les AUTRES : un bot pose a trois yards et
+        // demi de sa marque est arrive, et exiger de lui la precision qu'on
+        // exige de soi-meme ferait osciller la condition d'un tick a l'autre.
+        if (membre->GetExactDist2d(poste.GetPositionX(), poste.GetPositionY()) > MARK_TOLERANCE * 2.0f)
+            return false;
+    }
+
+    return true;
+}
+
+bool RaidAq40Utils::IsBugOnMe(Player* bot)
+{
+    if (!bot)
+        return false;
+
+    // getAttackers() est exactement la question : qui a ce bot en melee en ce
+    // moment. La poser bat le fait de chercher la bestiole la plus proche en
+    // esperant que ce soit celle qui mord - une seconde derriere la premiere
+    // faisait decrocher tout le raid du boss.
+    for (Unit* attaquant : bot->getAttackers())
+    {
+        if (!attaquant)
+            continue;
+
+        uint32 const entry = attaquant->GetEntry();
+        if (entry == NPC_QIRAJI_SCARAB || entry == NPC_QIRAJI_SCORPION)
+            return true;
+    }
+
+    return false;
 }
 
 Unit* RaidAq40Utils::GetBugToTank(Player* bot)
@@ -297,17 +408,14 @@ Unit* RaidAq40Utils::GetBugToTank(Player* bot)
             continue;
 
         // CE QUI DISTINGUE UNE BESTIOLE REVEILLEE. Les scarabees de la salle
-        // sont la depuis toujours et ne mordent personne; le script du sort leur
-        // met FACTION_HOSTILE au moment ou elles se retournent, et c'est la
-        // seule difference lisible d'ici.
+        // sont la depuis toujours et ne mordent personne; le script du sort
+        // leur met FACTION_HOSTILE au moment ou elles se retournent, et c'est
+        // la seule difference lisible d'ici.
         if (!bestiole->IsHostileTo(bot))
             continue;
 
         Unit* victime = bestiole->GetVictim();
 
-        // L'ORDRE D'URGENCE. Un soigneur mort coute le raid; un attaquant mordu
-        // peut encore reculer; une bestiole deja sur le tank, ou qui n'a encore
-        // personne, attend son tour.
         uint8 rang = 2;
         if (Player* joueur = victime ? victime->ToPlayer() : nullptr)
         {
@@ -329,122 +437,10 @@ Unit* RaidAq40Utils::GetBugToTank(Player* bot)
     return meilleure;
 }
 
-bool RaidAq40Utils::IsOnBugDuty(Player* bot)
+float RaidAq40Utils::Separation(Unit* veklor, Unit* veknilash)
 {
-    // UN POSTE, PAS UNE REACTION. La premiere version ne rendait vrai que
-    // lorsqu'une bestiole etait deja reveillee - donc entre deux, le tank
-    // repartait sur Vek'nilash, a quatre-vingts yards de la ou la suivante
-    // allait tomber. Elle en reveille une toutes les quelques secondes : le
-    // temps qu'il revienne, le soigneur avait deja ete mordu.
-    //
-    // Il tient donc le milieu tout le combat, comme sur le schema : les
-    // bestioles y sont, les soigneurs aussi.
-    return IsBugTank(bot) && AreTwinsEngaged(bot);
-}
+    if (!veklor || !veknilash)
+        return 0.0f;
 
-bool RaidAq40Utils::GetBugStation(Player* bot, Position& out)
-{
-    // LE MILIEU DES DEUX POSTES, pas des deux Empereurs. Les postes ne bougent
-    // jamais; les Empereurs, eux, s'echangent toutes les trente secondes et se
-    // promenent entre-temps, donc un milieu calcule sur eux ferait marcher le
-    // tank sans raison a chaque tick.
-    Position poste0;
-    Position poste1;
-    if (!GetPosts(bot, poste0, poste1))
-        return false;
-
-    out.Relocate((poste0.GetPositionX() + poste1.GetPositionX()) / 2.0f,
-                 (poste0.GetPositionY() + poste1.GetPositionY()) / 2.0f,
-                 (poste0.GetPositionZ() + poste1.GetPositionZ()) / 2.0f);
-    return true;
-}
-
-bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
-{
-    Position poste0;
-    Position poste1;
-    if (!GetPosts(bot, poste0, poste1))
-        return false;
-
-    uint8 const rang = TankIndex(bot);
-    if (rang == 0)
-    {
-        out = poste0;
-        return true;
-    }
-    if (rang == 1)
-    {
-        out = poste1;
-        return true;
-    }
-    if (rang == 2)
-        return GetBugStation(bot, out);
-
-    // Les soigneurs ne sont pas places. Ils suivent le raid et soignent; les
-    // pousser quelque part ne ferait que les couper de ce qu'ils doivent voir.
-    bool const sorts = IsSpellDamageDealer(bot);
-    bool const physique = IsPhysicalDamageDealer(bot);
-    if (!sorts && !physique)
-        return false;
-
-    // Le poste du jumeau qu'il pourra blesser. Vek'nilash sera tenu au poste 0
-    // - c'est celui qui est le plus proche de sa plateforme - donc les
-    // corps-a-corps y vont, et les lanceurs de sorts vont en face.
-    Position const& poste = physique ? poste0 : poste1;
-    Position const& autre = physique ? poste1 : poste0;
-
-    float dX = autre.GetPositionX() - poste.GetPositionX();
-    float dY = autre.GetPositionY() - poste.GetPositionY();
-    float const ecart = std::sqrt(dX * dX + dY * dY);
-    if (ecart < 1.0f)
-        return false;
-
-    dX /= ecart;
-    dY /= ecart;
-
-    float const recul = physique ? MELEE_PREPULL_OFFSET : CASTER_PREPULL_OFFSET;
-
-    // L'ecartement lateral, gradue sur le GUID : sept rangs de part et d'autre
-    // de l'axe, stables d'un tick a l'autre puisqu'un GUID ne change jamais.
-    float const lateral = (float(bot->GetGUID().GetCounter() % 7u) - 3.0f) * PREPULL_SPREAD_STEP;
-
-    out.Relocate(poste.GetPositionX() + recul * dX - lateral * dY,
-                 poste.GetPositionY() + recul * dY + lateral * dX,
-                 poste.GetPositionZ());
-    return true;
-}
-
-bool RaidAq40Utils::AllTanksPosted(Player* bot)
-{
-    if (!bot)
-        return false;
-
-    Group* groupe = bot->GetGroup();
-    if (!groupe)
-        return false;
-
-    for (GroupReference* ref = groupe->GetFirstMember(); ref; ref = ref->next())
-    {
-        Player* membre = ref->GetSource();
-        if (!membre || !membre->IsAlive() || !GET_PLAYERBOT_AI(membre))
-            continue;
-
-        // Seuls les trois postes comptent. Un corps-a-corps en retard rejoindra
-        // le sien pendant que le boss marche vers son tank; un tank en retard,
-        // lui, c'est un Empereur qui part sur un soigneur.
-        if (TankIndex(membre) > 2)
-            continue;
-
-        Position poste;
-        if (!GetPrePullStation(membre, poste))
-            continue;
-
-        // Deux fois la tolerance pour les AUTRES : un bot pose a trois yards et
-        // demi de sa marque est arrive, et exiger la precision qu'on exige de
-        // soi-meme ferait osciller la condition d'un tick a l'autre.
-        if (membre->GetExactDist2d(poste.GetPositionX(), poste.GetPositionY()) > TANK_ANCHOR_TOLERANCE * 2.0f)
-            return false;
-    }
-
-    return true;
+    return veklor->GetExactDist2d(veknilash);
 }

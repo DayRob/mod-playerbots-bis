@@ -215,6 +215,8 @@ if ($Retirer) {
 
     Write-Host "  $(Split-Path -Leaf $fContexte)"
     Retirer-Ligne $fContexte '#include "Aq40Strategy.h"'           | Out-Null
+    Retirer-Ligne $fContexte 'creators["aq40danse"]'               | Out-Null
+    Retirer-Ligne $fContexte 'new RaidAq40DanceStrategy(botAI)'    | Out-Null
     Retirer-Ligne $fContexte 'creators["aq40"]'                    | Out-Null
     Retirer-Ligne $fContexte 'new RaidAq40Strategy(botAI)'         | Out-Null
 
@@ -360,6 +362,20 @@ Inserer-Apres $fContexte `
     '    static Strategy* aq20(PlayerbotAI* botAI) { return new RaidAq20Strategy(botAI); }' `
     '    static Strategy* aq40(PlayerbotAI* botAI) { return new RaidAq40Strategy(botAI); }' `
     'new RaidAq40Strategy(botAI)' | Out-Null
+
+# LA DANSE est une SECONDE strategie, et elle n'est PAS installee toute seule.
+# C'est la seule partie qui deplace des bots avant que le combat ait commence,
+# donc la seule qui puisse se disputer avec mod-dungeon-clear. Le joueur l'arme
+# depuis le chat de groupe : "+aq40danse".
+Inserer-Apres $fContexte `
+    '        creators["aq40"] = &RaidStrategyContext::aq40;' `
+    '        creators["aq40danse"] = &RaidStrategyContext::aq40danse;' `
+    'creators["aq40danse"]' | Out-Null
+
+Inserer-Apres $fContexte `
+    '    static Strategy* aq40(PlayerbotAI* botAI) { return new RaidAq40Strategy(botAI); }' `
+    '    static Strategy* aq40danse(PlayerbotAI* botAI) { return new RaidAq40DanceStrategy(botAI); }' `
+    'new RaidAq40DanceStrategy(botAI)' | Out-Null
 
 Write-Host "  $(Split-Path -Leaf $fActions)"
 Inserer-Apres $fActions `

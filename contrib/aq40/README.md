@@ -12,53 +12,124 @@ son arborescence. Ici ils sont versionnes, et `tools\installer_aq40_twins.ps1`
 les recopie au bon endroit — a relancer apres chaque mise a jour de
 mod-playerbots.
 
+## Deux strategies, et une seule s'installe toute seule
+
+| Strategie | Quand | Ce qu'elle fait |
+|---|---|---|
+| `aq40` | automatique en entrant sur la carte 531 | le COMBAT, et rien d'autre |
+| `aq40danse` | **tu l'armes** | se placer avant le pull, puis puller |
+
+```
+/p +aq40danse      dans le chat de groupe ou de raid : tous les bots l'entendent
+/p -aq40danse      pour la desarmer
+```
+
+**Pourquoi la danse est separee.** C'est la seule partie qui deplace des bots
+avant que quoi que ce soit ait commence, donc la seule qui puisse se disputer
+avec mod-dungeon-clear — qui a lui aussi un avis sur ou le raid doit se tenir et
+par ou il doit passer. Observe en jeu : son rappel au camp voyait les bots
+partis a leurs marques, concluait qu'ils avaient fui, et arretait le run.
+
+Les regles de COMBAT, elles, n'ont jamais besoin d'etre armees et ne genent
+personne : elles repondent faux tant qu'un Empereur n'est pas engage.
+
 ## Ce que la strategie fait
 
 Tout vient du script du coeur,
-`src/server/scripts/Kalimdor/TempleOfAhnQiraj/boss_twinemperors.cpp`, pas
-d'un guide. Les trois chiffres qui comptent en sortent.
+`src/server/scripts/Kalimdor/TempleOfAhnQiraj/boss_twinemperors.cpp`, et de la
+strategie de guilde que le joueur a decrite. Rien de memoire.
 
-**-1. Tout le monde en place AVANT le pull.** Tant que les Jumeaux ne sont pas
-engages, chacun rejoint l'endroit d'ou il doit partir : les trois tanks sur
-leurs postes, les corps-a-corps a 10 yards du poste ou Vek'nilash sera tenu, les
-lanceurs de sorts a 20 yards de celui de Vek'lor, chacun decale lateralement de
-ses voisins — l'ecart est gradue sur le GUID, donc stable d'un tick a l'autre.
-Les soigneurs ne sont pas places : ils suivent, et c'est tres bien comme ca.
+**Ce qui fait perdre le combat, et c'est la seule chose :**
 
-**Aucune commande n'est necessaire.** Les tanks deja arrives RETIENNENT le pull
-tant qu'un de leurs collegues marche encore : leur regle siege bien au-dessus de
-la bande de pertinence de dungeon-clear, donc tant qu'elle agit, l'action
-d'engagement du module de donjon n'est pas atteinte. Des que les trois postes
-sont tenus, elle rend faux — et le pull part tout seul, par la voie normale de
-dungeon-clear.
+```cpp
+.Schedule(3600ms, [this](TaskContext context)
+{
+    if (Creature* twin = GetTwin())
+        if (me->IsWithinDist(twin, 60.f))
+            DoCast(twin, SPELL_HEAL_BROTHER, true);
+    context.Repeat();
+});
+```
 
-Un corps-a-corps ou un lanceur de sorts en retard ne retient rien : son retard
-ne coute que son propre temps de trajet, et le boss marchera vers son tank de
-toute facon.
+Chacun soigne son frere toutes les 3,6 secondes, mais seulement a moins de
+**60 yards**. Et les degats sont partages (Twin Empathy, 1177), donc deux
+Empereurs cote a cote annulent le raid entier.
 
-**Le maintien a une limite de 20 secondes.** Un tank mort, bloque ou reste
-dehors ne doit pas pouvoir geler le run : passe ce delai, chacun rend la main et
-dungeon-clear pull comme il l'aurait fait.
+### Ce que chacun permet
 
-`DungeonClear.WaitAtBoss = 1` reste utile si tu veux garder le pull a la main —
-il met le run en pause juste avant, et la reprise (`.dc pause`, qui est un
-interrupteur unique) pull. Mais ce n'est plus necessaire.
+| | Vek'lor (15276) | Vek'nilash (15275) |
+|---|---|---|
+| immunise a | **physique, et provocation** | magique sauf sacre |
+| au contact | jamais — s'arrete a 45 yards | frappe, Uppercut, Frappe desequilibrante |
+| tenu par | un **demoniste**, par les degats | un **guerrier** |
+| deplacable par un tank | **non** | oui, il suit son attaquant |
 
-Trois gardes :
+C'est toute l'ossature : aucun tank n'a de prise sur Vek'lor, ni pour le tenir
+ni pour le deplacer. L'ecartement se fait donc sur Vek'nilash.
 
-- **Arriver d'abord.** La mise en place ne COMMENCE que lorsqu'un Empereur est a
-  moins de 60 yards : c'est le signe que dungeon-clear a fini d'amener le raid.
-  Sans ce seuil elle demarrait en plein trajet et tirait le tank hors du chemin
-  que le module de donjon suivait — `off-line rejoin made no progress` dans ses
-  logs. Une fois commencee elle ne s'arrete plus a une distance, sinon un bot en
-  route vers un poste — a plus de 80 yards des plateformes — s'arreterait a
-  mi-parcours.
-- **Jamais hors de la salle**, au-dela de 150 yards du milieu.
-- **Un bot assis** est laisse tranquille : `MoveTo` releve un bot qui mange et
-  lui couperait sa boisson.
+### Les deux marques
 
-**-0,5. Le pull appartient aux deux tanks, ENSEMBLE.** Le script du coeur
-envoie le second Empereur sur celui qui a engage le premier :
+Relevees en jeu au `.gps`, sur les deux tetes de mort du schema de guilde :
+
+```cpp
+constexpr Aq40Mark MARQUE_A = { -8896.308f, 1283.0752f, -112.292564f };  // gauche
+constexpr Aq40Mark MARQUE_B = { -9027.637f, 1259.976f,  -112.294556f };  // droite
+```
+
+**133,3 yards** entre les deux — plus du double des 60 de Heal Brother. Ce ne
+sont pas les points d'apparition : les Empereurs poussent sur les plateformes du
+fond, a 82 yards de la marque qui leur fait face et 166 de l'autre.
+
+### Les postes
+
+| Rang | Qui | Ou |
+|---|---|---|
+| tank 0 | par ordre de GUID | marque **A**, pour tout le combat |
+| tank 1 | | marque **B**, pour tout le combat |
+| tank 2 | | le **milieu**, avec les bestioles |
+| tank 3+ | | en renfort sur Vek'nilash |
+| — | **demoniste** designe | du cote de Vek'lor, en retrait de 25 yards |
+| — | corps-a-corps | cote Vek'nilash |
+| — | lanceurs de sorts | cote Vek'lor |
+| — | soigneurs | **non places** : ils suivent |
+
+**Les tanks ne changent jamais de bout de salle.** C'est le guide qui l'impose :
+
+> le tank guerrier pourra se deplacer le long du mur derriere lui. **Ce sera
+> proche de l'endroit ou le guerrier tankera apres la teleportation.**
+
+Celui qui a Vek'nilash de son cote le tient et le ramene sur sa marque, dos au
+mur — pour que l'Uppercut ne le sorte pas de position, ni de la zone de soins.
+L'autre **attend sur la sienne sans rien faire**, et c'est son travail :
+
+> Pour reprendre l'aggro de Vek'nilash apres une teleportation, le Guerrier doit
+> etre **le personnage le plus proche** a proximite de l'empereur.
+
+Le script donne ses 2000 de menace au joueur le plus proche; un tank poste la ou
+Vek'nilash va atterrir est donc celui qui le recupere. La geometrie tranche a
+chaque instant — aucun etat a conserver, et le role bascule tout seul a
+l'echange.
+
+### Le demoniste
+
+Il tient Vek'lor par les degats, et **il recule** :
+
+> Il est essentiel que le Demoniste soit vigilant et recule legerement. S'il ne
+> reagit pas assez rapidement, Vek'lor lancera son Jaillissement des arcanes sur
+> le Demo Tank, perturbant gravement le positionnement.
+
+Le script ne declenche Arcane Burst que s'il trouve un joueur a portee de
+contact — `SelectNearestPlayer(NOMINAL_MELEE_RANGE)` — donc reculer suffit, et
+c'est la premiere chose que son action fait. Sa position a lui decide celle de
+Vek'lor, qui s'arrete a 45 yards de sa cible et ne bouge plus.
+
+Choisi par GUID parmi les lanceurs de sorts, **demonistes d'abord**.
+
+### Le pull
+
+Il ne part que lorsque les tanks sont sur leurs marques, et les partants voient
+la condition devenir vraie au MEME tick — donc ils s'elancent ensemble. Ce n'est
+pas du confort :
 
 ```cpp
 if (Creature* twin = GetTwin())
@@ -66,306 +137,47 @@ if (Creature* twin = GetTwin())
         twin->AI()->AttackStart(who);
 ```
 
-Un pull par un seul tank fait donc converger les deux boss sur lui — Heal
-Brother des la premiere seconde, avant meme que le raid ait frappe. Il faut que
-le tank de Vek'lor soit deja dessus au moment ou l'autre engage.
+Engager un Empereur envoie l'autre sur celui qui l'a engage. Sans le demoniste
+sur Vek'lor au meme instant, les deux se rejoignent avant le premier coup — et
+aucun tank ne peut l'en empecher, puisque la provocation ne passe pas sur lui.
 
-Le declencheur ne regarde qu'une chose — **les trois postes sont-ils tenus** —
-donc les deux tanks le voient devenir vrai au MEME tick et partent ensemble,
-chacun vers le sien. Puis chacun ramene le sien chez lui, et le combat commence
-deja place.
+Les tanks deja arrives **retiennent** le pull pendant que les autres marchent :
+leur regle siege au-dessus de la bande de pertinence de mod-dungeon-clear, donc
+son action d'engagement n'est pas atteinte. Avec une limite de 20 secondes, pour
+qu'un tank mort ou bloque ne gele pas le run.
 
-**Vek'lor n'est pas tenu par un tank, mais par un DEMONISTE.** C'est la
-strategie vanilla d'origine, et c'est une necessite mecanique : il est immunise
-au physique ET a la provocation, donc aucun guerrier ne lui fera jamais un seul
-point de menace. Seuls des degats magiques en produisent.
+### Les bestioles
 
-Le troisieme larron du pull est donc le lanceur de sorts designe — demoniste
-d'abord, par ordre de GUID a defaut. Sans lui dessus au meme instant,
-l'`AttackStart` que le script declenche sur Vek'lor l'envoie vers le tank qui a
-engage Vek'nilash, et les deux Empereurs se rejoignent avant le premier coup.
+Vek'lor lance Explode Bug toutes les 4,5 a 10 secondes, Vek'nilash Mutate Bug
+toutes les 10 a 20. Chaque incantation en reveille **une seule** —
+`RandomResize(targets, 1)` — qui passe hostile et entre en combat avec la zone.
+Sans menace sur personne, elle part vers qui lui en donne : le soigneur, parce
+que chaque sort de soin en fabrique sur tout ce qui est en combat avec lui.
 
-Il se tient a sa place de lanceur de sorts, pas sur le poste : apres la
-teleportation, les 2000 de menace vont au joueur le PLUS PROCHE, et ce doit
-etre le tank — c'est Vek'nilash qui arrive.
+> Le groupe assigne aux insectes doit etre reactif et notamment surveiller
+> qu'ils ne s'approchent pas trop des soigneurs.
 
-**0. Un tank par piedestal, et ils priment sur tout le reste.** Chaque
-Empereur apparait sur son socle, aux deux bouts de la salle — mesure sur une
-base reelle : **158,2 yards** entre les deux. Les y GARDER vaut mieux que les
-separer une fois qu'ils se sont rejoints.
-
-Les bots tanks du groupe sont ranges par GUID — un ordre qui ne change jamais,
-et c'est tout ce qu'on lui demande : un choix « malin » qui changerait d'avis
-d'un tick a l'autre ferait osciller deux tanks entre les deux bouts de la
-salle. Le rang donne le poste :
-
-| Rang | Poste |
-|---|---|
-| 0 | le piedestal de Vek'nilash |
-| 1 | le piedestal de Vek'lor |
-| 2 | les bestioles du milieu |
-| au-dela | rien de particulier, ils se battent comme les autres |
-
-Un humain compte comme tank mais n'est jamais range : rien ici ne le ferait
-bouger. Si c'est toi qui tiens un cote, le bot de rang 0 doublera ton poste.
-
-### Les deux postes, et ou les mettre
-
-Ce ne sont **pas** les points d'apparition. Les deux Empereurs poussent sur les
-plateformes du fond, aux deux coins hauts de la salle; le raid les tire contre
-les murs gauche et droit, a mi-hauteur — c'est la qu'on les tient.
-
-Les deux postes sont deux constantes de `Aq40Utils.h`, relevées en jeu au
-`.gps` sur les deux tetes de mort du schema :
-
-```cpp
-constexpr Aq40TankPost TANK_POST_A = { -8896.308f, 1283.0752f, -112.292564f };  // gauche
-constexpr Aq40TankPost TANK_POST_B = { -9027.637f, 1259.976f, -112.294556f };   // droite
-```
-
-**133,3 yards** les separent, et chacun est a une bonne quatre-vingtaine de
-yards de la plateforme d'apparition qui lui fait face. L'ordre des deux lignes
-n'a pas d'importance : le code donne a chaque rang le poste le plus proche de
-la plateforme qui lui revient, donc chaque tank garde son cote du debut a la
-fin.
-
-**A zero, on se rabattrait sur `GetHomePosition()`**, donc sur les plateformes
-d'apparition — 158,2 yards, Heal Brother ne part pas non plus, mais ce n'est
-pas le placement de la guilde.
-
-### Comment les deux Empereurs arrivent sur les postes
-
-Personne ne tire Vek'lor, et ce n'est pas un oubli : il garde 45 yards de sa
-cible, donc le provoquer ne ferait que le ramener a 45 yards du tank au lieu de
-l'amener au poste. **C'est la teleportation qui s'en charge**, en deux temps :
-
-1. Le tank du rang 0 traine Vek'nilash sur son poste — Vek'nilash suit son
-   attaquant au contact, lui se laisse mener.
-2. Twin Teleport ECHANGE les positions : Vek'lor arrive donc sur le poste que
-   Vek'nilash occupait, et Vek'nilash atterrit la ou etait son frere. Le tank
-   de ce cote, qui attendait a dix yards, herite des 2000 de menace et le
-   ramene a son tour.
-
-Au bout d'un cycle ou deux, les deux Empereurs ne font plus que rebondir entre
-les deux tetes de mort, et chaque tank reste de son cote. Rien a programmer de
-plus : le partage par proximite au poste du rang 0 suit l'echange tout seul.
-
-**Ce que le tank peut et ne peut pas tirer.** Vek'nilash suit son attaquant au
-contact : son tank le ramene ou il veut. Vek'lor, lui, garde 45 yards de sa
-cible et ne bouge que si elle s'en eloigne — sa position est donc decidee par
-qui tient sa menace, c'est-a-dire les lanceurs de sorts, pas par un tank. Le
-mettre a un endroit precis veut dire placer les lanceurs de sorts a 45 yards de
-cet endroit, du cote du milieu.
-
-**Le partage des jumeaux se fait en une seule comparaison**, et les deux tanks
-font la meme : l'Empereur le plus proche du socle du rang 0 lui revient, l'autre
-va au rang 1. Donner a chacun « le jumeau le plus proche de MON socle » aurait
-donne le meme aux deux le jour ou les deux se retrouvent sur le meme piedestal
-— c'est-a-dire exactement le jour ou cette regle doit servir.
-
-Les deux postes ne font pas le meme travail :
-
-- **Cote Vek'nilash**, le tank le prend pour cible, le provoque des qu'il
-  regarde ailleurs, va le chercher s'il est a plus de 25 yards, et **rentre sur
-  son socle** — Vek'nilash suit son attaquant au contact, donc il revient chez
-  lui.
-- **Cote Vek'lor**, le tank **tient son poste** et ne le suit pas. C'est le
-  point le plus contre-intuitif du dossier, et la premiere version se trompait :
-  elle plantait le tank a dix yards de la ou Vek'lor se trouvait. Or Vek'lor
-  s'arrete des qu'il est a 45 yards de sa cible et ne bouge plus — un tank qui
-  vient a lui ne lui donne donc aucune raison d'aller ailleurs, et le boss
-  restait sur sa plateforme avec son tank a cote.
-
-  En tenant son poste, le tank en fait le point de reference : chaque
-  provocation ramene Vek'lor de 45 yards vers la, et l'echange de positions
-  finit le travail en le deposant la ou son frere etait tenu. Il ne provoque que
-  tant que Vek'lor traine au-dela des 60 yards de Heal Brother; passe ca, ca ne
-  sert plus a rien.
-
-  Et il est **la quand ca bascule** : apres la teleportation, le joueur le plus
-  proche recoit 2000 de menace, et c'est lui. S'il se retrouve Vek'lor sur le
-  poste meme, il prend dix yards vers l'exterieur — deux de plus que la portee
-  de contact qu'Arcane Burst (568) cherche avant de repousser.
-
-Un tank qui attend trente secondes sans rien faire, c'est le prix de l'echange,
-et c'est ce que fait un vrai raid. Il rend quand meme la main a son IA de classe
-si une bestiole lui tombe dessus.
-
-**0 bis. Le troisieme tank prend les bestioles.** Vek'lor lance Explode Bug
-(804) toutes les **4,5 a 10 secondes** et Vek'nilash Mutate Bug (802) toutes les
-**10 a 20** : chaque incantation retourne UNE bestiole de la salle — le script
-du sort fait `RandomResize(targets, 1)` — qui passe hostile et entre en combat
-avec la zone entiere.
-
-Sans menace sur personne, elle part vers qui lui en donne, et c'est le
-**soigneur** : chaque sort de soin fabrique de la menace sur tout ce qui est en
-combat avec lui. D'ou la provocation en premier geste — attendre d'en produire
-par les degats laisse le soigneur se faire mordre plusieurs secondes de plus.
-
-L'ordre d'urgence : la bestiole qui mange un soigneur, puis celle qui mange
-quelqu'un d'autre, puis la sienne ou celle qui n'a encore personne.
-
-**C'est un poste, pas une reaction.** Entre deux bestioles, il tient le MILIEU
-des deux socles — la ou elles se reveillent, et ou se tiennent les soigneurs.
-Le laisser repartir sur Vek'nilash entre-temps le mettait a quatre-vingts yards
-de la suivante : le temps qu'il revienne, le soigneur avait deja ete mordu.
-
-Le milieu se calcule sur les deux SOCLES, pas sur les deux Empereurs : les
-socles ne bougent jamais, alors qu'un milieu calcule sur les boss ferait marcher
-le tank a chaque tick.
-
-**1. Chacun tape le jumeau qu'il peut blesser.** Vek'lor (15276) est immunise
-au physique, Vek'nilash (15275) au magique sauf au sacre. Les degats sont
-partages entre les deux et ils meurent ensemble, donc la moitie du raid qui
-se trompe de cible ne contribue a rien du tout. La strategie range chaque bot
-d'un cote :
-
-| Bot | Jumeau |
-|---|---|
-| mage, demoniste, pretre ombre, druide equilibre, chaman elementaire | Vek'lor |
-| guerrier (tank compris), voleur, chasseur, druide farouche, chaman amelioration | Vek'nilash |
-| soigneurs | aucun — ils suivent et soignent, on ne touche a rien |
-
-Le chasseur va sur Vek'nilash malgre sa distance : ses tirs sont physiques.
-
-**2. Personne ne reste colle au jumeau qu'il ne peut pas blesser.** Les
-physiques s'ecartent a 15 yards de Vek'lor — y rester ne rapporte rien et
-declenche Arcane Burst (568), qui les repousse. Les casters s'ecartent a
-25 yards de Vek'nilash, qui frappe au contact et qui, apres chaque
-teleportation, agresse la cible la plus proche avec 2000 de menace offerte.
-
-**3. Personne ne se tient ENTRE les deux Empereurs.** C'est la moitie
-preventive de la separation, et c'est la regle qui compte le plus : un raid
-place entre les deux les fait converger sans que personne fasse de faute,
-parce que chaque boss marche vers celui qui le tient. Un bot est du mauvais
-cote des qu'il est plus pres du jumeau interdit que son propre jumeau ne
-l'est ; il traverse alors derriere le sien — au contact pour un physique,
-a 25 yards pour un lanceur de sorts, donc sans perdre une seconde de degats.
-
-Twin Teleport echange les positions toutes les 30 a 40 secondes : les deux
-groupes se retrouvent du mauvais cote d'un seul coup. Cette regle les renvoie
-au tick suivant, sans attendre que la separation soit perdue. C'est
-l'equivalent automatique de ce qu'un raid humain fait en se replacant avant
-l'echange, avec un WeakAura pour l'annoncer.
-
-**4. Les physiques eloignent Vek'nilash de son frere.** Heal Brother (7393)
-part toutes les 3,6 secondes, mais seulement si les deux jumeaux sont a moins
-de **60 yards** l'un de l'autre. C'est la seule chose qui fait perdre le
-combat.
-
-Mesure sur une base reelle : les deux spawns sont a **158,2 yards** l'un de
-l'autre. Mais ca ne dure pas : au pull, les DEUX se dirigent vers le raid, et
-s'il est groupe ils arrivent colles. C'est donc bien cette regle qui fait tout
-le travail, des la premiere seconde.
-
-Et elle doit alors commander seule. Premier essai en jeu : repartition
-parfaite, jumeaux colles. La cause etait dans l'ordre des priorites — Vek'lor
-arrivant a moins de 15 yards des melee, « s'ecarter du jumeau interdit »
-(ACTION_RAID + 2) battait « ecarter Vek'nilash » (+ 1) a chaque tick, et
-l'ecartement n'a jamais tourne. Un melee s'ecarte desormais au jugé seulement
-quand les Empereurs sont DEJA assez loin l'un de l'autre ; en dessous, c'est
-l'ecartement qui le place — et son point de destination est de l'autre cote de
-Vek'nilash par rapport a Vek'lor, donc s'y rendre eloigne du jumeau interdit
-de toute facon. Vek'nilash suit qui le frappe, donc les attaquants physiques se
-placent 8 yards derriere lui, cote oppose a Vek'lor, et il les suit. Ils
-repetent jusqu'a **70 yards** de separation, puis ils arretent et tapent
-normalement.
-
-Vek'lor, lui, ne bouge presque pas : le script lui fait rejoindre sa cible
-jusqu'a 45 yards, puis `StopMoving`. Il ne frappe jamais au contact. Donc la
-separation se joue entierement sur Vek'nilash — c'est pour ca qu'un seul
-groupe tire.
-
-**Les scarabes reveilles ne font pas decrocher le raid.** Mutate Bug (802) et
-Explode Bug (804) rendent une bestiole hostile et elle va chercher quelqu'un.
-Seul le bot qu'elle a effectivement atteint est laisse avec elle —
-`Unit::getAttackers()` repond exactement a cette question. Tous les autres
-restent sur les Empereurs : une bestiole reveillee est un rang 0 de niveau 60,
-et les deux jumeaux partagent une seule barre de vie sur un chrono de 15
-minutes.
-
-**Rien de tout ca ne bouge avant le pull.** Les trois declencheurs repondent
-non tant qu'aucun jumeau n'est en combat. En dehors du combat lui-meme, les
-bots restent entierement sous le controle de ce qui les mene d'habitude —
-mod-dungeon-clear compris, dont la conf prevoit explicitement ce partage :
-
-> the boss fights themselves are owned by the playerbots raid strategies while
-> dungeon-clear stands down
-
-Sur une carte de raid, mod-dungeon-clear route jusqu'au boss, rassemble le
-raid a un point de ralliement (`RaidMusterTotalTimeoutSecs`, 60 s au plafond),
-libere le pull, puis se retire du combat. Cette strategie en est donc le
-proprietaire attendu : `.dc on` a l'entree doit suffire.
-
-## Les scarabes de la salle : pas pour cette strategie
-
-Il y a **100 scarabes et scorpions dans la salle des Empereurs**, et ils ne
-frappent jamais les premiers : `npc_ahnqiraji_critter::Reset()` sort avant son
-planificateur pour tout spawn que `linked_respawn` rattache a un spawn de
-Vek'lor, et les 100 le sont. Les 83 autres de la carte 531, eux, mordent tout
-joueur en combat a moins de 10 yards, mais le plus proche est a **156,7 yards**
-d'un Empereur : ils ne peuvent pas pull la salle.
-
-Donc un bot qui attaque un scarabe de la salle a ete **envoye**. Ce n'est pas
-son initiative : `creature_template.type` vaut 10 (`NOT_SPECIFIED`, pas 8
-`CRITTER`), donc `Player::isHonorOrXPTarget` les accepte comme proies, mais
-`grind` et `aggressive` ne sont pas poses sur un bot en groupe.
-
-Sur un serveur avec **[mod-dungeon-clear](https://github.com/jrad7/mod-dungeon-clear)**,
-c'est lui : il nettoie le trash en route vers chaque boss, et sa propre conf
-decrit le resultat mot pour mot —
-
-> the party follows imperfectly and cuts the corner, so a tight skirt on the
-> aggro edge pulls the boss anyway (the SM Cathedral / Mograine failure mode)
-
-Cette strategie ne tente **rien** contre ca, volontairement. Son echelle de
-priorites va de 60 a 62, celle de mod-dungeon-clear de 25 a 42 : tout ce
-qu'elle poserait avant le pull gagnerait contre lui en silence, et ferait
-caler un module qui fait son travail. Un livelock de 30 secondes
-(`DungeonClear.RoomClearTimeout`) avant chaque boss n'est pas un correctif.
-
-Les leviers sont les siens, et ils sont par run — rien a changer globalement :
-
-| Commande | Effet |
-|---|---|
-| `.dc off` | arrete le run et rend les bots au joueur |
-| `.dc pause` | stoppe sur place ; la meme commande reprend |
-| `.dc go <boss>` | route directement vers un boss nomme |
-| `.dc config` | affiche les valeurs effectives du run en cours |
-
-Le plus propre : `.dc on` pour tout le temple, `.dc pause` en arrivant chez les
-Jumeaux, le combat a la main avec cette strategie, puis reprise. Et
-`DungeonClear.WaitAtBoss = 1`, reglable par run depuis le panneau de l'addon,
-fait que le tank arrive au boss et s'arrete au lieu de pull — le joueur garde
-le pull, une fois par boss.
+D'ou un poste, pas une reaction : entre deux bestioles, le tank 2 tient le
+milieu. Et la provocation en premier geste — attendre d'avoir de la menace par
+les degats laisse le soigneur se faire mordre plusieurs secondes de plus.
+L'ordre d'urgence : celle qui mange un soigneur, puis celle qui mange quelqu'un
+d'autre, puis la sienne.
 
 ## Ce que la strategie ne fait pas
 
-- **Elle ne fait pas tanker Vek'lor.** Le tank de son piedestal attend
-  l'echange sans le toucher : il est immunise a tout ce qu'un tank frappe.
-  Celui qui lui fait le plus de degats le garde, et c'est tout.
-- **Elle ne gere pas Unbalancing Strike** (26613, -100 de defense pendant
-  6 s sur le tank de Vek'nilash). Pas de rotation de tanks : les deux postes
-  sont fixes pour tout le combat, et c'est la teleportation qui fait tourner
-  les jumeaux, pas les tanks.
-- **Elle demande trois bots tanks** pour que les trois postes soient tenus.
-  Avec deux, personne ne s'occupe des bestioles; avec un seul, il tient le
-  piedestal de Vek'nilash et le cote Vek'lor reste vide.
-- **Elle ne traverse pas la salle avant la teleportation.** Twin Teleport
-  tombe toutes les 30 a 40 secondes, echange les positions et remet les
-  menaces a zero ; les deux groupes se retrouvent alors du mauvais cote et
-  mettent une dizaine de secondes a se replacer. Ca se corrige tout seul,
-  parce que le bot qui recoit les 2000 de menace offerte ne fait aucun degat
-  au jumeau en question et se fait depasser vite. Mais c'est la fenetre ou la
-  separation peut retomber sous 60 yards.
-- **Elle ne fait que les Jumeaux.** C'Thun, Ouro, Viscidus et le reste
-  tournent toujours sur l'IA generique.
-- **Elle ne remplace pas ton placement.** Si c'est toi qui tanke
-  Vek'nilash, c'est toi qui dois l'eloigner : les bots ne tirent que ce
-  qu'ils tiennent.
-- **Elle ne touche a rien hors du combat des Jumeaux.** Pas de regle avant le
-  pull, pas de multiplicateur, aucune interference avec ce qui mene les bots
-  dans le reste du temple.
+- **Elle ne gere pas Frappe desequilibrante** (26613, −100 de defense pendant
+  6 s). Pas de rotation de tanks : les deux postes sont fixes, et c'est la
+  teleportation qui fait tourner les Empereurs, pas les tanks.
+- **Elle ne fait pas reculer les corps-a-corps avant l'echange.** Le guide le
+  demande — « les DPS melee doivent absolument reculer 5 secondes avant la
+  prochaine teleportation » — mais rien dans le script ne permet de connaitre ce
+  compte a rebours de l'exterieur.
+- **Elle ne fait que les Jumeaux.** C'Thun, Ouro, Viscidus et le reste tournent
+  sur l'IA generique.
+- **Elle ne gere pas la resistance a l'Ombre** du demoniste tank, que le guide
+  presente comme la condition de sa survie.
+- **Elle demande trois bots tanks** pour que les trois postes soient tenus. Avec
+  deux, personne ne prend les bestioles.
 
 ## Les chiffres, et d'ou ils viennent
 
@@ -419,10 +231,12 @@ d'Internet, donc `RemoteSigned` les laisse passer sans `Unblock-File`.
 Le script copie les dix fichiers dans
 `mod-playerbots\src\Ai\Raid\Aq40\` et branche la strategie a quatre endroits :
 
-- `src\Ai\Raid\RaidStrategyContext.h` — include, `creators["aq40"]`, fabrique
+- `src\Ai\Raid\RaidStrategyContext.h` — include, `creators["aq40"]` et
+  `creators["aq40danse"]`, les deux fabriques
 - `src\Bot\Engine\BuildSharedActionContexts.cpp` — include, `RaidAq40ActionContext`
 - `src\Bot\Engine\BuildSharedTriggerContexts.cpp` — include, `RaidAq40TriggerContext`
 - `src\Bot\PlayerbotAI.cpp` — `"aq40"` dans `allInstanceStrategies`, et `case 531`
+  (`aq40danse` n'y figure PAS, a dessein : elle ne s'installe pas toute seule)
 
 Il sauvegarde chaque fichier avant (`.avant_aq40`), relit apres pour prouver
 que l'ecriture a atterri, et se relance sans danger : il saute ce qui est

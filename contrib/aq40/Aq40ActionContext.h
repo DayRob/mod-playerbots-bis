@@ -16,25 +16,23 @@ class RaidAq40ActionContext : public NamedObjectContext<Action>
 public:
     RaidAq40ActionContext()
     {
-        creators["aq40 twins drag apart"] = &RaidAq40ActionContext::twins_drag_apart;
-        creators["aq40 twins keep distance"] = &RaidAq40ActionContext::twins_keep_distance;
-        creators["aq40 twins cross over"] = &RaidAq40ActionContext::twins_cross_over;
-        creators["aq40 twins attack my twin"] = &RaidAq40ActionContext::twins_attack_my_twin;
         creators["aq40 take your station"] = &RaidAq40ActionContext::take_your_station;
         creators["aq40 pull together"] = &RaidAq40ActionContext::pull_together;
-        creators["aq40 tank hold your pedestal"] = &RaidAq40ActionContext::tank_hold_your_pedestal;
+        creators["aq40 tank your side"] = &RaidAq40ActionContext::tank_your_side;
+        creators["aq40 hold veklor"] = &RaidAq40ActionContext::hold_veklor;
         creators["aq40 tank the bugs"] = &RaidAq40ActionContext::tank_the_bugs;
+        creators["aq40 keep away"] = &RaidAq40ActionContext::keep_away;
+        creators["aq40 attack my twin"] = &RaidAq40ActionContext::attack_my_twin;
     }
 
 private:
-    static Action* twins_drag_apart(PlayerbotAI* botAI) { return new Aq40TwinsDragApartAction(botAI); }
-    static Action* twins_keep_distance(PlayerbotAI* botAI) { return new Aq40TwinsKeepDistanceAction(botAI); }
-    static Action* twins_cross_over(PlayerbotAI* botAI) { return new Aq40TwinsFarSideAction(botAI); }
-    static Action* twins_attack_my_twin(PlayerbotAI* botAI) { return new Aq40TwinsAttackMyTwinAction(botAI); }
     static Action* take_your_station(PlayerbotAI* botAI) { return new Aq40TakeStationAction(botAI); }
     static Action* pull_together(PlayerbotAI* botAI) { return new Aq40PullTogetherAction(botAI); }
-    static Action* tank_hold_your_pedestal(PlayerbotAI* botAI) { return new Aq40TankAnchorAction(botAI); }
-    static Action* tank_the_bugs(PlayerbotAI* botAI) { return new Aq40TankTheBugsAction(botAI); }
+    static Action* tank_your_side(PlayerbotAI* botAI) { return new Aq40TankAction(botAI); }
+    static Action* hold_veklor(PlayerbotAI* botAI) { return new Aq40HoldVeklorAction(botAI); }
+    static Action* tank_the_bugs(PlayerbotAI* botAI) { return new Aq40BugTankAction(botAI); }
+    static Action* keep_away(PlayerbotAI* botAI) { return new Aq40KeepAwayAction(botAI); }
+    static Action* attack_my_twin(PlayerbotAI* botAI) { return new Aq40AttackMyTwinAction(botAI); }
 };
 
 #endif
