@@ -154,14 +154,23 @@ Les deux postes ne font pas le meme travail :
   regarde ailleurs, va le chercher s'il est a plus de 25 yards, et **rentre sur
   son socle** — Vek'nilash suit son attaquant au contact, donc il revient chez
   lui.
-- **Cote Vek'lor**, le tank ne le touche pas. Vek'lor est immunise a tout ce
-  qu'un tank frappe, et le provoquer ne ferait que le promener : il suit sa
-  cible jusqu'a 45 yards, donc l'aggro d'un tank qui recule le ferait avancer.
-  Son travail, c'est d'**etre la quand ca bascule**. Il se tient a **10 yards**
-  — deux de plus que la portee de contact qu'Arcane Burst (568) cherche avant
-  de repousser, et bien moins que les 25 ou se tiennent les lanceurs de sorts.
-  Apres la teleportation, le joueur le plus proche recoit 2000 de menace : c'est
-  lui.
+- **Cote Vek'lor**, le tank **tient son poste** et ne le suit pas. C'est le
+  point le plus contre-intuitif du dossier, et la premiere version se trompait :
+  elle plantait le tank a dix yards de la ou Vek'lor se trouvait. Or Vek'lor
+  s'arrete des qu'il est a 45 yards de sa cible et ne bouge plus — un tank qui
+  vient a lui ne lui donne donc aucune raison d'aller ailleurs, et le boss
+  restait sur sa plateforme avec son tank a cote.
+
+  En tenant son poste, le tank en fait le point de reference : chaque
+  provocation ramene Vek'lor de 45 yards vers la, et l'echange de positions
+  finit le travail en le deposant la ou son frere etait tenu. Il ne provoque que
+  tant que Vek'lor traine au-dela des 60 yards de Heal Brother; passe ca, ca ne
+  sert plus a rien.
+
+  Et il est **la quand ca bascule** : apres la teleportation, le joueur le plus
+  proche recoit 2000 de menace, et c'est lui. S'il se retrouve Vek'lor sur le
+  poste meme, il prend dix yards vers l'exterieur — deux de plus que la portee
+  de contact qu'Arcane Burst (568) cherche avant de repousser.
 
 Un tank qui attend trente secondes sans rien faire, c'est le prix de l'echange,
 et c'est ce que fait un vrai raid. Il rend quand meme la main a son IA de classe

@@ -167,38 +167,61 @@ bool Aq40TankAnchorAction::Execute(Event /*event*/)
         if (RaidAq40Utils::IsBugOnMe(bot))
             return false;
 
-        Unit* autre = RaidAq40Utils::GetVeknilash(bot);
-        if (!autre)
-            return false;
-
-        float dX = mien->GetPositionX() - autre->GetPositionX();
-        float dY = mien->GetPositionY() - autre->GetPositionY();
-        float const ecart = std::sqrt(dX * dX + dY * dY);
-
-        // Le poste est a dix yards de Vek'lor, du cote oppose a son frere : y
-        // aller ne rapproche donc jamais le tank de l'autre Empereur. Les deux
-        // colles l'un sur l'autre, la direction ne veut plus rien dire et le
-        // socle reste la meilleure reponse.
+        // IL TIENT SON POSTE, IL NE SUIT PAS VEK'LOR.
+        //
+        // La premiere version le plantait a dix yards de la ou Vek'lor se
+        // trouvait, et c'etait un contresens : Vek'lor s'arrete des qu'il est a
+        // 45 yards de sa cible et ne bouge plus. Un tank qui vient a lui ne lui
+        // donne donc AUCUNE raison d'aller ailleurs - le boss restait sur sa
+        // plateforme avec son tank a cote, et c'est exactement ce qu'on voyait
+        // en jeu.
+        //
+        // En tenant son poste, le tank fait de ce poste le point de reference :
+        // chaque provocation le ramene de 45 yards vers la, et l'echange de
+        // positions finit le travail en le deposant la ou son frere etait tenu.
         float posteX = socle.GetPositionX();
         float posteY = socle.GetPositionY();
         float posteZ = socle.GetPositionZ();
 
-        if (ecart >= 1.0f)
+        // Un seul cas ou le poste ne vaut pas : Vek'lor dessus. Arcane Burst
+        // (568) frappe des qu'il trouve un joueur a portee de contact, et il
+        // repousse. On prend alors dix yards vers l'exterieur de la salle,
+        // c'est-a-dire a l'oppose de son frere.
+        float const dPoste = mien->GetExactDist2d(posteX, posteY);
+        if (dPoste < VEKLOR_TANK_DISTANCE)
         {
-            posteX = mien->GetPositionX() + VEKLOR_TANK_DISTANCE * (dX / ecart);
-            posteY = mien->GetPositionY() + VEKLOR_TANK_DISTANCE * (dY / ecart);
-            posteZ = mien->GetPositionZ();
+            Unit* autre = RaidAq40Utils::GetVeknilash(bot);
+            if (!autre)
+                return false;
+
+            float const dX = mien->GetPositionX() - autre->GetPositionX();
+            float const dY = mien->GetPositionY() - autre->GetPositionY();
+            float const ecart = std::sqrt(dX * dX + dY * dY);
+            if (ecart >= 1.0f)
+            {
+                posteX = mien->GetPositionX() + VEKLOR_TANK_DISTANCE * (dX / ecart);
+                posteY = mien->GetPositionY() + VEKLOR_TANK_DISTANCE * (dY / ecart);
+                posteZ = mien->GetPositionZ();
+            }
         }
 
         if (bot->GetExactDist2d(posteX, posteY) >= TANK_ANCHOR_TOLERANCE)
             return MoveTo(bot->GetMapId(), posteX, posteY, posteZ, false, false, false, false,
                           MovementPriority::MOVEMENT_COMBAT, true, false);
 
-        // EN POSTE, ET ON Y RESTE. Rendre faux ici rendrait la main a l'IA de
-        // classe, qui enverrait le tank chercher une cible a frapper a l'autre
-        // bout de la salle - c'est-a-dire exactement ce que ce poste existe
-        // pour empecher. Un tank qui attend trente secondes sans rien faire,
-        // c'est le prix de l'echange, et c'est ce que fait un vrai raid.
+        // EN POSTE. Et tant que Vek'lor traine loin de ce poste, chaque
+        // provocation disponible le ramene de 45 yards vers ici - c'est le seul
+        // levier qu'un tank ait sur lui, et il ne coute rien puisque ce tank
+        // n'a rien d'autre a faire.
+        if (mien->GetVictim() != bot && dPoste > HEAL_BROTHER_RANGE &&
+            bot->GetExactDist2d(mien) <= TANK_GRAB_RANGE && Provoque(botAI, mien))
+            return true;
+
+        // Rendre faux ici rendrait la main a l'IA de classe, qui enverrait le
+        // tank chercher une cible a frapper a l'autre bout de la salle - c'est
+        // a dire exactement ce que ce poste existe pour empecher. Un tank qui
+        // attend trente secondes sans rien faire, c'est le prix de l'echange,
+        // et c'est ce que fait un vrai raid.
         return true;
     }
 
