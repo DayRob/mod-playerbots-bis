@@ -103,9 +103,20 @@ constexpr float TANK_GRAB_RANGE = 25.0f;
 // des qu'un bot est a son poste, le declencheur rend faux et le pull - le tien
 // ou celui de dungeon-clear - part sans rien avoir a attendre.
 //
-// Au-dela de cette distance du milieu de la salle, on ne touche a rien : un bot
-// encore dans le couloir appartient a dungeon-clear.
-constexpr float PREPULL_GATHER_RANGE = 100.0f;
+// ARRIVER, PUIS SE PLACER - ET DANS CET ORDRE.
+//
+// La mise en place ne COMMENCE que lorsqu'un Empereur est a moins de cette
+// distance : c'est le signe que dungeon-clear a fini d'amener le raid. Sans ce
+// seuil elle demarrait des 100 yards du centre de la salle, c'est-a-dire en
+// plein trajet, et tirait le tank hors du chemin que le module de donjon etait
+// en train de suivre - "off-line rejoin made no progress" dans ses logs.
+constexpr float PREPULL_ARRIVED_RANGE = 60.0f;
+
+// Une fois COMMENCEE, elle ne s'arrete plus a une distance : les postes sont a
+// plus de 80 yards des plateformes, donc un bot en route vers le sien sortirait
+// du seuil ci-dessus en chemin et s'arreterait a mi-parcours. Ce plafond-la ne
+// sert qu'a ne jamais agir hors de la salle.
+constexpr float PREPULL_GATHER_RANGE = 150.0f;
 
 // De combien chacun se decale de son poste vers le milieu, pour ne pas se tenir
 // sur son tank. Un corps-a-corps n'a que quelques pas a faire au pull; un

@@ -167,11 +167,34 @@ bool Aq40PrePullTrigger::IsActive()
         return false;
 
     if (RaidAq40Utils::AreTwinsEngaged(bot))
+    {
+        _arrive = false;
         return false;
+    }
 
     Position station;
     if (!RaidAq40Utils::GetPrePullStation(bot, station))
         return false;
+
+    // ARRIVER D'ABORD. Tant qu'aucun Empereur n'est a portee, le raid est
+    // encore en chemin et ce chemin appartient a dungeon-clear : le tirer vers
+    // un poste maintenant, c'est le sortir de la route que le module est en
+    // train de suivre. Une fois le verrou pose il ne se releve qu'au combat,
+    // sinon un bot en route vers un poste - a plus de 80 yards des plateformes
+    // - s'arreterait a mi-parcours.
+    if (!_arrive)
+    {
+        Creature* const veklor = RaidAq40Utils::GetVeklor(bot);
+        Creature* const veknilash = RaidAq40Utils::GetVeknilash(bot);
+        if (!veklor || !veknilash)
+            return false;
+
+        if (bot->GetExactDist2d(veklor) > PREPULL_ARRIVED_RANGE &&
+            bot->GetExactDist2d(veknilash) > PREPULL_ARRIVED_RANGE)
+            return false;
+
+        _arrive = true;
+    }
 
     // DANS LA SALLE, PAS DANS LE COULOIR. Un bot encore en chemin appartient a
     // dungeon-clear, qui connait la route; le tirer vers un poste a travers les

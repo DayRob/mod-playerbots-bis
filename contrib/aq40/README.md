@@ -44,10 +44,18 @@ dungeon-clear pull comme il l'aurait fait.
 il met le run en pause juste avant, et la reprise (`.dc pause`, qui est un
 interrupteur unique) pull. Mais ce n'est plus necessaire.
 
-Deux gardes : au-dela de **100 yards du milieu de la salle** on ne touche a
-rien, parce qu'un bot encore dans le couloir appartient a dungeon-clear qui
-connait la route; et un bot **assis** est laisse tranquille, parce que `MoveTo`
-releve un bot qui mange et lui couperait sa boisson.
+Trois gardes :
+
+- **Arriver d'abord.** La mise en place ne COMMENCE que lorsqu'un Empereur est a
+  moins de 60 yards : c'est le signe que dungeon-clear a fini d'amener le raid.
+  Sans ce seuil elle demarrait en plein trajet et tirait le tank hors du chemin
+  que le module de donjon suivait — `off-line rejoin made no progress` dans ses
+  logs. Une fois commencee elle ne s'arrete plus a une distance, sinon un bot en
+  route vers un poste — a plus de 80 yards des plateformes — s'arreterait a
+  mi-parcours.
+- **Jamais hors de la salle**, au-dela de 150 yards du milieu.
+- **Un bot assis** est laisse tranquille : `MoveTo` releve un bot qui mange et
+  lui couperait sa boisson.
 
 **-0,5. Le pull appartient aux deux tanks, ENSEMBLE.** Le script du coeur
 envoie le second Empereur sur celui qui a engage le premier :

@@ -53,6 +53,12 @@ class Aq40PrePullTrigger : public Trigger
 public:
     Aq40PrePullTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 not in place yet") {}
     bool IsActive() override;
+
+private:
+    // Le raid est-il ARRIVE ? Mis une fois qu'un Empereur est a portee, remis a
+    // faux quand le combat commence. L'objet vit aussi longtemps que le bot -
+    // le contexte le garde une fois cree - donc ce verrou traverse les ticks.
+    bool _arrive = false;
 };
 
 // Tout le monde est a son poste et les Empereurs dorment encore : c'est le
