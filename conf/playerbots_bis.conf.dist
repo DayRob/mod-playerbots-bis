@@ -62,6 +62,26 @@ PlayerbotsBis.LeaveOtherSpecsBis = 1
 # Defaut : 1 (active)
 PlayerbotsBis.AnnounceOwnBis = 1
 
+# Un bot RESSUSCITE repart a plein, vie et mana.
+#
+# Le coeur le releve a la fraction que la SOURCE a choisie : la moitie pour
+# ".group revive", un cinquieme pour certains sorts, la moitie au cimetiere. Et
+# mod-dungeon-clear retient ensuite tout le raid au repos, parce que sa regle
+# est d'attendre que chacun ait atteint ses seuils - sa documentation le dit :
+# "the freshly-raised member's low health/mana then holds the tank at the normal
+# between-pulls rest floors until they recover".
+#
+# Soit plusieurs minutes d'attente apres chaque mort, pour des personnages dont
+# aucun ne tient de clavier. Le reglage se branche sur la resurrection
+# elle-meme, donc il couvre toutes les sources d'un coup : la commande du maitre
+# de jeu, la resurrection automatique de dungeon-clear, le rez d'un druide en
+# plein combat, le cimetiere.
+#
+# Ne change RIEN a qui peut ressusciter qui, ni quand : seulement l'etat dans
+# lequel on se releve. Et jamais pour un joueur.
+# Defaut : 1 (active)
+PlayerbotsBis.FullAfterResurrect = 1
+
 # QUAND l'annonce ci-dessus a lieu. Sans effet si AnnounceOwnBis = 0.
 #
 # A 1, des le JET : chaque bot qui convoite la piece parle avant que le de ne

@@ -61,6 +61,7 @@ void BisPriorityMgr::LoadConfig()
     _vipGuildId = sConfigMgr->GetOption<uint32>("PlayerbotsBis.VipGuildId", 0);
     _announceMasterLoot = sConfigMgr->GetOption<bool>("PlayerbotsBis.AnnounceMasterLoot", true);
     _claimBelowRequiredLevel = sConfigMgr->GetOption<bool>("PlayerbotsBis.ClaimBelowRequiredLevel", true);
+    _fullAfterResurrect = sConfigMgr->GetOption<bool>("PlayerbotsBis.FullAfterResurrect", true);
     _needOnlyForBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.NeedOnlyForBis", false);
     _forceNeedForBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.ForceNeedForBis", true);
     _claimClassRestricted = sConfigMgr->GetOption<bool>("PlayerbotsBis.ClaimClassRestricted", true);

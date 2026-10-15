@@ -175,8 +175,53 @@ private:
     uint32 _depuis = 0;
 };
 
+// ---------------------------------------------------------------------------
+// UN BOT RESSUSCITE REPART A PLEIN.
+//
+// POURQUOI ICI, ET PAS DANS UNE COMMANDE. Le coeur releve a la fraction que la
+// SOURCE a choisie : la moitie pour ".group revive", un cinquieme pour certains
+// sorts, la moitie au cimetiere. Et mod-dungeon-clear retient ensuite tout le
+// raid au repos - sa propre documentation le dit :
+//
+//     the freshly-raised member's low health/mana then holds the tank at the
+//     normal between-pulls rest floors until they recover
+//
+// Soit trois minutes d'attente apres chaque mort, pour quarante bots dont
+// aucun ne tient de clavier. En se branchant sur la resurrection elle-meme
+// plutot que sur une commande, TOUTES les sources sont couvertes du meme coup :
+// la commande du maitre de jeu, la resurrection automatique de dungeon-clear,
+// le rez d'un druide en plein combat, le cimetiere.
+//
+// Ce hook ne change RIEN a qui peut ressusciter qui, ni quand : seulement
+// l'etat dans lequel on se releve. Et jamais pour un joueur.
+class BisFullAfterResurrectScript : public PlayerScript
+{
+public:
+    BisFullAfterResurrectScript()
+        : PlayerScript("BisFullAfterResurrectScript", {PLAYERHOOK_ON_PLAYER_RESURRECT})
+    {
+    }
+
+    void OnPlayerResurrect(Player* player, float /*restore_percent*/, bool& /*applySickness*/) override
+    {
+        if (!player || !sBisPriorityMgr->FullAfterResurrect())
+            return;
+
+        // JAMAIS UN JOUEUR. Lui rendre sa vie d'office, c'est decider a sa
+        // place - et son repos a lui ne retient pas le tank de la meme maniere.
+        if (!GET_PLAYERBOT_AI(player))
+            return;
+
+        player->SetFullHealth();
+
+        if (player->getPowerType() == POWER_MANA)
+            player->SetPower(POWER_MANA, player->GetMaxPower(POWER_MANA));
+    }
+};
+
 void AddSC_playerbots_bis_botgate()
 {
     new BisBotGatePlayerScript();
     new BisBotGateWorldScript();
+    new BisFullAfterResurrectScript();
 }

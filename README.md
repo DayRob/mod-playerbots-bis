@@ -913,7 +913,30 @@ Les joueurs ne sont jamais touchés. Un ressuscité arrive à vingt pour cent, d
 le relever sans le remplir ne réglerait que la moitié du problème : il
 retiendrait le tank au repos juste après.
 
-Le cœur n'a pas d'équivalent — `.revive` ne touche que la cible sélectionnée.
+`.group revive` du cœur relève bien tout le groupe, mais **là où chacun se
+trouve** — donc au cimetière pour qui a relâché son esprit — et à la moitié de
+sa vie, sans mana. Les deux différences sont exactement ce qui fait repartir
+dungeon-clear en repos juste après.
+
+### Et sans commande du tout
+
+```
+PlayerbotsBis.FullAfterResurrect = 1
+```
+
+Un bot ressuscité repart à plein, **quelle que soit la source** : la commande du
+maître de jeu, la résurrection automatique de dungeon-clear, le rez d'un druide
+en plein combat, le cimetière. Le réglage se branche sur `OnPlayerResurrect`,
+c'est-à-dire sur la résurrection elle-même, pas sur une commande.
+
+Ça ne change rien à qui peut ressusciter qui, ni quand : seulement l'état dans
+lequel on se relève. Et jamais pour un joueur.
+
+C'est le vrai remède à l'attente après un boss. La doc de dungeon-clear nomme le
+problème elle-même :
+
+> the **freshly-raised member's low health/mana** then holds the tank at the
+> normal between-pulls rest floors until they recover
 
 **Pourquoi ça existe.** mod-dungeon-clear tient le raid en place entre deux
 combats tant que chacun n'a pas atteint ses seuils de repos — sa propre

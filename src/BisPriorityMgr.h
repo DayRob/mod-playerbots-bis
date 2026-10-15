@@ -54,6 +54,12 @@ public:
     bool LeaveOtherSpecsBis() const { return _leaveOtherSpecsBis; }
     bool AnnounceOwnBis() const { return _announceOwnBis; }
 
+    // Un bot ressuscite repart-il a plein ? Le coeur le releve a la fraction
+    // que la source a choisie - la moitie pour ".group revive", le cinquieme
+    // pour certains sorts - et mod-dungeon-clear retient alors le raid au repos
+    // jusqu'a ce qu'il ait bu. Voir BisBotGate.cpp.
+    bool FullAfterResurrect() const { return _fullAfterResurrect; }
+
     // Vrai quand le bot annonce des le JET, avant de savoir s'il emporte la
     // piece. A faux, il attend de la detenir - une seule ligne, par le gagnant,
     // juste avant l'equipement.
@@ -343,6 +349,7 @@ private:
     bool _applyToAltBots = false;
     bool _leaveOtherSpecsBis = true;
     bool _announceOwnBis = true;
+    bool _fullAfterResurrect = true;
     bool _announceOnRoll = true;
     uint32 _minBotLevel = 0;
     bool _blockDeathKnights = false;
