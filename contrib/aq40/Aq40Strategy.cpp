@@ -31,11 +31,11 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     // 0. ON NE TOUCHE PAS AUX BESTIOLES QUI DORMENT, et c'est la premiere
     //    regle de la salle - avant le placement, avant le pull, avant tout.
     //
-    //    Les scarabees et scorpions du temple ne mordent personne tant qu'un
-    //    Empereur ne les a pas retournes : ils gardent leur faction de creature
-    //    inoffensive, et c'est a ca qu'on les reconnait. Les attaquer met le
-    //    bot en combat, donc l'ecarte de sa place, donc casse la mise en place -
-    //    et reveille pour de bon ce que la salle avait laisse tranquille.
+    //    Les scarabees et scorpions de la salle ne mordent personne tant qu'un
+    //    Empereur ne les a pas retournes, et ils ne sont PAS EN COMBAT : c'est
+    //    a ca qu'on les reconnait. Les attaquer met le bot en combat, donc
+    //    l'ecarte de sa place, donc casse la mise en place - et reveille pour
+    //    de bon ce que la salle avait laisse tranquille.
     //
     //    Elle ne vaut que DANS la salle : ailleurs dans le temple, ces memes
     //    bestioles sont du trash ordinaire que mod-dungeon-clear a raison de

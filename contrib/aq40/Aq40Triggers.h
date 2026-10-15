@@ -13,11 +13,11 @@
 
 // Ce bot a pris pour cible une bestiole de la salle QUI DORT.
 //
-// Les scarabees et scorpions du temple ne mordent personne tant qu'un Empereur
-// ne les a pas retournes : ils gardent leur faction de creature inoffensive, et
-// c'est a ca qu'on les reconnait. Les attaquer met le bot en combat, donc
-// l'ecarte de sa place, donc casse la mise en place - et en fait reveille pour
-// de bon ce que la salle avait laisse tranquille.
+// Les scarabees et scorpions de la salle ne mordent personne tant qu'un
+// Empereur ne les a pas retournes, et ils ne sont PAS EN COMBAT : c'est a ca
+// qu'on les reconnait. Les attaquer met le bot en combat, donc l'ecarte de sa
+// place, donc casse la mise en place - et en fait reveille pour de bon ce que
+// la salle avait laisse tranquille.
 class Aq40ChasingCritterTrigger : public Trigger
 {
 public:

@@ -275,7 +275,9 @@ public:
     // le soigneur : chaque sort de soin en fabrique sur tout ce qui est en
     // combat avec lui.
 
-    // Une bestiole reveillee est en melee sur ce bot precisement.
+    // Une bestiole reveillee est en melee sur ce bot precisement. Reveillee se
+    // lit sur le COMBAT, jamais sur la faction : le script du sort fait
+    // SetInCombatWithZone() sur celle qu'il retourne.
     static bool IsBugOnMe(Player* bot);
 
     // La plus urgente : celle qui mange un soigneur, puis celle qui mange

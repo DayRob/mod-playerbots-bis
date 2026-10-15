@@ -185,16 +185,18 @@ bool Aq40ChasingCritterTrigger::IsActive()
     if (entry != NPC_QIRAJI_SCARAB && entry != NPC_QIRAJI_SCORPION)
         return false;
 
-    // REVEILLEE OU ENDORMIE, C'EST LA FACTION QUI TRANCHE.
+    // REVEILLEE OU ENDORMIE : C'EST LE COMBAT QUI TRANCHE, PAS LA FACTION.
     //
-    // Le script de Mutate Bug et d'Explode Bug met FACTION_HOSTILE a celle
-    // qu'il retourne; les autres gardent leur faction de creature inoffensive.
-    // Une bestiole reveillee est donc un vrai combat - le tank des bestioles
-    // s'en occupe - alors qu'une endormie n'a rien demande a personne.
-    if (cible->IsHostileTo(bot))
-        return false;
-
-    // Sauf si elle est en train de me mordre : dans ce cas elle s'est reveillee
-    // d'une maniere que la faction ne dit pas, et il faut la tuer.
-    return !RaidAq40Utils::IsBugOnMe(bot);
+    // Le script de Mutate Bug et d'Explode Bug fait SetInCombatWithZone() sur
+    // celle qu'il retourne, en plus de lui mettre FACTION_HOSTILE. Une
+    // bestiole reveillee est donc EN COMBAT, et c'est un vrai combat dont le
+    // tank des bestioles s'occupe; une endormie n'a rien demande a personne.
+    //
+    // J'avais d'abord teste la faction, et c'etait fragile : il suffisait que
+    // ces bestioles naissent deja hostiles dans la base pour que le test
+    // reponde "reveillee" sur toutes, et la regle n'aurait jamais rien fait -
+    // en silence. Le combat, lui, ne se discute pas, et il couvre le cas de
+    // celle qui mord sans que sa faction l'ait dit : si elle me mange, elle est
+    // en combat.
+    return !cible->IsInCombat();
 }

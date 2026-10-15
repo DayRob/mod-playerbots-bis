@@ -440,12 +440,12 @@ Unit* RaidAq40Utils::GetBugToTank(Player* bot)
         if (!bestiole || !bestiole->IsAlive() || !bestiole->IsInCombat())
             continue;
 
-        // CE QUI DISTINGUE UNE BESTIOLE REVEILLEE. Les scarabees de la salle
-        // sont la depuis toujours et ne mordent personne; le script du sort
-        // leur met FACTION_HOSTILE au moment ou elles se retournent, et c'est
-        // la seule difference lisible d'ici.
-        if (!bestiole->IsHostileTo(bot))
-            continue;
+        // Le IsInCombat() ci-dessus est deja tout le tri : le script du sort
+        // fait SetInCombatWithZone() sur celle qu'il retourne, et c'est la
+        // difference entre une bestiole reveillee et les dizaines qui dorment
+        // dans la salle depuis toujours. Un test de faction en plus ne
+        // repondrait rien de neuf, et repondrait faux le jour ou ces bestioles
+        // naissent hostiles dans la base.
 
         Unit* victime = bestiole->GetVictim();
 
