@@ -253,6 +253,14 @@ public:
     // retourner sur celui qui frappe, et le placement serait perdu.
     static bool IsTwinPlaced(Unit* jumeau);
 
+    // CET EMPEREUR DOIT-IL ETRE AMENE SUR SA MARQUE ? Plus exigeant que
+    // IsTwinPlaced, qui tolere trente yards parce qu'il juge un boss en train
+    // d'etre traine. Ici on pose, donc on pose juste.
+    static bool NeedsMoving(Creature* jumeau);
+
+    // La marque ou cet Empereur doit se tenir : celle de son cote.
+    static bool GetTwinMark(Creature* jumeau, Position& out);
+
     // Le rang de ce bot parmi les bots TANKS du groupe, par ordre de GUID - un
     // ordre qui ne change jamais, et c'est tout ce qu'on lui demande. Le rang 2
     // prend les bestioles; tous les autres vont sur Vek'nilash.

@@ -71,6 +71,17 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     //
     //    Au-dessus des regles de combat, et pour une raison : tant qu'un bot
     //    marche vers sa place, rien d'autre ne doit l'en detourner.
+    //    ET QUAND TOUT LE MONDE EST EN PLACE, ON AMENE LES EMPEREURS. Ils
+    //    poussent en haut d'escaliers que le maillage de navigation ne relie
+    //    pas de facon fiable au sol de la salle, et playerbots accepte les
+    //    chemins incomplets : un bot envoye la-haut avance aussi loin qu'il
+    //    peut et s'arrete. Trois essais en jeu, trois fois le meme resultat.
+    //    Donc on ne va plus les chercher, on les pose - chacun sur la marque de
+    //    son cote, 133 yards entre eux.
+    triggers.push_back(
+        new TriggerNode("aq40 twins not on their marks",
+            { NextAction("aq40 put the twins on their marks", ACTION_RAID + 8.0f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 ready to pull",
             { NextAction("aq40 pull together", ACTION_RAID + 6.0f) }));

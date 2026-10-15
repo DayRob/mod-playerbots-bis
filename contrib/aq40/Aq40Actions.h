@@ -28,6 +28,27 @@ public:
     bool Execute(Event event) override;
 };
 
+// AMENE LES DEUX EMPEREURS SUR LEURS MARQUES, hors combat, avant le pull.
+//
+// Pourquoi on les deplace au lieu d'aller les chercher : ils poussent en haut
+// d'escaliers que le maillage de navigation ne relie pas de facon fiable au sol
+// de la salle. playerbots accepte les chemins incomplets -
+//
+//     int typeOk = PATHFIND_NORMAL | PATHFIND_INCOMPLETE;
+//
+// - donc un bot envoye la-haut avance aussi loin qu'il peut et s'arrete,
+// toujours au meme endroit. Trois essais en jeu, trois fois le meme pulleur en
+// bas des marches et le meme boss en haut.
+//
+// On change aussi leur point d'ancrage : sans ca, le premier evade les
+// ramenerait sur leur plateforme et tout serait a refaire.
+class Aq40SetTheStageAction : public Action
+{
+public:
+    Aq40SetTheStageAction(PlayerbotAI* botAI) : Action(botAI, "aq40 put the twins on their marks") {}
+    bool Execute(Event event) override;
+};
+
 // Rejoint l'endroit d'ou ce bot doit partir, avant que le combat commence - et,
 // pour un tank, RETIENT le pull tant que les autres marchent encore.
 //

@@ -42,6 +42,32 @@ qu'aucun Empereur n'est a portee (le raid est encore en chemin, et le chemin
 appartient a dungeon-clear) et tant que le bot n'est pas DANS la salle. Les
 regles de COMBAT, elles, repondent faux tant qu'un Empereur n'est pas engage.
 
+## Les Empereurs sont AMENES sur leurs marques
+
+Quand tous les tanks sont postes et que le combat n'a pas commence, un seul bot
+- le tank de rang 0 - pose les deux Empereurs sur la marque de leur cote, et y
+deplace leur point d'ancrage.
+
+**Pourquoi on les deplace au lieu d'aller les chercher.** Ils poussent en haut
+d'escaliers que le maillage de navigation ne relie pas de facon fiable au sol de
+la salle. Et playerbots accepte les chemins incomplets :
+
+```cpp
+int typeOk = PATHFIND_NORMAL | PATHFIND_INCOMPLETE;
+```
+
+Un bot envoye la-haut avance donc aussi loin qu'il peut, puis s'arrete —
+toujours au meme endroit, quel que soit le code qui lui a donne la destination.
+Trois essais en jeu, trois fois le meme pulleur en bas des marches et le meme
+boss en haut.
+
+C'est un vrai changement de l'encontre, assume : le combat commence avec les
+deux freres deja ecartes de 133 yards, et le pull part de deux bots deja au
+contact. Plus d'escaliers, plus de trainage sur soixante yards.
+
+L'ancrage se deplace avec eux, sinon le premier evade — un wipe, un reset, un
+bot qui sort de la salle — les ramenerait sur leur plateforme.
+
 ## Le pull passe par un point, pas en ligne droite
 
 Les Empereurs sont en haut d'escaliers. Un bot lache sur leurs coordonnees

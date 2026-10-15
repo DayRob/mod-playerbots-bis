@@ -39,6 +39,47 @@ namespace
     }
 }
 
+namespace
+{
+    // Pose un Empereur sur sa marque, et l'y ancre.
+    bool PoserSurSaMarque(Creature* jumeau)
+    {
+        Position marque;
+        if (!RaidAq40Utils::GetTwinMark(jumeau, marque))
+            return false;
+
+        if (!RaidAq40Utils::NeedsMoving(jumeau))
+            return false;
+
+        float const o = jumeau->GetOrientation();
+
+        jumeau->NearTeleportTo(marque.GetPositionX(), marque.GetPositionY(), marque.GetPositionZ(), o);
+
+        // ET ON DEPLACE SON ANCRAGE AVEC LUI. Sinon le premier evade - un wipe,
+        // un reset, un bot qui sort de la salle - le ramene sur sa plateforme,
+        // et il faudrait tout recommencer.
+        jumeau->SetHomePosition(marque.GetPositionX(), marque.GetPositionY(), marque.GetPositionZ(), o);
+        return true;
+    }
+}
+
+bool Aq40SetTheStageAction::Execute(Event /*event*/)
+{
+    bool fait = false;
+
+    if (Creature* veklor = RaidAq40Utils::GetVeklor(bot))
+        fait |= PoserSurSaMarque(veklor);
+
+    if (Creature* veknilash = RaidAq40Utils::GetVeknilash(bot))
+        fait |= PoserSurSaMarque(veknilash);
+
+    // Chacun sur SA marque, c'est-a-dire celle de son cote, donc 133 yards les
+    // separent - plus du double des 60 de Heal Brother. Le pull qui suit part
+    // de deux bots deja au contact de leur Empereur : plus d'escaliers, plus de
+    // trainage sur soixante yards, plus rien a rater.
+    return fait;
+}
+
 bool Aq40TakeStationAction::Execute(Event /*event*/)
 {
     Position station;
@@ -109,7 +150,7 @@ bool Aq40PullTogetherAction::Execute(Event /*event*/)
     // yards. Et des qu'on est a portee d'engager, il ne sert plus a rien - un
     // demoniste arrive a 16 yards de Vek'lor peut deja lancer.
     Position depart;
-    if (!aPortee && RaidAq40Utils::GetPullStation(bot, depart) &&
+    if (!aPortee && !RaidAq40Utils::IsTwinPlaced(mien) && RaidAq40Utils::GetPullStation(bot, depart) &&
         bot->GetExactDist2d(depart.GetPositionX(), depart.GetPositionY()) > MARK_TOLERANCE)
     {
         MoveTo(bot->GetMapId(), depart.GetPositionX(), depart.GetPositionY(), depart.GetPositionZ(),

@@ -42,6 +42,25 @@ public:
     bool IsActive() override;
 };
 
+// TOUT LE MONDE EST EN PLACE ET LES EMPEREURS NE LE SONT PAS.
+//
+// On ne va plus les chercher : on les AMENE. Les deux poussent en haut
+// d'escaliers, et le maillage de navigation n'y mene pas de facon fiable - un
+// chemin incomplet est accepte par playerbots (PATHFIND_INCOMPLETE), donc le
+// bot avance aussi loin qu'il peut et s'arrete, toujours au meme endroit, quel
+// que soit le code qui lui a donne la destination. Vu trois fois en jeu, le
+// pulleur en bas des marches et le boss en haut.
+//
+// Un seul bot s'en charge - le tank de rang 0 - sinon quarante bots
+// repositionneraient les Empereurs a chaque tick. Et jamais en combat : hors
+// combat, un Empereur deplace reste ou on le met.
+class Aq40SetTheStageTrigger : public Trigger
+{
+public:
+    Aq40SetTheStageTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 twins not on their marks") {}
+    bool IsActive() override;
+};
+
 // Le raid est dans la salle, les Empereurs dorment encore, et ce bot n'est pas
 // a l'endroit d'ou il doit partir.
 class Aq40TakeStationTrigger : public Trigger

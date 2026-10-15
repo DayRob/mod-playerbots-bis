@@ -8,6 +8,31 @@
 #include "Aq40Utils.h"
 #include "Timer.h"
 
+bool Aq40SetTheStageTrigger::IsActive()
+{
+    if (!bot->IsAlive() || bot->IsInCombat())
+        return false;
+
+    // UN SEUL BOT S'EN CHARGE. Quarante bots qui repositionnent les Empereurs
+    // au meme tick, ce sont quarante teleportations pour un seul deplacement.
+    if (RaidAq40Utils::TankIndex(bot) != 0)
+        return false;
+
+    if (!RaidAq40Utils::IsInTwinsRoom(bot) || RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // APRES la mise en place, pas avant : on ne deplace rien tant que le raid
+    // n'est pas pret a enchainer, sinon les Empereurs attendraient en bas,
+    // a portee de tout ce qui passe.
+    if (!RaidAq40Utils::AllTanksPosted(bot))
+        return false;
+
+    Creature* const veklor = RaidAq40Utils::GetVeklor(bot);
+    Creature* const veknilash = RaidAq40Utils::GetVeknilash(bot);
+
+    return RaidAq40Utils::NeedsMoving(veklor) || RaidAq40Utils::NeedsMoving(veknilash);
+}
+
 bool Aq40TakeStationTrigger::IsActive()
 {
     if (!bot->IsAlive() || bot->IsInCombat())

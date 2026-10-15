@@ -17,6 +17,7 @@ public:
     RaidAq40ActionContext()
     {
         creators["aq40 leave what is not hostile"] = &RaidAq40ActionContext::leave_what_is_not_hostile;
+        creators["aq40 put the twins on their marks"] = &RaidAq40ActionContext::put_the_twins;
         creators["aq40 take your station"] = &RaidAq40ActionContext::take_your_station;
         creators["aq40 pull together"] = &RaidAq40ActionContext::pull_together;
         creators["aq40 tank your side"] = &RaidAq40ActionContext::tank_your_side;
@@ -29,6 +30,7 @@ public:
 
 private:
     static Action* leave_what_is_not_hostile(PlayerbotAI* botAI) { return new Aq40LeaveNeutralAction(botAI); }
+    static Action* put_the_twins(PlayerbotAI* botAI) { return new Aq40SetTheStageAction(botAI); }
     static Action* take_your_station(PlayerbotAI* botAI) { return new Aq40TakeStationAction(botAI); }
     static Action* pull_together(PlayerbotAI* botAI) { return new Aq40PullTogetherAction(botAI); }
     static Action* tank_your_side(PlayerbotAI* botAI) { return new Aq40TankAction(botAI); }
