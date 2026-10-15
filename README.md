@@ -892,14 +892,28 @@ filtres d'un message se termine avant que le suivant soit traité — donc compa
 précédente suffit. Un ensemble de *tout* ce qui a été vu, lui, avalerait un second relevé
 dont l'en-tête serait identique au premier.
 
-## Faire avancer un raid qui se repose
+## Relever et relancer un raid
 
 ```
 .playerbotsbis avance
+.playerbotsbis ressuscite     (le même, sous le nom qu'on cherche après un wipe)
 ```
 
-Remet à plein la vie et le mana de **tous les bots de ton groupe**, hors combat,
-et les relève. Les joueurs ne sont jamais touchés.
+En une commande :
+
+- **ressuscite** chaque bot mort du groupe, à pleine vie ;
+- **le ramène auprès de toi** s'il est à plus de 30 yards — un bot qui a relâché
+  son esprit revient à la vie *là où son fantôme se trouve*, c'est-à-dire au
+  cimetière, et le relever sans le ramener échange quarante cadavres contre
+  quarante bots qui traversent le donjon à pied ;
+- **remet à plein** la vie et le mana de tous les autres, hors combat, et les
+  relève.
+
+Les joueurs ne sont jamais touchés. Un ressuscité arrive à vingt pour cent, donc
+le relever sans le remplir ne réglerait que la moitié du problème : il
+retiendrait le tank au repos juste après.
+
+Le cœur n'a pas d'équivalent — `.revive` ne touche que la cible sélectionnée.
 
 **Pourquoi ça existe.** mod-dungeon-clear tient le raid en place entre deux
 combats tant que chacun n'a pas atteint ses seuils de repos — sa propre

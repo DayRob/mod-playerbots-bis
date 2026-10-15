@@ -24,6 +24,11 @@ using namespace BisBotScan;
 
 namespace
 {
+    // Au-dela, un bot ressuscite est rapatrie aupres de celui qui a lance la
+    // commande. En deca il est deja sur place, et le teleporter ne ferait que
+    // le faire sauter d'un pas.
+    constexpr float RAPPEL_DISTANCE = 30.0f;
+
     // The marker the roster window watches for. The dungeon plan uses its own,
     // so one window never swallows the other's stream.
     char const* const ROSTER_MARKER = "PBBISREP;";
@@ -313,8 +318,10 @@ bool BisReport::HandleAdvance(ChatHandler* handler, char const* /*args*/)
     }
 
     uint32 remplis = 0;
+    uint32 releves = 0;
+    uint32 ramenes = 0;
+    uint32 ailleurs = 0;
     uint32 enCombat = 0;
-    uint32 morts = 0;
     uint32 joueurs = 0;
 
     for (GroupReference* ref = groupe->GetFirstMember(); ref; ref = ref->next())
@@ -332,10 +339,41 @@ bool BisReport::HandleAdvance(ChatHandler* handler, char const* /*args*/)
             continue;
         }
 
+        // ── LES MORTS D'ABORD ────────────────────────────────────────────
+        //
+        // Un raid a terre ne repart pas tout seul : mod-dungeon-clear tient la
+        // place pendant que son ressusciteur boit de quoi payer le sort, et
+        // abandonne le run passe son delai. Le coeur n'a pas de commande pour
+        // relever un groupe entier - ".revive" ne touche que la cible.
+        //
+        // Un mort n'est jamais "en combat", donc cette branche ne peut pas
+        // etre confondue avec le soin refuse plus bas : elle releve, point.
         if (!membre->IsAlive())
         {
-            ++morts;
-            continue;
+            membre->ResurrectPlayer(1.0f, false);  // false : pas de mal de resurrection
+            membre->SpawnCorpseBones();
+            ++releves;
+
+            // ET ON LE RAMENE. Un bot qui a deja relache son esprit revient a
+            // la vie LA OU SON FANTOME SE TROUVE, c'est-a-dire au cimetiere.
+            // Le relever sans le ramener, c'est echanger quarante cadavres
+            // contre quarante bots qui traversent le donjon a pied.
+            //
+            // Meme carte seulement : un passage d'une carte a l'autre vers une
+            // instance peut echouer sur le verrou, et un echec silencieux au
+            // milieu d'une boucle de quarante est pire que l'aveu.
+            if (membre->GetMapId() != maitre->GetMapId())
+                ++ailleurs;
+            else if (membre->GetExactDist2d(maitre) > RAPPEL_DISTANCE)
+            {
+                membre->TeleportTo(maitre->GetMapId(), maitre->GetPositionX(), maitre->GetPositionY(),
+                                   maitre->GetPositionZ(), maitre->GetOrientation());
+                ++ramenes;
+            }
+
+            // Puis il tombe dans la remise a plein ci-dessous : un ressuscite
+            // arrive a vingt pour cent, et c'est exactement ce qui retiendrait
+            // le tank au repos juste apres.
         }
 
         // HORS COMBAT SEULEMENT. En combat, ce serait un soin gratuit au milieu
@@ -361,15 +399,20 @@ bool BisReport::HandleAdvance(ChatHandler* handler, char const* /*args*/)
         ++remplis;
     }
 
-    handler->PSendSysMessage("{} bot(s) remis a plein et releve(s).", remplis);
+    if (releves)
+        handler->PSendSysMessage("{} bot(s) ressuscite(s), dont {} rapatrie(s) aupres de toi.",
+                                 releves, ramenes);
+
+    handler->PSendSysMessage("{} bot(s) remis a plein et debout.", remplis);
 
     // Ce qui n'a PAS ete fait, et pourquoi. Sans ca, un raid qui n'avance
     // toujours pas laisse chercher du cote du module alors que la reponse est
     // qu'il reste un mort ou un bot encore accroche a un scarabee.
     if (enCombat)
         handler->PSendSysMessage("  {} encore en combat : ils ne sont pas touches.", enCombat);
-    if (morts)
-        handler->PSendSysMessage("  {} mort(s) : c'est la resurrection qui retient le run, pas le repos.", morts);
+    if (ailleurs)
+        handler->PSendSysMessage("  {} ressuscite(s) sur une AUTRE carte : non rapatrie(s), le passage "
+                                 "d'une carte a l'autre peut echouer sur le verrou d'instance.", ailleurs);
     if (joueurs)
         handler->PSendSysMessage("  {} joueur(s) dans le groupe : jamais touches.", joueurs);
 
