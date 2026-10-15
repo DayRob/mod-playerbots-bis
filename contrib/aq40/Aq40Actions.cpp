@@ -95,18 +95,41 @@ bool Aq40PullTogetherAction::Execute(Event /*event*/)
     // lui, s'arrete des qu'il peut lancer : Vek'lor viendra a lui, puisqu'il
     // suit sa cible jusqu'a 45 yards puis s'arrete.
     float const portee = demoniste ? PULL_SPELL_RANGE : bot->GetMeleeRange(mien);
+    bool const aPortee = bot->GetExactDist2d(mien) <= portee;
 
-    // On marche dessus. Les partants font ce trajet en meme temps, chacun vers
-    // le sien, puisque leur declencheur est devenu vrai au meme tick.
-    if (bot->GetExactDist2d(mien) > portee)
+    // ── PAR LE POINT DE PULL D'ABORD ──────────────────────────────────────
+    //
+    // Les Empereurs sont en haut d'escaliers. Un bot lache sur leurs
+    // coordonnees depuis le sol de la salle s'arretait en bas des marches, et
+    // n'engageait rien - vu en jeu, le pulleur en bas, le boss en haut. Le
+    // point de pull est a leur niveau, sur un sol que le client confirme, donc
+    // le chemin y mene vraiment.
+    //
+    // Ce n'est qu'un passage : une fois dessus, on finit a la main les derniers
+    // yards. Et des qu'on est a portee d'engager, il ne sert plus a rien - un
+    // demoniste arrive a 16 yards de Vek'lor peut deja lancer.
+    Position depart;
+    if (!aPortee && RaidAq40Utils::GetPullStation(bot, depart) &&
+        bot->GetExactDist2d(depart.GetPositionX(), depart.GetPositionY()) > MARK_TOLERANCE)
+    {
+        MoveTo(bot->GetMapId(), depart.GetPositionX(), depart.GetPositionY(), depart.GetPositionZ(),
+               false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+        return true;
+    }
+
+    // ── PUIS LES DERNIERS YARDS JUSQU'A LUI ───────────────────────────────
+    //
+    // Les partants font ce trajet en meme temps, chacun vers le sien, puisque
+    // leur declencheur est devenu vrai au MEME tick.
+    if (!aPortee)
     {
         MoveTo(bot->GetMapId(), mien->GetPositionX(), mien->GetPositionY(), mien->GetPositionZ(),
                false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
 
-        // ON NE REND JAMAIS LA MAIN EN CHEMIN, et c'est tout le correctif.
-        // Rendre faux ici laissait la file descendre d'un cran jusqu'a la mise
-        // en place, qui renvoyait le pulleur a sa marque : il repartait, se
-        // faisait rappeler, et le boss n'etait jamais touche.
+        // ON NE REND JAMAIS LA MAIN EN CHEMIN. Rendre faux ici laissait la file
+        // descendre d'un cran jusqu'a la mise en place, qui renvoyait le
+        // pulleur a sa marque : il repartait, se faisait rappeler, et le boss
+        // n'etait jamais touche.
         return true;
     }
 

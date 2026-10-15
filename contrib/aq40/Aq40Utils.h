@@ -94,6 +94,26 @@ struct Aq40Mark
 constexpr Aq40Mark MARQUE_A = { -8896.308f, 1283.0752f, -112.292564f };  // tete de mort gauche
 constexpr Aq40Mark MARQUE_B = { -9027.637f, 1259.976f, -112.294556f };   // tete de mort droite
 
+// ─── LES DEUX POINTS DE PULL ─────────────────────────────────────────────────
+//
+// Releves en jeu au ".gps", debout au sol, a cote de chaque Empereur. Ce ne
+// sont PAS des marques de combat : on y va pour accrocher, puis on ramene.
+//
+//     POSTE_PULL_VEKLOR      a 16 yards de Vek'lor, sur sa plateforme
+//     POSTE_PULL_VEKNILASH   a 22 yards de Vek'nilash, sur la sienne
+//
+// POURQUOI UN POINT PLUTOT QUE "MARCHE SUR LE BOSS". Les Empereurs sont en haut
+// d'escaliers, et un bot lache sur leurs coordonnees depuis le sol de la salle
+// s'arretait en bas des marches. Ces deux points sont a leur niveau, sur un sol
+// que le client confirme (FloorZ -105.6 et -107.4), donc le chemin y mene
+// vraiment. Le second tombe a 0.8 yard de l'endroit ou le tank du run se tenait
+// quand il a engage : c'est le bon endroit, verifie deux fois.
+//
+// Les 141 yards qui les separent sont aussi une securite : les deux pulleurs ne
+// se croisent jamais et n'amenent jamais leur Empereur vers celui de l'autre.
+constexpr Aq40Mark POSTE_PULL_VEKLOR = { -8878.521f, 1218.7222f, -105.6064f };
+constexpr Aq40Mark POSTE_PULL_VEKNILASH = { -9018.47f, 1197.4792f, -107.35514f };
+
 // ─── LES DISTANCES ───────────────────────────────────────────────────────────
 
 // Chaque marque est a 166 et 168 yards de la plateforme d'en face. A 150, un
@@ -279,6 +299,11 @@ public:
     // Ou ce bot doit se tenir AVANT le pull, selon son role. Faux pour les
     // soigneurs, qui ne sont pas places.
     static bool GetPrePullStation(Player* bot, Position& out);
+
+    // D'OU CE BOT VA ACCROCHER SON EMPEREUR. Faux pour tous ceux qui ne pullent
+    // pas - c'est-a-dire tout le monde sauf les tanks de Vek'nilash et celui
+    // qui tient Vek'lor.
+    static bool GetPullStation(Player* bot, Position& out);
 
     // Vrai quand chaque tank qui a une place s'y trouve. C'est la condition du
     // pull : tant qu'elle est fausse, les tanks deja arrives retiennent.

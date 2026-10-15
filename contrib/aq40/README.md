@@ -42,6 +42,27 @@ qu'aucun Empereur n'est a portee (le raid est encore en chemin, et le chemin
 appartient a dungeon-clear) et tant que le bot n'est pas DANS la salle. Les
 regles de COMBAT, elles, repondent faux tant qu'un Empereur n'est pas engage.
 
+## Le pull passe par un point, pas en ligne droite
+
+Les Empereurs sont en haut d'escaliers. Un bot lache sur leurs coordonnees
+depuis le sol de la salle s'arretait en bas des marches et n'engageait rien.
+Chaque pulleur passe donc par un point releve en jeu, au sol, a cote de son
+Empereur :
+
+| | point de pull | a quelle distance de son Empereur |
+|---|---|---|
+| Vek'lor (le demoniste) | `(-8878.5, 1218.7, -105.6)` | 16 yards |
+| Vek'nilash (les tanks) | `(-9018.5, 1197.5, -107.4)` | 22 yards |
+
+Le second tombe a 0.8 yard de l'endroit ou le tank du run se tenait quand il a
+engage. Les deux sont a 141 yards l'un de l'autre, donc les pulleurs ne se
+croisent jamais et n'amenent jamais leur Empereur vers celui de l'autre.
+
+Ce n'est qu'un **passage** : une fois dessus, le bot finit les derniers yards
+vers le boss, et s'il est deja a portee d'engager il l'ignore — un demoniste
+arrive a 16 yards de Vek'lor peut deja lancer. Puis chacun ramene son Empereur
+sur sa marque, a une soixantaine de yards de la.
+
 ## On ne frappe jamais le premier
 
 Aucun bot n'attaque un PNJ qui ne nous attaque pas — barre de vie **jaune**, pas

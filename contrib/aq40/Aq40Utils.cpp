@@ -363,6 +363,26 @@ bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
     return true;
 }
 
+bool RaidAq40Utils::GetPullStation(Player* bot, Position& out)
+{
+    if (!bot)
+        return false;
+
+    if (IsVeklorHolder(bot))
+    {
+        out.Relocate(POSTE_PULL_VEKLOR.x, POSTE_PULL_VEKLOR.y, POSTE_PULL_VEKLOR.z);
+        return true;
+    }
+
+    if (IsVeknilashTank(bot))
+    {
+        out.Relocate(POSTE_PULL_VEKNILASH.x, POSTE_PULL_VEKNILASH.y, POSTE_PULL_VEKNILASH.z);
+        return true;
+    }
+
+    return false;
+}
+
 bool RaidAq40Utils::AllTanksPosted(Player* bot)
 {
     if (!bot)
