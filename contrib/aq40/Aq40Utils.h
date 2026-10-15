@@ -248,14 +248,6 @@ public:
     // tiennent les soigneurs.
     static void GetMiddle(Position& out);
 
-    // CE BOT EST-IL DANS LA SALLE DES EMPEREURS ? Une distance au milieu, donc
-    // aucune recherche en grille : la question est posee a chaque tick, pour
-    // chaque bot, par la regle qui leur interdit de reveiller les bestioles.
-    // Les deux plateformes sont a 114 yards du milieu, le seuil a 150 : la
-    // salle entiere est dedans, et le reste du temple dehors - ou les memes
-    // bestioles sont du trash ordinaire que mod-dungeon-clear a raison de
-    // nettoyer.
-    static bool IsInTwinsRoom(Player* bot);
 
     // Ou ce bot doit se tenir AVANT le pull, selon son role. Faux pour les
     // soigneurs, qui ne sont pas places.

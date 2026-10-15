@@ -17,10 +17,10 @@
 // Rien d'autre : pas de nouvelle cible imposee. Ce que le bot doit faire a la
 // place, ce sont les autres regles qui le disent - sa place avant le pull, son
 // Empereur pendant le combat.
-class Aq40LeaveCrittersAction : public AttackAction
+class Aq40LeaveNeutralAction : public AttackAction
 {
 public:
-    Aq40LeaveCrittersAction(PlayerbotAI* botAI, std::string const name = "aq40 leave the critters")
+    Aq40LeaveNeutralAction(PlayerbotAI* botAI, std::string const name = "aq40 leave what is not hostile")
         : AttackAction(botAI, name)
     {
     }

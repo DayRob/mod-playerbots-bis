@@ -204,15 +204,6 @@ bool RaidAq40Utils::GetMarkNear(Unit* jumeau, Position& out)
     return true;
 }
 
-bool RaidAq40Utils::IsInTwinsRoom(Player* bot)
-{
-    if (!bot || bot->GetMapId() != TEMPLE_OF_AHNQIRAJ_MAP_ID)
-        return false;
-
-    Position milieu;
-    GetMiddle(milieu);
-    return bot->GetExactDist2d(milieu.GetPositionX(), milieu.GetPositionY()) <= PREPULL_GATHER_RANGE;
-}
 
 bool RaidAq40Utils::GetMyMark(Player* bot, Position& out)
 {

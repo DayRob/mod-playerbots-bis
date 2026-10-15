@@ -11,17 +11,34 @@
 #include "Playerbots.h"
 #include "Trigger.h"
 
-// Ce bot a pris pour cible une bestiole de la salle QUI DORT.
+// Ce bot a pris pour cible un PNJ QUI NE NOUS ATTAQUE PAS - barre de vie jaune
+// dans le client, pas rouge.
 //
-// Les scarabees et scorpions de la salle ne mordent personne tant qu'un
-// Empereur ne les a pas retournes, et ils ne sont PAS EN COMBAT : c'est a ca
-// qu'on les reconnait. Les attaquer met le bot en combat, donc l'ecarte de sa
-// place, donc casse la mise en place - et en fait reveille pour de bon ce que
-// la salle avait laisse tranquille.
-class Aq40ChasingCritterTrigger : public Trigger
+// Les scarabees et scorpions du temple en sont, et ils sont la raison d'etre de
+// cette regle, mais elle ne les nomme pas : elle vaut pour tout ce qui est
+// neutre dans le Temple d'Ahn'Qiraj. Nommer des entrees, c'etait se tromper a
+// la premiere creature oubliee.
+//
+// POURQUOI C'EST LA PREMIERE REGLE DE LA CARTE. Le script du coeur de ces
+// bestioles (npc_ahnqiraji_critter) dit :
+//
+//     if (Player* player = me->SelectNearestPlayer(10.f))
+//         if (player->IsInCombat())
+//             AttackStart(player);
+//     context.Repeat(3500ms, 4s);
+//
+// Toutes les quatre secondes, chacune cherche un joueur EN COMBAT a moins de
+// dix yards et lui saute dessus. Un seul bot qui engage quoi que ce soit dans
+// la salle, et tout ce qui traine a dix yards d'un combattant rejoint - puis
+// a dix yards de ceux-la, et ainsi de suite. Releve en jeu : six bots en
+// combat, puis dix-huit empiles sur des scarabes qui n'avaient pas bouge.
+//
+// Donc on ne frappe jamais le premier. Ce qui nous attaque, en revanche, se
+// tue : la regle rend la main des que la cible mange quelqu'un du groupe.
+class Aq40NeutralTargetTrigger : public Trigger
 {
 public:
-    Aq40ChasingCritterTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 chasing a critter") {}
+    Aq40NeutralTargetTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 target not hostile") {}
     bool IsActive() override;
 };
 

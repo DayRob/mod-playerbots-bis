@@ -28,22 +28,30 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     // n'est pas concerne, donc il n'y a jamais deux regles sur un meme bot.
     // ════════════════════════════════════════════════════════════════════════
 
-    // 0. ON NE TOUCHE PAS AUX BESTIOLES QUI DORMENT, et c'est la premiere
-    //    regle de la salle - avant le placement, avant le pull, avant tout.
+    // 0. ON NE FRAPPE JAMAIS LE PREMIER sur ce qui ne nous attaque pas - barre
+    //    de vie jaune, pas rouge. C'est la premiere regle de la carte, avant le
+    //    placement, avant le pull, avant tout.
     //
-    //    Les scarabees et scorpions de la salle ne mordent personne tant qu'un
-    //    Empereur ne les a pas retournes, et ils ne sont PAS EN COMBAT : c'est
-    //    a ca qu'on les reconnait. Les attaquer met le bot en combat, donc
-    //    l'ecarte de sa place, donc casse la mise en place - et reveille pour
-    //    de bon ce que la salle avait laisse tranquille.
+    //    Le script du coeur des bestioles du temple (npc_ahnqiraji_critter) :
     //
-    //    Elle ne vaut que DANS la salle : ailleurs dans le temple, ces memes
-    //    bestioles sont du trash ordinaire que mod-dungeon-clear a raison de
-    //    nettoyer, et lui interdire partout serait defaire un module qui fait
-    //    son travail.
+    //        if (Player* player = me->SelectNearestPlayer(10.f))
+    //            if (player->IsInCombat())
+    //                AttackStart(player);
+    //        context.Repeat(3500ms, 4s);
+    //
+    //    Toutes les quatre secondes, chacune cherche un joueur EN COMBAT a
+    //    moins de dix yards et lui saute dessus. Un seul bot qui engage une
+    //    bestiole tranquille, et tout ce qui traine a dix yards d'un combattant
+    //    rejoint - puis a dix yards de ceux-la. C'est comme ca qu'on passe de
+    //    six bots en combat a dix-huit empiles sur des scarabes immobiles.
+    //
+    //    La regle ne nomme aucune entree : elle vaut pour tout ce qui est
+    //    neutre dans le temple, et elle rend la main des que la cible mange
+    //    quelqu'un du groupe - ce qui nous attaque se tue, qu'il soit jaune ou
+    //    rouge.
     triggers.push_back(
-        new TriggerNode("aq40 chasing a critter",
-            { NextAction("aq40 leave the critters", ACTION_RAID + 7.0f) }));
+        new TriggerNode("aq40 target not hostile",
+            { NextAction("aq40 leave what is not hostile", ACTION_RAID + 7.0f) }));
 
     // 1. SE PLACER, PUIS PULLER ENSEMBLE.
     //

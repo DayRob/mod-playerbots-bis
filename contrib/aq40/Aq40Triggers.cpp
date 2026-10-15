@@ -165,38 +165,31 @@ bool Aq40WrongTargetTrigger::IsActive()
     return AI_VALUE(Unit*, "current target") != assigne;
 }
 
-bool Aq40ChasingCritterTrigger::IsActive()
+bool Aq40NeutralTargetTrigger::IsActive()
 {
     if (!bot->IsAlive())
         return false;
 
-    // DANS LA SALLE SEULEMENT. La strategie est posee sur toute la carte 531,
-    // mais ailleurs dans le temple ces bestioles sont du trash ordinaire que
-    // mod-dungeon-clear a raison de nettoyer. Une distance au milieu, donc rien
-    // de cher a payer pour la poser a chaque tick.
-    if (!RaidAq40Utils::IsInTwinsRoom(bot))
-        return false;
-
     Unit* cible = AI_VALUE(Unit*, "current target");
-    if (!cible)
+    if (!cible || !cible->IsAlive())
         return false;
 
-    uint32 const entry = cible->GetEntry();
-    if (entry != NPC_QIRAJI_SCARAB && entry != NPC_QIRAJI_SCORPION)
+    // ROUGE : il nous est hostile, c'est du vrai trash, on le tue. C'est aussi
+    // le cas d'une bestiole retournee par un Empereur : le script du sort lui
+    // met FACTION_HOSTILE, donc elle passe rouge et cette regle la lache.
+    if (bot->IsHostileTo(cible))
         return false;
 
-    // REVEILLEE OU ENDORMIE : C'EST LE COMBAT QUI TRANCHE, PAS LA FACTION.
-    //
-    // Le script de Mutate Bug et d'Explode Bug fait SetInCombatWithZone() sur
-    // celle qu'il retourne, en plus de lui mettre FACTION_HOSTILE. Une
-    // bestiole reveillee est donc EN COMBAT, et c'est un vrai combat dont le
-    // tank des bestioles s'occupe; une endormie n'a rien demande a personne.
-    //
-    // J'avais d'abord teste la faction, et c'etait fragile : il suffisait que
-    // ces bestioles naissent deja hostiles dans la base pour que le test
-    // reponde "reveillee" sur toutes, et la regle n'aurait jamais rien fait -
-    // en silence. Le combat, lui, ne se discute pas, et il couvre le cas de
-    // celle qui mord sans que sa faction l'ait dit : si elle me mange, elle est
-    // en combat.
-    return !cible->IsInCombat();
+    // JAUNE, MAIS IL MANGE UN DES NOTRES. Les bestioles de la salle attaquent
+    // sans changer de faction - npc_ahnqiraji_critter fait AttackStart() et
+    // rien d'autre - donc elles restent jaunes tout en etant un vrai danger.
+    // Celle-la se tue, et le test ne coute rien : on lit sa victime, et on
+    // regarde si c'est un joueur de notre groupe.
+    if (Unit* victime = cible->GetVictim())
+        if (Player* joueur = victime->ToPlayer())
+            if (joueur->GetGroup() && joueur->GetGroup() == bot->GetGroup())
+                return false;
+
+    // Jaune, et il n'attaque personne chez nous : on le laisse tranquille.
+    return true;
 }

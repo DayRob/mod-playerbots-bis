@@ -269,7 +269,7 @@ bool Aq40AttackMyTwinAction::Execute(Event /*event*/)
     return Attack(assigne);
 }
 
-bool Aq40LeaveCrittersAction::Execute(Event /*event*/)
+bool Aq40LeaveNeutralAction::Execute(Event /*event*/)
 {
     Unit* cible = AI_VALUE(Unit*, "current target");
     if (!cible)

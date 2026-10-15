@@ -42,6 +42,34 @@ qu'aucun Empereur n'est a portee (le raid est encore en chemin, et le chemin
 appartient a dungeon-clear) et tant que le bot n'est pas DANS la salle. Les
 regles de COMBAT, elles, repondent faux tant qu'un Empereur n'est pas engage.
 
+## On ne frappe jamais le premier
+
+Aucun bot n'attaque un PNJ qui ne nous attaque pas — barre de vie **jaune**, pas
+rouge — nulle part dans le temple. La regle ne nomme aucune entree de creature :
+nommer, c'etait se tromper a la premiere oubliee.
+
+Elle existe a cause du script du coeur des bestioles de la salle des Jumeaux,
+`npc_ahnqiraji_critter` :
+
+```cpp
+if (Player* player = me->SelectNearestPlayer(10.f))
+    if (player->IsInCombat())
+        AttackStart(player);
+
+context.Repeat(3500ms, 4s);
+```
+
+Toutes les quatre secondes, chacune cherche un joueur **en combat** a moins de
+dix yards et lui saute dessus. Un seul bot qui engage une bestiole tranquille,
+et tout ce qui traine a dix yards d'un combattant rejoint — puis a dix yards de
+ceux-la. C'est comme ca qu'on passe de six bots en combat a dix-huit empiles sur
+des scarabes qui n'avaient pas bouge de leur point d'apparition.
+
+**Ce qui nous attaque se tue**, en revanche, jaune ou rouge : la regle rend la
+main des que la cible a pour victime un joueur du groupe. Ces bestioles
+attaquent sans changer de faction, donc elles restent jaunes tout en etant un
+vrai danger — Percer l'armure et Crachat acide pour le scorpion.
+
 **Verifier que c'est en place**, en jeu, sur un bot :
 
 ```
