@@ -122,6 +122,49 @@ public:
     bool IsActive() override;
 };
 
+// UN CHASSEUR A ENCORE SON FAMILIER DANS LA SALLE DES JUMEAUX.
+//
+// Un familier de chasseur connait Grondement, qui est une PROVOCATION, et il la
+// lance tout seul. Il arrache donc un Empereur a son tank sans prevenir, le
+// tourne vers lui, et le promene le temps que le tank reprenne - c'est-a-dire
+// le temps qu'il faut pour que les deux freres se retrouvent a portee de soin.
+// Il entre aussi dans la table de menace, ce qui fausse tout ce que le raid
+// croit savoir de qui tient quoi.
+//
+// On le renvoie, et seulement ici : ailleurs dans le temple un familier est un
+// atout, et le chasseur le rappellera de lui-meme une fois sorti.
+class Aq40HunterPetTrigger : public Trigger
+{
+public:
+    Aq40HunterPetTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 hunter pet is out") {}
+    bool IsActive() override;
+};
+
+// UN EMPEREUR A CE BOT POUR VICTIME, et ce bot n'est pas un des trois postes.
+//
+// Ca arrive a n'importe qui, et c'est prevu par le script : l'echange remet les
+// menaces a zero, puis
+//
+//     if (Unit* victim = me->SelectNearestTarget())
+//     {
+//         me->AddThreat(victim, 2000.f);
+//         AttackStart(victim);
+//     }
+//
+// Les 2000 vont au joueur LE PLUS PROCHE - un soigneur, un voleur, n'importe
+// qui. Celui-la tient un Empereur qu'il n'a pas demande. Sans consigne il le
+// promene au hasard, et le hasard le ramene vers son frere.
+//
+// Il a donc la meme consigne qu'un tank, parce que c'est ce qu'il est devenu
+// pour les trente secondes qui viennent : emmener ce qu'il tient sur la marque
+// du cote ou il se trouve, et l'y garder jusqu'a ce qu'un vrai tank le reprenne.
+class Aq40DraggingTwinTrigger : public Trigger
+{
+public:
+    Aq40DraggingTwinTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 a twin is on me") {}
+    bool IsActive() override;
+};
+
 // Ce bot est colle au jumeau qu'il ne peut pas blesser. Pour un physique c'est
 // Jaillissement des arcanes qui le repousse; pour un lanceur de sorts c'est
 // l'Uppercut de Vek'nilash, qui frappe au hasard parmi ce qui est a sa portee.

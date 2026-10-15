@@ -285,6 +285,25 @@ bool RaidAq40Utils::GetMyMark(Player* bot, Position& out)
     return true;
 }
 
+Unit* RaidAq40Utils::GetTwinOnMe(Player* bot)
+{
+    if (!bot || !bot->IsAlive())
+        return nullptr;
+
+    if (Creature* veknilash = GetVeknilash(bot))
+        if (veknilash->IsAlive() && veknilash->GetVictim() == bot)
+            return veknilash;
+
+    // Vek'nilash d'abord : c'est lui qui frappe au contact et qui tue. Vek'lor
+    // ne touche personne au corps a corps, mais le promener reste aussi grave -
+    // il suffit qu'il s'approche de son frere pour que les soins repartent.
+    if (Creature* veklor = GetVeklor(bot))
+        if (veklor->IsAlive() && veklor->GetVictim() == bot)
+            return veklor;
+
+    return nullptr;
+}
+
 bool RaidAq40Utils::IsVeknilashOnMySide(Player* bot)
 {
     uint8 const rang = TankIndex(bot);

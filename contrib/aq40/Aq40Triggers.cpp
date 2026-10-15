@@ -162,8 +162,33 @@ bool Aq40BugTankTrigger::IsActive()
     return RaidAq40Utils::IsBugTank(bot);
 }
 
+bool Aq40HunterPetTrigger::IsActive()
+{
+    return bot->IsAlive() && bot->getClass() == CLASS_HUNTER && bot->GetPet() &&
+           RaidAq40Utils::IsInTwinsRoom(bot);
+}
+
+bool Aq40DraggingTwinTrigger::IsActive()
+{
+    if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // Les trois postes savent deja ou ils vont - cette regle existe pour tous
+    // les autres.
+    if (RaidAq40Utils::IsVeknilashTank(bot) || RaidAq40Utils::IsBugTank(bot) ||
+        RaidAq40Utils::IsVeklorHolder(bot))
+        return false;
+
+    return RaidAq40Utils::GetTwinOnMe(bot) != nullptr;
+}
+
 bool Aq40KeepAwayTrigger::IsActive()
 {
+    // Un Empereur sur le dos passe avant tout le reste : ce bot le tient, il
+    // doit l'emmener, et rien d'autre ne doit le detourner.
+    if (RaidAq40Utils::GetTwinOnMe(bot))
+        return false;
+
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 
@@ -187,6 +212,11 @@ bool Aq40KeepAwayTrigger::IsActive()
 
 bool Aq40HoldFireTrigger::IsActive()
 {
+    // Un Empereur sur le dos passe avant tout le reste : ce bot le tient, il
+    // doit l'emmener, et rien d'autre ne doit le detourner.
+    if (RaidAq40Utils::GetTwinOnMe(bot))
+        return false;
+
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 
@@ -238,6 +268,11 @@ bool Aq40HoldFireTrigger::IsActive()
 
 bool Aq40WrongTargetTrigger::IsActive()
 {
+    // Un Empereur sur le dos passe avant tout le reste : ce bot le tient, il
+    // doit l'emmener, et rien d'autre ne doit le detourner.
+    if (RaidAq40Utils::GetTwinOnMe(bot))
+        return false;
+
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 

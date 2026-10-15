@@ -116,6 +116,25 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     // 5. ET POUR TOUT LE RESTE DU RAID, deux regles seulement : ne pas rester
     //    colle au jumeau qu'on ne peut pas blesser, et frapper celui qu'on
     //    peut. Le reste du placement suit la cible toute seule.
+    // 6. UN EMPEREUR SUR LE DOS DE QUELQU'UN QUI N'EST PAS TANK. L'echange
+    //    offre 2000 de menace au joueur le PLUS PROCHE - un soigneur, un
+    //    voleur, n'importe qui. Celui-la tient un Empereur qu'il n'a pas
+    //    demande; sans consigne il le promene au hasard, et le hasard le ramene
+    //    vers son frere. Il a donc la meme que les tanks : la marque du cote ou
+    //    l'Empereur se trouve, et on l'y garde jusqu'a ce qu'un tank reprenne.
+    triggers.push_back(
+        new TriggerNode("aq40 a twin is on me",
+            { NextAction("aq40 take him to the mark", ACTION_RAID + 2.5f) }));
+
+    // 7. ET PAS DE FAMILIER DE CHASSEUR DANS CETTE SALLE. Grondement est une
+    //    provocation, et le familier la lance tout seul : il arrache un
+    //    Empereur a son tank sans prevenir et le promene le temps qu'on le
+    //    reprenne. Au-dessus de tout, parce que c'est une seule action, une
+    //    fois, et que tout le reste en depend.
+    triggers.push_back(
+        new TriggerNode("aq40 hunter pet is out",
+            { NextAction("aq40 dismiss your pet", ACTION_RAID + 9.0f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 too close to the wrong twin",
             { NextAction("aq40 keep away", ACTION_RAID + 2.0f) }));

@@ -132,7 +132,6 @@ public:
     bool Execute(Event event) override;
 };
 
-// S'ecarte du jumeau qu'il ne peut pas blesser.
 // NE PAS FRAPPER tant que l'Empereur n'est pas pose, et lacher la cible qu'on
 // avait deja prise.
 //
@@ -146,6 +145,28 @@ public:
     bool Execute(Event event) override;
 };
 
+// EMMENE SUR SA MARQUE L'EMPEREUR QU'ON A SUR LE DOS.
+//
+// La meme consigne qu'un tank, pour quelqu'un qui n'en est pas un : il l'est
+// devenu, le temps que l'echange lui a donne. On vise la marque du cote ou se
+// trouve l'Empereur, jamais l'autre - traverser la salle avec lui, ce serait
+// l'amener a son frere.
+class Aq40DragToMarkAction : public MovementAction
+{
+public:
+    Aq40DragToMarkAction(PlayerbotAI* botAI) : MovementAction(botAI, "aq40 take him to the mark") {}
+    bool Execute(Event event) override;
+};
+
+// RENVOIE LE FAMILIER DU CHASSEUR, le temps de la salle.
+class Aq40DismissPetAction : public Action
+{
+public:
+    Aq40DismissPetAction(PlayerbotAI* botAI) : Action(botAI, "aq40 dismiss your pet") {}
+    bool Execute(Event event) override;
+};
+
+// S'ecarte du jumeau qu'il ne peut pas blesser.
 class Aq40KeepAwayAction : public MovementAction
 {
 public:

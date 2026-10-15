@@ -319,6 +319,15 @@ public:
     // ils vont preter main-forte sur Vek'nilash, ou qu'il soit.
     static bool GetMyMark(Player* bot, Position& out);
 
+    // QUEL EMPEREUR A CE BOT POUR VICTIME, s'il y en a un.
+    //
+    // La question se pose pour TOUT LE MONDE, pas seulement les tanks :
+    // l'echange remet les menaces a zero et offre 2000 au joueur le PLUS
+    // PROCHE, qui peut tres bien etre un soigneur ou un voleur. Celui-la tient
+    // un Empereur qu'il n'a pas demande, et il doit savoir ou l'emmener - sinon
+    // il le promene au hasard, et le hasard, c'est vers le frere.
+    static Unit* GetTwinOnMe(Player* bot);
+
     // Vek'nilash est-il du cote de ce tank ? C'est ce qui decide, a chaque
     // instant, s'il tient ou s'il attend. Pas d'etat a conserver : la geometrie
     // repond, et elle bascule d'elle-meme a l'echange.

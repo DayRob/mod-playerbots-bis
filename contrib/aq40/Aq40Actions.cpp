@@ -345,6 +345,44 @@ bool Aq40HoldFireAction::Execute(Event /*event*/)
     return true;
 }
 
+bool Aq40DragToMarkAction::Execute(Event /*event*/)
+{
+    Unit* mien = RaidAq40Utils::GetTwinOnMe(bot);
+    if (!mien)
+        return false;
+
+    // LA MARQUE DE SON COTE A LUI, pas du mien. Si l'echange m'a colle
+    // Vek'nilash alors que je me tenais au milieu, je l'emmene vers le bout de
+    // salle dont il est le plus pres - l'emmener vers l'autre, ce serait
+    // l'amener a son frere, et Heal Brother repartirait.
+    Position marque;
+    if (!RaidAq40Utils::GetMarkNear(mien, marque))
+        return false;
+
+    // Arrive : on reste. Rendre faux ici rendrait la main a l'IA de classe, qui
+    // enverrait un corps-a-corps chercher une cible ailleurs - avec l'Empereur
+    // derriere lui. On le garde la jusqu'a ce qu'un vrai tank le reprenne, et
+    // c'est exactement ce que fait un joueur a qui le boss est tombe dessus.
+    if (bot->GetExactDist2d(marque.GetPositionX(), marque.GetPositionY()) < MARK_TOLERANCE)
+        return true;
+
+    MoveTo(bot->GetMapId(), marque.GetPositionX(), marque.GetPositionY(), marque.GetPositionZ(),
+           false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+    return true;
+}
+
+bool Aq40DismissPetAction::Execute(Event /*event*/)
+{
+    if (!bot->GetPet())
+        return false;
+
+    // PET_SAVE_AS_CURRENT : il reste dans son emplacement actif, donc le
+    // chasseur le rappellera de lui-meme une fois sorti de la salle. On ne lui
+    // supprime rien, on le range.
+    bot->RemovePet(nullptr, PET_SAVE_AS_CURRENT);
+    return true;
+}
+
 bool Aq40KeepAwayAction::Execute(Event /*event*/)
 {
     Unit* interdit = RaidAq40Utils::GetForbiddenTwin(bot);
