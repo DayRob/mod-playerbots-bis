@@ -197,6 +197,15 @@ constexpr float BUG_SCAN_RANGE = 60.0f;
 // marques sont a 133 yards l'une de l'autre.
 constexpr float TWIN_PLACED_RANGE = 30.0f;
 
+// COMBIEN DE TEMPS LE RAID RETIENT SES COUPS, au maximum.
+//
+// Un tank qui traine Vek'nilash sur soixante yards met une dizaine de
+// secondes. Vingt laissent la marge, et la limite existe pour un seul cas :
+// celui ou un Empereur n'arrive JAMAIS a sa marque - son tank est mort, son
+// demoniste aussi, il s'est coince quelque part. Sans elle, quarante bots
+// regarderaient le combat sans frapper jusqu'au wipe.
+constexpr uint32 HOLD_FIRE_MAX_MS = 20000;
+
 // Les soigneurs ne sont pas places, mais ils ne doivent PAS etre le joueur le
 // plus proche d'un Empereur : la teleportation offre 2000 de menace au plus
 // proche, et ce doit etre un tank. Vingt-cinq yards les en ecartent tout en les

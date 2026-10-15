@@ -129,6 +129,11 @@ class Aq40HoldFireTrigger : public Trigger
 public:
     Aq40HoldFireTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 twin not placed yet") {}
     bool IsActive() override;
+
+private:
+    // Depuis quand ce bot retient ses coups. Remis a zero des que les deux
+    // Empereurs sont poses, donc il repart a chaque teleportation.
+    uint32 _retientDepuis = 0;
 };
 
 // Ce bot frappe le jumeau qui est immunise a ce qu'il fait.

@@ -179,7 +179,36 @@ bool Aq40HoldFireTrigger::IsActive()
     if (!assigne || !assigne->IsAlive())
         return false;
 
-    return !RaidAq40Utils::IsTwinPlaced(assigne);
+    // LES DEUX EMPEREURS, PAS SEULEMENT LE SIEN.
+    //
+    // Je ne retenais d'abord que ceux dont le propre jumeau etait en chemin.
+    // C'est trop faible, et pour une raison qui ne se voit pas : les degats
+    // sont PARTAGES entre les deux freres (Twin Empathy, 1177). Frapper Vek'lor
+    // pendant qu'un tank traine Vek'nilash fait donc monter la barre d'un
+    // Empereur qu'on croyait laisser tranquille, et rien ne garantit que la
+    // menace qui en decoule reste sur le bon. Tant qu'un seul des deux n'est
+    // pas pose, tout le monde attend - sauf les trois postes, qui travaillent.
+    Creature* const veklor = RaidAq40Utils::GetVeklor(bot);
+    Creature* const veknilash = RaidAq40Utils::GetVeknilash(bot);
+
+    bool const poses = (!veklor || !veklor->IsAlive() || RaidAq40Utils::IsTwinPlaced(veklor)) &&
+                       (!veknilash || !veknilash->IsAlive() || RaidAq40Utils::IsTwinPlaced(veknilash));
+
+    if (poses)
+    {
+        _retientDepuis = 0;
+        return false;
+    }
+
+    // ET LA RETENUE A UNE FIN. Elle repart a zero a chaque fois que les deux
+    // sont poses, donc elle redemarre neuve a chaque teleportation; mais si un
+    // Empereur n'arrive jamais - son tank est mort, il s'est coince - le raid
+    // ne doit pas le regarder sans frapper jusqu'au wipe.
+    uint32 const maintenant = getMSTime();
+    if (!_retientDepuis)
+        _retientDepuis = maintenant;
+
+    return getMSTimeDiff(_retientDepuis, maintenant) <= HOLD_FIRE_MAX_MS;
 }
 
 bool Aq40WrongTargetTrigger::IsActive()
