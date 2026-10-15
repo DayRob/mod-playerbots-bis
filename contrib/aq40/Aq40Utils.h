@@ -193,9 +193,25 @@ public:
 
     // ─── LES PLACES ──────────────────────────────────────────────────────────
 
-    // Les deux marques, dans l'ordre : A fait face a la plateforme de
-    // Vek'nilash (82 yards contre 166), B a celle de Vek'lor.
+    // Les deux marques, dans l'ordre. QUI EST DE QUEL COTE, releve dans le
+    // journal du run - les Empereurs poussent en
+    //
+    //     Vek'lor     (-8868.3, 1206.0, -104.2)
+    //     Vek'nilash  (-9023.7, 1176.2, -104.2)
+    //
+    // ce qui met MARQUE_A a 82 yards de la plateforme de VEK'LOR (168 de
+    // l'autre) et MARQUE_B a 84 de celle de VEK'NILASH (166 de l'autre).
+    //
+    // C'etait ecrit a l'envers ici, et ca se voyait en jeu : les corps-a-corps
+    // partaient se poster dans le dos de Vek'lor, qui est immunise a ce qu'ils
+    // font, et les lanceurs de sorts sous les Uppercuts de Vek'nilash.
     static void GetMarks(Position& marqueA, Position& marqueB);
+
+    // La marque la plus proche d'un Empereur donne. PERSONNE NE SE PLACE SUR
+    // UNE LETTRE : on se place du cote de celui qu'on vient voir, et c'est sa
+    // position a lui qui repond. Une lettre, ca peut etre faux; une distance,
+    // non.
+    static bool GetMarkNear(Unit* jumeau, Position& out);
 
     // LA MARQUE DE CE TANK, et elle ne change JAMAIS.
     //
@@ -231,6 +247,15 @@ public:
     // Le milieu des deux marques : la ou tombent les bestioles et ou se
     // tiennent les soigneurs.
     static void GetMiddle(Position& out);
+
+    // CE BOT EST-IL DANS LA SALLE DES EMPEREURS ? Une distance au milieu, donc
+    // aucune recherche en grille : la question est posee a chaque tick, pour
+    // chaque bot, par la regle qui leur interdit de reveiller les bestioles.
+    // Les deux plateformes sont a 114 yards du milieu, le seuil a 150 : la
+    // salle entiere est dedans, et le reste du temple dehors - ou les memes
+    // bestioles sont du trash ordinaire que mod-dungeon-clear a raison de
+    // nettoyer.
+    static bool IsInTwinsRoom(Player* bot);
 
     // Ou ce bot doit se tenir AVANT le pull, selon son role. Faux pour les
     // soigneurs, qui ne sont pas places.

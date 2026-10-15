@@ -363,19 +363,19 @@ Inserer-Apres $fContexte `
     '    static Strategy* aq40(PlayerbotAI* botAI) { return new RaidAq40Strategy(botAI); }' `
     'new RaidAq40Strategy(botAI)' | Out-Null
 
-# LA DANSE est une SECONDE strategie, et elle n'est PAS installee toute seule.
-# C'est la seule partie qui deplace des bots avant que le combat ait commence,
-# donc la seule qui puisse se disputer avec mod-dungeon-clear. Le joueur l'arme
-# depuis le chat de groupe : "+aq40danse".
-Inserer-Apres $fContexte `
-    '        creators["aq40"] = &RaidStrategyContext::aq40;' `
-    '        creators["aq40danse"] = &RaidStrategyContext::aq40danse;' `
-    'creators["aq40danse"]' | Out-Null
-
-Inserer-Apres $fContexte `
-    '    static Strategy* aq40(PlayerbotAI* botAI) { return new RaidAq40Strategy(botAI); }' `
-    '    static Strategy* aq40danse(PlayerbotAI* botAI) { return new RaidAq40DanceStrategy(botAI); }' `
-    'new RaidAq40DanceStrategy(botAI)' | Out-Null
+# IL N'Y A PLUS DE SECONDE STRATEGIE A ARMER, et on nettoie celle qu'une
+# installation precedente avait posee. "aq40danse" demandait au joueur un
+# "+aq40danse" dans le chat de groupe pour declencher la mise en place et le
+# pull, et rien n'arme une strategie que la carte n'apporte pas : le message
+# restait du chat de groupe. mod-playerbots, lui, pose la strategie de la carte
+# dans les DEUX moteurs tout seul (fin de ApplyInstanceStrategies) :
+#
+#     engines[BOT_STATE_COMBAT]->addStrategy(strategyName);
+#     engines[BOT_STATE_NON_COMBAT]->addStrategy(strategyName);
+#
+# donc tout tient dans "aq40", y compris ce qui agit avant le pull.
+Retirer-Ligne $fContexte 'creators["aq40danse"]'            | Out-Null
+Retirer-Ligne $fContexte 'new RaidAq40DanceStrategy(botAI)' | Out-Null
 
 Write-Host "  $(Split-Path -Leaf $fActions)"
 Inserer-Apres $fActions `
@@ -484,7 +484,13 @@ else {
 }
 Write-Host 'Puis en jeu, dans le Temple d''Ahn''Qiraj, verifier sur un bot :'
 Write-Host '  /w <bot> co ?'
-Write-Host 'La liste des strategies de combat doit contenir aq40. Le point'
-Write-Host 'd''interrogation compte : ChangeStrategy ne traite que + - ~ et ?,'
-Write-Host 'donc un "co" seul ne repond rien.'
+Write-Host '  /w <bot> nc ?'
+Write-Host 'aq40 doit apparaitre dans LES DEUX listes : mod-playerbots pose la'
+Write-Host 'strategie de la carte dans les deux moteurs, et c''est le moteur hors'
+Write-Host 'combat qui porte la mise en place et le pull. Le point d''interrogation'
+Write-Host 'compte : ChangeStrategy ne traite que + - ~ et ?, donc un "co" seul ne'
+Write-Host 'repond rien.'
+Write-Host ''
+Write-Host 'RIEN A ARMER EN JEU : pas de commande, pas de "+aq40danse". Si aq40'
+Write-Host 'est dans les deux listes, la salle des Jumeaux est geree.'
 Write-Host ''

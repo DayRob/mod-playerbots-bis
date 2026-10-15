@@ -11,6 +11,20 @@
 #include "Playerbots.h"
 #include "Trigger.h"
 
+// Ce bot a pris pour cible une bestiole de la salle QUI DORT.
+//
+// Les scarabees et scorpions du temple ne mordent personne tant qu'un Empereur
+// ne les a pas retournes : ils gardent leur faction de creature inoffensive, et
+// c'est a ca qu'on les reconnait. Les attaquer met le bot en combat, donc
+// l'ecarte de sa place, donc casse la mise en place - et en fait reveille pour
+// de bon ce que la salle avait laisse tranquille.
+class Aq40ChasingCritterTrigger : public Trigger
+{
+public:
+    Aq40ChasingCritterTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 chasing a critter") {}
+    bool IsActive() override;
+};
+
 // Le raid est dans la salle, les Empereurs dorment encore, et ce bot n'est pas
 // a l'endroit d'ou il doit partir.
 class Aq40TakeStationTrigger : public Trigger

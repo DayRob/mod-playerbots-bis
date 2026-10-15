@@ -164,3 +164,37 @@ bool Aq40WrongTargetTrigger::IsActive()
 
     return AI_VALUE(Unit*, "current target") != assigne;
 }
+
+bool Aq40ChasingCritterTrigger::IsActive()
+{
+    if (!bot->IsAlive())
+        return false;
+
+    // DANS LA SALLE SEULEMENT. La strategie est posee sur toute la carte 531,
+    // mais ailleurs dans le temple ces bestioles sont du trash ordinaire que
+    // mod-dungeon-clear a raison de nettoyer. Une distance au milieu, donc rien
+    // de cher a payer pour la poser a chaque tick.
+    if (!RaidAq40Utils::IsInTwinsRoom(bot))
+        return false;
+
+    Unit* cible = AI_VALUE(Unit*, "current target");
+    if (!cible)
+        return false;
+
+    uint32 const entry = cible->GetEntry();
+    if (entry != NPC_QIRAJI_SCARAB && entry != NPC_QIRAJI_SCORPION)
+        return false;
+
+    // REVEILLEE OU ENDORMIE, C'EST LA FACTION QUI TRANCHE.
+    //
+    // Le script de Mutate Bug et d'Explode Bug met FACTION_HOSTILE a celle
+    // qu'il retourne; les autres gardent leur faction de creature inoffensive.
+    // Une bestiole reveillee est donc un vrai combat - le tank des bestioles
+    // s'en occupe - alors qu'une endormie n'a rien demande a personne.
+    if (cible->IsHostileTo(bot))
+        return false;
+
+    // Sauf si elle est en train de me mordre : dans ce cas elle s'est reveillee
+    // d'une maniere que la faction ne dit pas, et il faut la tuer.
+    return !RaidAq40Utils::IsBugOnMe(bot);
+}

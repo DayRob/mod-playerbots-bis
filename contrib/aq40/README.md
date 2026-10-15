@@ -12,26 +12,45 @@ son arborescence. Ici ils sont versionnes, et `tools\installer_aq40_twins.ps1`
 les recopie au bon endroit — a relancer apres chaque mise a jour de
 mod-playerbots.
 
-## Deux strategies, et une seule s'installe toute seule
+## Une seule strategie, et rien a armer
 
-| Strategie | Quand | Ce qu'elle fait |
-|---|---|---|
-| `aq40` | automatique en entrant sur la carte 531 | le COMBAT, et rien d'autre |
-| `aq40danse` | **tu l'armes** | se placer avant le pull, puis puller |
+`aq40`, posee toute seule en entrant sur la carte 531. Elle porte tout : ne pas
+reveiller les bestioles, se placer, puller, et le combat. **Aucune commande a
+taper en jeu.**
+
+mod-playerbots la pose dans les DEUX moteurs, et c'est ce qui rend la chose
+possible — fin de `ApplyInstanceStrategies`, `src\Bot\PlayerbotAI.cpp` :
+
+```cpp
+engines[BOT_STATE_COMBAT]->addStrategy(strategyName);
+engines[BOT_STATE_NON_COMBAT]->addStrategy(strategyName);
+```
+
+**Il y a eu une seconde strategie, `aq40danse`, et c'etait une erreur.** La
+mise en place et le pull avaient ete sortis dans une strategie que le joueur
+devait armer depuis le chat de groupe, pour qu'ils ne se disputent pas avec
+mod-dungeon-clear. Mais rien n'arme une strategie que la carte n'apporte pas :
+`+aq40danse` dit dans le chat de groupe est reste du chat de groupe. Releve
+dans le journal du run : quarante bots engagent Vek'nilash a 35 yards de sa
+plateforme, personne sur les marques, le tank a 64 yards de la sienne, et
+dix-neuf bots empiles sur un scarabe qui n'avait pas bouge de son point
+d'apparition.
+
+La cohabitation avec mod-dungeon-clear ne se regle donc pas par une commande,
+mais par deux verrous dans les regles d'avant-pull : elles se taisent tant
+qu'aucun Empereur n'est a portee (le raid est encore en chemin, et le chemin
+appartient a dungeon-clear) et tant que le bot n'est pas DANS la salle. Les
+regles de COMBAT, elles, repondent faux tant qu'un Empereur n'est pas engage.
+
+**Verifier que c'est en place**, en jeu, sur un bot :
 
 ```
-/p +aq40danse      dans le chat de groupe ou de raid : tous les bots l'entendent
-/p -aq40danse      pour la desarmer
+/w <bot> co ?
+/w <bot> nc ?
 ```
 
-**Pourquoi la danse est separee.** C'est la seule partie qui deplace des bots
-avant que quoi que ce soit ait commence, donc la seule qui puisse se disputer
-avec mod-dungeon-clear — qui a lui aussi un avis sur ou le raid doit se tenir et
-par ou il doit passer. Observe en jeu : son rappel au camp voyait les bots
-partis a leurs marques, concluait qu'ils avaient fui, et arretait le run.
-
-Les regles de COMBAT, elles, n'ont jamais besoin d'etre armees et ne genent
-personne : elles repondent faux tant qu'un Empereur n'est pas engage.
+`aq40` doit apparaitre dans les deux listes. Le point d'interrogation compte :
+`ChangeStrategy` ne traite que `+ - ~ ?`, donc un `co` seul ne repond rien.
 
 ## Ce que la strategie fait
 
@@ -231,12 +250,11 @@ d'Internet, donc `RemoteSigned` les laisse passer sans `Unblock-File`.
 Le script copie les dix fichiers dans
 `mod-playerbots\src\Ai\Raid\Aq40\` et branche la strategie a quatre endroits :
 
-- `src\Ai\Raid\RaidStrategyContext.h` — include, `creators["aq40"]` et
-  `creators["aq40danse"]`, les deux fabriques
+- `src\Ai\Raid\RaidStrategyContext.h` — include, `creators["aq40"]`, la fabrique
+  (et le retrait de `aq40danse`, si une installation precedente l'avait posee)
 - `src\Bot\Engine\BuildSharedActionContexts.cpp` — include, `RaidAq40ActionContext`
 - `src\Bot\Engine\BuildSharedTriggerContexts.cpp` — include, `RaidAq40TriggerContext`
 - `src\Bot\PlayerbotAI.cpp` — `"aq40"` dans `allInstanceStrategies`, et `case 531`
-  (`aq40danse` n'y figure PAS, a dessein : elle ne s'installe pas toute seule)
 
 Il sauvegarde chaque fichier avant (`.avant_aq40`), relit apres pour prouver
 que l'ecriture a atterri, et se relance sans danger : il saute ce qui est

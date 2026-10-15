@@ -9,34 +9,33 @@
 
 #include "Strategy.h"
 
-// LE COMBAT. Installee toute seule en entrant sur la carte 531, et inerte tant
-// qu'un Empereur n'est pas en combat : elle ne deplace personne, ne choisit
-// aucune cible et ne bloque aucune action en dehors du combat lui-meme.
+// LES EMPEREURS JUMEAUX, EN UNE SEULE STRATEGIE.
+//
+// Installee toute seule en entrant sur la carte 531, et il n'y a RIEN A ARMER.
+// mod-playerbots la pose lui-meme, dans les DEUX moteurs - c'est ecrit noir sur
+// blanc a la fin de ApplyInstanceStrategies (src/Bot/PlayerbotAI.cpp) :
+//
+//     engines[BOT_STATE_COMBAT]->addStrategy(strategyName);
+//     engines[BOT_STATE_NON_COMBAT]->addStrategy(strategyName);
+//
+// D'ou vient qu'elle a ete coupee en deux, et pourquoi c'etait une erreur : la
+// mise en place et le pull avaient ete sortis dans une seconde strategie,
+// "aq40danse", que le joueur devait armer depuis le chat de groupe. Or rien
+// n'arme une strategie que la carte n'apporte pas : "+aq40danse" dit dans le
+// chat de groupe est reste du chat de groupe, et avec lui sont partis le
+// placement, le pull, et la consigne de laisser les bestioles tranquilles.
+// Observe en jeu : quarante bots qui engagent Vek'nilash a 35 yards de sa
+// plateforme, personne sur les marques, et dix-neuf empiles sur un scarabe qui
+// n'avait pas bouge de son point d'apparition.
+//
+// Donc tout revient ici. Ce qui se declenche avant le combat ne se declenche
+// que quand le raid est ARRIVE (un Empereur a portee) et DANS la salle, jamais
+// en chemin : le chemin appartient a mod-dungeon-clear.
 class RaidAq40Strategy : public Strategy
 {
 public:
     RaidAq40Strategy(PlayerbotAI* botAI) : Strategy(botAI) {}
     virtual std::string const getName() override { return "aq40"; }
-    virtual void InitTriggers(std::vector<TriggerNode*>& triggers) override;
-};
-
-// LA DANSE : se placer avant le pull, puis puller ensemble.
-//
-// SEPAREE DU COMBAT, ET PAS INSTALLEE TOUTE SEULE. C'est la seule partie qui
-// deplace des bots avant que quoi que ce soit ait commence, donc la seule qui
-// puisse se disputer avec mod-dungeon-clear - qui, lui, a aussi un avis sur ou
-// le raid doit se tenir et par ou il doit passer. Le joueur l'arme quand il est
-// dans la salle et qu'il a decide que c'etait a elle de conduire :
-//
-//     /p +aq40danse      (dans le chat de groupe ou de raid : tous les bots)
-//     /p -aq40danse      pour la desarmer
-//
-// Les regles de combat, elles, n'ont jamais besoin d'etre armees.
-class RaidAq40DanceStrategy : public Strategy
-{
-public:
-    RaidAq40DanceStrategy(PlayerbotAI* botAI) : Strategy(botAI) {}
-    virtual std::string const getName() override { return "aq40danse"; }
     virtual void InitTriggers(std::vector<TriggerNode*>& triggers) override;
 };
 

@@ -268,3 +268,18 @@ bool Aq40AttackMyTwinAction::Execute(Event /*event*/)
 
     return Attack(assigne);
 }
+
+bool Aq40LeaveCrittersAction::Execute(Event /*event*/)
+{
+    Unit* cible = AI_VALUE(Unit*, "current target");
+    if (!cible)
+        return false;
+
+    // On lache tout ce qui pointe vers elle : la valeur que l'IA relit au tick
+    // suivant, la cible affichee, et l'attaque en cours. Omettre l'une des
+    // trois laisse le bot y revenir tout seul.
+    context->GetValue<Unit*>("current target")->Set(nullptr);
+    bot->SetTarget();
+    bot->AttackStop();
+    return true;
+}

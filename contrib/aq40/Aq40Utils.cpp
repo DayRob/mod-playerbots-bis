@@ -158,11 +158,14 @@ bool RaidAq40Utils::IsVeklorHolder(Player* bot)
 
 void RaidAq40Utils::GetMarks(Position& marqueA, Position& marqueB)
 {
-    // Des constantes, donc aucune creature a chercher : MARQUE_A est par
-    // construction celle qui fait face a la plateforme de Vek'nilash - 82 yards
-    // contre 166 pour l'autre. Appelee par tout le chemin d'avant-pull, pour
-    // chaque bot, a chaque tick : une recherche en grille a 250 yards couterait
-    // cher pour repondre une chose qui ne change jamais.
+    // Des constantes, donc aucune creature a chercher. Appelee par tout le
+    // chemin d'avant-pull, pour chaque bot, a chaque tick : une recherche en
+    // grille a 250 yards couterait cher pour repondre une chose qui ne change
+    // jamais.
+    //
+    // ET AUCUNE DES DEUX N'EST "CELLE DE" QUI QUE CE SOIT ICI. Qui est de quel
+    // cote se lit sur la position des Empereurs, pas sur une lettre : voir
+    // GetMarkNear.
     marqueA.Relocate(MARQUE_A.x, MARQUE_A.y, MARQUE_A.z);
     marqueB.Relocate(MARQUE_B.x, MARQUE_B.y, MARQUE_B.z);
 }
@@ -182,6 +185,33 @@ namespace
         float const dY = a.GetPositionY() - b.GetPositionY();
         return std::sqrt(dX * dX + dY * dY);
     }
+}
+
+bool RaidAq40Utils::GetMarkNear(Unit* jumeau, Position& out)
+{
+    if (!jumeau)
+        return false;
+
+    Position marqueA;
+    Position marqueB;
+    GetMarks(marqueA, marqueB);
+
+    // 82 yards d'un cote contre 168 de l'autre : la reponse n'est jamais
+    // serree, et elle reste juste si un jour les marques changent de nom.
+    out = (EcartPlan(jumeau->GetPosition(), marqueA) <= EcartPlan(jumeau->GetPosition(), marqueB))
+              ? marqueA
+              : marqueB;
+    return true;
+}
+
+bool RaidAq40Utils::IsInTwinsRoom(Player* bot)
+{
+    if (!bot || bot->GetMapId() != TEMPLE_OF_AHNQIRAJ_MAP_ID)
+        return false;
+
+    Position milieu;
+    GetMiddle(milieu);
+    return bot->GetExactDist2d(milieu.GetPositionX(), milieu.GetPositionY()) <= PREPULL_GATHER_RANGE;
 }
 
 bool RaidAq40Utils::GetMyMark(Player* bot, Position& out)
@@ -294,20 +324,25 @@ bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
     if (!sorts && !physique)
         return false;
 
-    // Les corps-a-corps partent du cote de Vek'nilash, les lanceurs de sorts
-    // du cote de Vek'lor. Avant le pull, chacun est sur sa plateforme : la
-    // marque A fait face a celle de Vek'nilash, la B a celle de Vek'lor.
-    Position marqueA;
-    Position marqueB;
-    GetMarks(marqueA, marqueB);
+    // CHACUN DU COTE DE CELUI QU'IL PEUT BLESSER, et c'est la position de cet
+    // Empereur-la qui le dit. Les corps-a-corps vont donc du cote de
+    // Vek'nilash, les lanceurs de sorts du cote de Vek'lor - sans qu'une
+    // lettre ecrite ici ait son mot a dire.
+    Unit* const assigne = GetAssignedTwin(bot);
+    Position marque;
+    if (!assigne || !GetMarkNear(assigne, marque))
+        return false;
 
-    Position const marque = physique ? marqueA : marqueB;
+    // Puis un decalage VERS LE MILIEU pour les corps-a-corps, qui ne doivent
+    // pas se tenir sur leur tank - les lanceurs de sorts sont deja en retrait -
+    // et un ecartement lateral propre a chaque bot, pour qu'ils ne se marchent
+    // pas dessus : la perpendiculaire, graduee sur son GUID, donc stable d'un
+    // tick a l'autre puisqu'un GUID ne change jamais.
+    Position milieu;
+    GetMiddle(milieu);
 
-    // Et un ecartement lateral propre a chaque bot, pour qu'ils ne se marchent
-    // pas dessus : la perpendiculaire a l'axe des deux marques, graduee sur son
-    // GUID - stable d'un tick a l'autre, puisqu'un GUID ne change jamais.
-    float dX = marqueB.GetPositionX() - marqueA.GetPositionX();
-    float dY = marqueB.GetPositionY() - marqueA.GetPositionY();
+    float dX = milieu.GetPositionX() - marque.GetPositionX();
+    float dY = milieu.GetPositionY() - marque.GetPositionY();
     float const axe = std::sqrt(dX * dX + dY * dY);
     if (axe < 1.0f)
     {
@@ -321,8 +356,6 @@ bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
     float const lateral = (float(bot->GetGUID().GetCounter() % 7u) - 3.0f) * PREPULL_SPREAD_STEP;
     float const recul = physique ? MELEE_PREPULL_OFFSET : 0.0f;
 
-    // Les corps-a-corps se decalent aussi vers le milieu, pour ne pas se tenir
-    // sur leurs tanks; les lanceurs de sorts sont deja en retrait.
     out.Relocate(marque.GetPositionX() + recul * dX - lateral * dY,
                  marque.GetPositionY() + recul * dY + lateral * dX,
                  marque.GetPositionZ());

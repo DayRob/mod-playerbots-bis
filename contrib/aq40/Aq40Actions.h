@@ -12,6 +12,22 @@
 #include "PlayerbotAI.h"
 #include "Playerbots.h"
 
+// Lache la bestiole endormie et cesse de la frapper.
+//
+// Rien d'autre : pas de nouvelle cible imposee. Ce que le bot doit faire a la
+// place, ce sont les autres regles qui le disent - sa place avant le pull, son
+// Empereur pendant le combat.
+class Aq40LeaveCrittersAction : public AttackAction
+{
+public:
+    Aq40LeaveCrittersAction(PlayerbotAI* botAI, std::string const name = "aq40 leave the critters")
+        : AttackAction(botAI, name)
+    {
+    }
+
+    bool Execute(Event event) override;
+};
+
 // Rejoint l'endroit d'ou ce bot doit partir, avant que le combat commence - et,
 // pour un tank, RETIENT le pull tant que les autres marchent encore.
 //

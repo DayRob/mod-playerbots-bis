@@ -15,6 +15,7 @@ class RaidAq40TriggerContext : public NamedObjectContext<Trigger>
 public:
     RaidAq40TriggerContext()
     {
+        creators["aq40 chasing a critter"] = &RaidAq40TriggerContext::chasing_a_critter;
         creators["aq40 not in place yet"] = &RaidAq40TriggerContext::not_in_place_yet;
         creators["aq40 ready to pull"] = &RaidAq40TriggerContext::ready_to_pull;
         creators["aq40 tank off his mark"] = &RaidAq40TriggerContext::tank_off_his_mark;
@@ -25,6 +26,7 @@ public:
     }
 
 private:
+    static Trigger* chasing_a_critter(PlayerbotAI* botAI) { return new Aq40ChasingCritterTrigger(botAI); }
     static Trigger* not_in_place_yet(PlayerbotAI* botAI) { return new Aq40TakeStationTrigger(botAI); }
     static Trigger* ready_to_pull(PlayerbotAI* botAI) { return new Aq40PullTogetherTrigger(botAI); }
     static Trigger* tank_off_his_mark(PlayerbotAI* botAI) { return new Aq40TankTrigger(botAI); }
