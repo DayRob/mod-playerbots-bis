@@ -187,6 +187,16 @@ namespace
     }
 }
 
+bool RaidAq40Utils::IsInTwinsRoom(Player* bot)
+{
+    if (!bot || bot->GetMapId() != TEMPLE_OF_AHNQIRAJ_MAP_ID)
+        return false;
+
+    Position milieu;
+    GetMiddle(milieu);
+    return bot->GetExactDist2d(milieu.GetPositionX(), milieu.GetPositionY()) <= TWINS_ROOM_RANGE;
+}
+
 bool RaidAq40Utils::GetMarkNear(Unit* jumeau, Position& out)
 {
     if (!jumeau)

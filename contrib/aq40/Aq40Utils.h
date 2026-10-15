@@ -129,12 +129,23 @@ constexpr float MELEE_PREPULL_OFFSET = 10.0f;
 // sans lui, trente bots visent le meme point et s'empilent.
 constexpr float PREPULL_SPREAD_STEP = 4.0f;
 
-// La mise en place ne COMMENCE que lorsqu'un Empereur est a portee : c'est le
-// signe que mod-dungeon-clear a fini d'amener le raid. Sans ce seuil elle
-// demarrait en plein trajet et sortait le tank du chemin qu'il suivait.
-constexpr float PREPULL_ARRIVED_RANGE = 60.0f;
-
-// Et jamais hors de la salle.
+// ─── LE VERROU D'ARRIVEE ─────────────────────────────────────────────────────
+//
+// La mise en place ne COMMENCE que lorsque le bot est DANS la salle : avant, le
+// raid est en chemin, et le chemin appartient a mod-dungeon-clear. Sans ce
+// verrou elle demarrait en plein trajet et sortait le tank de la route qu'il
+// suivait - "off-line rejoin made no progress", vu dans le journal.
+//
+// La distance se mesure au MILIEU des deux marques, et pas a un Empereur. Le
+// seuil precedent - un Empereur a moins de 60 yards - etait faux : depuis le
+// milieu de la salle, les deux plateformes sont a 114 yards (releve :
+// Vek'lor en -8868.3, 1206.0; Vek'nilash en -9023.7, 1176.2). Un raid rassemble
+// au milieu, ce que fait dungeon-clear avant son pull, n'aurait donc JAMAIS
+// declenche la mise en place, et rien ne l'aurait dit.
+//
+// Deux seuils, pour que le verrou ne claque pas d'un tick a l'autre : on entre
+// a 120 et on ne se considere sorti qu'a 150.
+constexpr float TWINS_ROOM_RANGE = 120.0f;
 constexpr float PREPULL_GATHER_RANGE = 150.0f;
 
 // Combien de temps les tanks deja en place retiennent le pull en attendant les
@@ -247,6 +258,11 @@ public:
     // Le milieu des deux marques : la ou tombent les bestioles et ou se
     // tiennent les soigneurs.
     static void GetMiddle(Position& out);
+
+    // CE BOT EST-IL DANS LA SALLE DES EMPEREURS ? Une distance au milieu, donc
+    // aucune recherche en grille. C'est le verrou d'arrivee de la mise en
+    // place : voir TWINS_ROOM_RANGE.
+    static bool IsInTwinsRoom(Player* bot);
 
 
     // Ou ce bot doit se tenir AVANT le pull, selon son role. Faux pour les

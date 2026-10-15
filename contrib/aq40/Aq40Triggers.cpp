@@ -28,25 +28,18 @@ bool Aq40TakeStationTrigger::IsActive()
     if (!RaidAq40Utils::GetPrePullStation(bot, station))
         return false;
 
-    // ARRIVER D'ABORD. Tant qu'aucun Empereur n'est a portee, le raid est
+    // ARRIVER D'ABORD. Tant que le bot n'est pas DANS la salle, le raid est
     // encore en chemin, et ce chemin appartient a dungeon-clear. Une fois le
-    // verrou pose il ne se releve qu'au combat : les marques sont a plus de
-    // 80 yards des plateformes, donc un bot en route vers la sienne sortirait
-    // sinon du seuil en chemin et s'arreterait a mi-parcours.
+    // verrou pose il ne se releve qu'au combat : les marques sont aux deux
+    // bouts de la piece, donc un bot en route vers la sienne sortirait sinon du
+    // seuil en chemin et s'arreterait a mi-parcours.
+    //
+    // Mesure au MILIEU, pas a un Empereur : depuis le centre de la salle les
+    // deux plateformes sont a 114 yards, donc l'ancien seuil - un Empereur a
+    // moins de 60 - ne se serait jamais pose sur un raid rassemble au milieu.
     if (!_arrive)
     {
-        Creature* const veklor = RaidAq40Utils::GetVeklor(bot);
-        Creature* const veknilash = RaidAq40Utils::GetVeknilash(bot);
-        if (!veklor && !veknilash)
-            return false;
-
-        bool proche = false;
-        if (veklor && bot->GetExactDist2d(veklor) <= PREPULL_ARRIVED_RANGE)
-            proche = true;
-        if (veknilash && bot->GetExactDist2d(veknilash) <= PREPULL_ARRIVED_RANGE)
-            proche = true;
-
-        if (!proche)
+        if (!RaidAq40Utils::IsInTwinsRoom(bot))
             return false;
 
         _arrive = true;
