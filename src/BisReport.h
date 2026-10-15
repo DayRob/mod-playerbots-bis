@@ -22,6 +22,20 @@ namespace BisReport
 
     // args: a bot name. Lists that bot's missing pieces in chat, with links.
     bool HandleMissing(ChatHandler* handler, char const* args);
+
+    // Remet a plein les bots du groupe du joueur, hors combat, et les releve.
+    //
+    // POURQUOI CECI EXISTE. mod-dungeon-clear tient le raid en place entre deux
+    // combats tant que chacun n'a pas atteint ses seuils de repos - sa propre
+    // documentation le dit : "the tank holds the advance until every mana user
+    // reaches it". Avec quarante bots, c'est le plus lent qui decide pour tout
+    // le monde, et apres un boss ils sont tous a sec. Aucune de ses commandes
+    // ne relache cette attente : ".dc skip" met le boss COURANT dans la liste
+    // des sautes, ce qui est l'inverse de ce qu'on veut.
+    //
+    // La seule prise qui reste de l'exterieur, c'est la condition elle-meme.
+    // Des que tout le monde est a plein, la porte s'ouvre et le tank avance.
+    bool HandleAdvance(ChatHandler* handler, char const* args);
 }
 
 #endif

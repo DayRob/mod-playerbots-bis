@@ -9,6 +9,7 @@
 #include "BisPriorityMgr.h"
 #include "Chat.h"
 #include "ChatHelper.h"
+#include "Group.h"
 #include "Guild.h"
 #include "GuildMgr.h"
 #include "ObjectAccessor.h"
@@ -294,6 +295,83 @@ bool BisReport::HandleMissing(ChatHandler* handler, char const* args)
 
     if (!shown)
         handler->PSendSysMessage("  rien ne manque a ce palier.");
+
+    return true;
+}
+
+bool BisReport::HandleAdvance(ChatHandler* handler, char const* /*args*/)
+{
+    Player* maitre = handler->GetSession() ? handler->GetSession()->GetPlayer() : nullptr;
+    if (!maitre)
+        return false;
+
+    Group* groupe = maitre->GetGroup();
+    if (!groupe)
+    {
+        handler->PSendSysMessage("Tu n'es pas en groupe : il n'y a personne a faire avancer.");
+        return true;
+    }
+
+    uint32 remplis = 0;
+    uint32 enCombat = 0;
+    uint32 morts = 0;
+    uint32 joueurs = 0;
+
+    for (GroupReference* ref = groupe->GetFirstMember(); ref; ref = ref->next())
+    {
+        Player* membre = ref->GetSource();
+        if (!membre || membre == maitre)
+            continue;
+
+        // JAMAIS UN JOUEUR. Remplir la vie et le mana de quelqu'un qui tient
+        // son clavier, c'est decider a sa place; et son repos a lui ne retient
+        // de toute facon pas le tank de la meme maniere.
+        if (!GET_PLAYERBOT_AI(membre))
+        {
+            ++joueurs;
+            continue;
+        }
+
+        if (!membre->IsAlive())
+        {
+            ++morts;
+            continue;
+        }
+
+        // HORS COMBAT SEULEMENT. En combat, ce serait un soin gratuit au milieu
+        // d'un boss - ce n'est pas ce qu'on demande ici, et personne ne devrait
+        // pouvoir le faire par megarde avec une commande qui parle d'avancer.
+        if (membre->IsInCombat())
+        {
+            ++enCombat;
+            continue;
+        }
+
+        membre->SetFullHealth();
+
+        if (membre->getPowerType() == POWER_MANA)
+            membre->SetPower(POWER_MANA, membre->GetMaxPower(POWER_MANA));
+
+        // Debout. La nourriture et la boisson s'interrompent d'elles-memes des
+        // que le personnage se leve, donc il n'y a aucune aura a retirer a la
+        // main - et en retirer par type risquerait d'en emporter d'autres.
+        if (membre->IsSitState())
+            membre->SetStandState(UNIT_STAND_STATE_STAND);
+
+        ++remplis;
+    }
+
+    handler->PSendSysMessage("{} bot(s) remis a plein et releve(s).", remplis);
+
+    // Ce qui n'a PAS ete fait, et pourquoi. Sans ca, un raid qui n'avance
+    // toujours pas laisse chercher du cote du module alors que la reponse est
+    // qu'il reste un mort ou un bot encore accroche a un scarabee.
+    if (enCombat)
+        handler->PSendSysMessage("  {} encore en combat : ils ne sont pas touches.", enCombat);
+    if (morts)
+        handler->PSendSysMessage("  {} mort(s) : c'est la resurrection qui retient le run, pas le repos.", morts);
+    if (joueurs)
+        handler->PSendSysMessage("  {} joueur(s) dans le groupe : jamais touches.", joueurs);
 
     return true;
 }

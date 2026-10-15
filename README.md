@@ -892,6 +892,41 @@ filtres d'un message se termine avant que le suivant soit traité — donc compa
 précédente suffit. Un ensemble de *tout* ce qui a été vu, lui, avalerait un second relevé
 dont l'en-tête serait identique au premier.
 
+## Faire avancer un raid qui se repose
+
+```
+.playerbotsbis avance
+```
+
+Remet à plein la vie et le mana de **tous les bots de ton groupe**, hors combat,
+et les relève. Les joueurs ne sont jamais touchés.
+
+**Pourquoi ça existe.** mod-dungeon-clear tient le raid en place entre deux
+combats tant que chacun n'a pas atteint ses seuils de repos — sa propre
+documentation le dit :
+
+> Bots drink up to this value and **the tank holds the advance until every mana
+> user reaches it**.
+
+Avec quarante bots, c'est le plus lent qui décide pour tout le monde, et après un
+boss ils sont tous à sec. Aucune de ses commandes ne relâche cette attente :
+`.dc skip` met le boss **courant** dans la liste des sautés, ce qui est l'inverse
+de ce qu'on veut.
+
+La seule prise qui reste de l'extérieur, c'est la **condition** elle-même. Dès
+que tout le monde est à plein, la porte s'ouvre et le tank avance.
+
+La commande dit aussi ce qu'elle n'a **pas** fait — les bots encore en combat,
+les morts, les joueurs du groupe. Sans ça, un raid qui n'avance toujours pas
+enverrait chercher du côté du module alors que la réponse est qu'il reste un mort,
+et que c'est la résurrection qui retient le run.
+
+**Le vrai réglage, si l'attente est systématique**, est ailleurs : `.dc config`,
+les lignes `RestHealthPct` et `RestManaPct`. Un `*` devant veut dire que l'addon
+les force (souvent à 100) alors que le fichier conf dit 0 — et 0 signifie
+« hériter des seuils de playerbots », qui s'arrêtent bien avant le plein. La
+commande ci-dessus est un coup de pouce ponctuel, pas un remplacement.
+
 ## Libérer les verrous d'instance des bots
 
 ```

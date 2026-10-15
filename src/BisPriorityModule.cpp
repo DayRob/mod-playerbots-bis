@@ -131,6 +131,7 @@ public:
             {"missing", HandleBisMissingCommand, SEC_GAMEMASTER, Console::No},
             {"libere",  HandleBisUnbindCommand,  SEC_GAMEMASTER, Console::No},
             {"equipe",  HandleBisEquipCommand,   SEC_GAMEMASTER, Console::No},
+            {"avance",  HandleBisAdvanceCommand, SEC_GAMEMASTER, Console::No},
         };
 
         static ChatCommandTable commandTable = {
@@ -186,6 +187,13 @@ public:
     static bool HandleBisMissingCommand(ChatHandler* handler, char const* args)
     {
         return BisReport::HandleMissing(handler, args);
+    }
+
+    // Relache l'attente de repos de mod-dungeon-clear en supprimant sa cause :
+    // des que les bots sont a plein, sa porte s'ouvre et le tank avance.
+    static bool HandleBisAdvanceCommand(ChatHandler* handler, char const* args)
+    {
+        return BisReport::HandleAdvance(handler, args);
     }
 
     // Frees the BOTS' instance locks so they follow their leader's copy. Never
