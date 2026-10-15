@@ -189,3 +189,24 @@ bool Aq40PrePullTrigger::IsActive()
     // plus rien a tenir, et le pull part alors tout seul.
     return true;
 }
+
+bool Aq40PullTogetherTrigger::IsActive()
+{
+    if (!bot->IsAlive() || bot->IsInCombat())
+        return false;
+
+    // Deja parti : le pull appartient au passe, les regles de combat prennent
+    // le relais.
+    if (RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // Seuls les deux tanks de postes pullent. Le tank des bestioles et tout le
+    // reste du raid attendent que ca commence.
+    if (RaidAq40Utils::TankIndex(bot) > 1)
+        return false;
+
+    // ET SEULEMENT QUAND TOUT LE MONDE EST EN PLACE. C'est toute la raison
+    // d'etre de ce declencheur : les deux tanks le voient devenir vrai au MEME
+    // tick, donc ils partent ensemble, chacun sur son Empereur.
+    return RaidAq40Utils::AllTanksPosted(bot);
+}

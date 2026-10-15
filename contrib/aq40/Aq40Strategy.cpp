@@ -38,6 +38,15 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     // Le troisieme tank prend les bestioles du milieu. Elles se reveillent une
     // par une, toutes les quelques secondes, et vont vers les soigneurs - c'est
     // le soin lui-meme qui leur donne la menace.
+    // LE PULL, ET IL APPARTIENT AUX DEUX TANKS ENSEMBLE. Le script du coeur
+    // envoie le second Empereur sur celui qui a engage le premier, donc un pull
+    // par un seul tank fait converger les deux boss sur lui. Le declencheur
+    // devient vrai au meme tick pour les deux, puisqu'il ne regarde qu'une
+    // chose : les postes sont-ils tous tenus.
+    triggers.push_back(
+        new TriggerNode("aq40 ready to pull",
+            { NextAction("aq40 pull together", ACTION_RAID + 6.0f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 not in place yet",
             { NextAction("aq40 take your station", ACTION_RAID + 5.0f) }));

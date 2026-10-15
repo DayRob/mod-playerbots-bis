@@ -315,3 +315,33 @@ bool Aq40TakeStationAction::Execute(Event /*event*/)
 
     return true;
 }
+
+bool Aq40PullTogetherAction::Execute(Event /*event*/)
+{
+    Unit* mien = RaidAq40Utils::GetTwinForTank(bot);
+    if (!mien || !mien->IsAlive())
+        return false;
+
+    // On marche dessus. Les deux tanks font ce trajet en meme temps, chacun
+    // vers le sien, puisque leur declencheur est devenu vrai au meme tick.
+    float const distance = bot->GetExactDist2d(mien);
+    if (distance > TANK_GRAB_RANGE)
+        return MoveTo(bot->GetMapId(), mien->GetPositionX(), mien->GetPositionY(), mien->GetPositionZ(),
+                      false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+
+    // LA PROVOCATION EST LE SEUL MOYEN SUR VEK'LOR. Il est immunise a tout ce
+    // qu'un tank frappe, donc aucun coup ne lui donnera jamais de menace. Sans
+    // elle, l'AttackStart que le script declenche sur lui l'envoie vers le tank
+    // qui a engage Vek'nilash, et les deux Empereurs se rejoignent.
+    //
+    // Apres le pull il ne le provoque plus : le garder demanderait une
+    // provocation toutes les huit secondes pour un boss que les lanceurs de
+    // sorts tiennent tres bien, et le tank doit retourner a son poste.
+    if (mien->GetEntry() == NPC_VEKLOR && Provoque(botAI, mien))
+        return true;
+
+    if (AI_VALUE(Unit*, "current target") != mien)
+        return Attack(mien);
+
+    return false;
+}

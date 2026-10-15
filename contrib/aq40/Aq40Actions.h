@@ -90,6 +90,29 @@ private:
     uint32 _retientDepuis = 0;
 };
 
+// Part chercher son Empereur, en meme temps que l'autre tank.
+//
+// POURQUOI LES DEUX ENSEMBLE. Le script du coeur envoie le second Empereur sur
+// celui qui a engage le premier :
+//
+//     if (Creature* twin = GetTwin())
+//         if (!twin->IsInCombat())
+//             twin->AI()->AttackStart(who);
+//
+// Un pull par un seul tank fait donc converger les deux boss sur lui - Heal
+// Brother des la premiere seconde. Il faut que le tank de Vek'lor soit deja
+// dessus au moment ou l'autre engage.
+class Aq40PullTogetherAction : public AttackAction
+{
+public:
+    Aq40PullTogetherAction(PlayerbotAI* botAI, std::string const name = "aq40 pull together")
+        : AttackAction(botAI, name)
+    {
+    }
+
+    bool Execute(Event event) override;
+};
+
 // Tient son piedestal, et le jumeau qui va avec.
 //
 // Trois gestes, dans cet ordre : provoquer quand le jumeau confie regarde

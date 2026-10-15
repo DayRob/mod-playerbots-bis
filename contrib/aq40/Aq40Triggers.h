@@ -55,6 +55,15 @@ public:
     bool IsActive() override;
 };
 
+// Tout le monde est a son poste et les Empereurs dorment encore : c'est le
+// moment du pull, et il appartient aux deux tanks de postes.
+class Aq40PullTogetherTrigger : public Trigger
+{
+public:
+    Aq40PullTogetherTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 ready to pull") {}
+    bool IsActive() override;
+};
+
 // Ce bot a un piedestal a tenir et le combat a commence. Toujours vrai pour les
 // rangs 0 et 1 pendant le combat : c'est l'action qui juge s'il y a quelque
 // chose a faire, et elle rend faux des que le poste est tenu - l'IA de classe
