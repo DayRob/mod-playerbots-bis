@@ -242,11 +242,27 @@ bool Aq40TankAction::Execute(Event /*event*/)
     // Et on l'emmene sur la marque, lui derriere : il suit son attaquant au
     // contact. Dos au mur, pour que l'Uppercut ne sorte pas le tank de la
     // position - et donc de la zone de soins.
-    if (bot->GetExactDist2d(marque.GetPositionX(), marque.GetPositionY()) < MARK_TOLERANCE)
-        return false;  // arrive : l'IA de classe reprend la main pour frapper
+    if (bot->GetExactDist2d(marque.GetPositionX(), marque.GetPositionY()) >= MARK_TOLERANCE)
+        return MoveTo(bot->GetMapId(), marque.GetPositionX(), marque.GetPositionY(), marque.GetPositionZ(),
+                      false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
 
-    return MoveTo(bot->GetMapId(), marque.GetPositionX(), marque.GetPositionY(), marque.GetPositionZ(),
-                  false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+    // ── SUR LA MARQUE : ON NE LA QUITTE PLUS, ON LE LAISSE VENIR ──────────
+    //
+    // Rendre faux des qu'on touche la marque rendait la main a l'IA de classe,
+    // qui voit un boss a dix yards et va le chercher. Le tank repartait donc
+    // aussitot, sortait de la marque, la regle le renvoyait dessus, et les deux
+    // oscillaient en derivant - le boss n'arrivait jamais vraiment a l'endroit
+    // voulu. C'est exactement ce qui a ete vu en jeu.
+    //
+    // Tant qu'il n'est pas au contact, on tient la position : Vek'nilash suit
+    // son attaquant, il viendra. Le pas qu'on ne fait pas vers lui, c'est lui
+    // qui le fait vers nous, et la marque reste tenue.
+    if (bot->GetExactDist2d(veknilash) > bot->GetMeleeRange(veknilash))
+        return true;
+
+    // Au contact sur la marque : plus rien a conduire, l'IA de classe frappe -
+    // et elle ne bougera pas, puisqu'elle est deja a portee.
+    return false;
 }
 
 bool Aq40HoldVeklorAction::Execute(Event /*event*/)
