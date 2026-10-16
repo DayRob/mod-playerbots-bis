@@ -255,34 +255,53 @@ bool Aq40HoldVeklorAction::Execute(Event /*event*/)
     if (!veklor || !veklor->IsAlive())
         return false;
 
-    // RECULER PASSE AVANT TOUT. Le guide est net :
+    float const ecart = bot->GetExactDist2d(veklor);
+
+    // ─── TROP PRES : RECULER, ET CA PASSE AVANT TOUT ──────────────────────
     //
     //     "Il est essentiel que le Demoniste soit vigilant et recule
     //      legerement. S'il ne reagit pas assez rapidement, Vek'lor lancera son
     //      Jaillissement des arcanes sur le Demo Tank, perturbant gravement le
     //      positionnement."
     //
-    // Et le script ne le declenche que s'il trouve un joueur a portee de
+    // Le script ne declenche Arcane Burst que s'il trouve un joueur a portee de
     // contact : SelectNearestPlayer(NOMINAL_MELEE_RANGE).
-    if (bot->GetExactDist2d(veklor) < MELEE_STAY_AWAY_FROM_VEKLOR)
+    if (ecart < MELEE_STAY_AWAY_FROM_VEKLOR)
         return FleePosition(veklor->GetPosition(), MELEE_STAY_AWAY_FROM_VEKLOR, 1000);
 
-    // Sa cible, toujours : c'est par les degats qu'il le tient, et c'est sa
-    // position a lui qui decide ou Vek'lor se plante - Vek'lor s'arrete des
-    // qu'il est a 45 yards de sa cible et ne bouge plus.
+    // Sa cible, toujours : c'est par les degats qu'il le tient. Immunise a la
+    // provocation, Vek'lor ne connait que ca.
     if (AI_VALUE(Unit*, "current target") != veklor)
         return Attack(veklor);
 
-    // Et il tient sa station, pour que Vek'lor reste ou il est.
-    Position station;
-    if (!RaidAq40Utils::GetVeklorStation(bot, station))
-        return false;
+    // ─── TROP LOIN POUR LANCER : SE RAPPROCHER ────────────────────────────
+    //
+    // C'EST ICI QUE JE ME SUIS TROMPE, et la geometrie est implacable :
+    //
+    //     MoveChase(who, 45.0f, 0)
+    //
+    // Vek'lor s'arrete a QUARANTE-CINQ yards de sa cible et ne bouge plus. Or
+    // un sort de demoniste porte a trente. Un demoniste qui attend sagement sur
+    // une station fixe se retrouve donc a quarante-cinq yards d'un Empereur
+    // qu'il ne peut PAS toucher : pas de degats, pas de menace, pas d'aggro.
+    // Exactement ce qui a ete vu en jeu.
+    //
+    // Et c'est lui qui doit combler, pas Vek'lor : Vek'lor ne recule jamais, il
+    // ne fait que se rapprocher jusqu'a 45. C'est donc le demoniste qui decide
+    // de la distance, et il doit la ramener dans sa portee.
+    if (ecart > PULL_SPELL_RANGE)
+        return MoveTo(bot->GetMapId(), veklor->GetPositionX(), veklor->GetPositionY(),
+                      veklor->GetPositionZ(), false, false, false, false,
+                      MovementPriority::MOVEMENT_COMBAT, true, false);
 
-    if (bot->GetExactDist2d(station.GetPositionX(), station.GetPositionY()) < MARK_TOLERANCE)
-        return false;  // en place : l'IA de classe reprend la main pour lancer
-
-    return MoveTo(bot->GetMapId(), station.GetPositionX(), station.GetPositionY(), station.GetPositionZ(),
-                  false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+    // ─── DANS LA BANDE : ON NE BOUGE PLUS ─────────────────────────────────
+    //
+    // Entre 15 et 28 yards, il peut lancer sans reveiller Jaillissement des
+    // arcanes. On rend la main a l'IA de classe, qui fait ce qu'elle sait faire
+    // - et comme le demoniste ne bouge plus, Vek'lor ne bouge plus non plus.
+    // C'est sa position a lui qui ancre l'Empereur, pas une station ecrite
+    // d'avance.
+    return false;
 }
 
 bool Aq40BugTankAction::Execute(Event /*event*/)
