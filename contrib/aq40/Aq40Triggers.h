@@ -85,6 +85,19 @@ public:
     bool IsActive() override;
 
 private:
+    // CE BOT EST PARTI, ET IL FINIT SON TRAJET.
+    //
+    // Sans ce verrou, le premier coup porte par n'importe quel pulleur eteint
+    // la regle pour tous les autres : le script envoie le second Empereur sur
+    // celui qui a engage le premier, donc les deux passent "engages" au MEME
+    // instant, alors que le tank d'en face a encore soixante yards a parcourir.
+    // Il s'arretait la ou il en etait. Vu en jeu : le demoniste pulle, le
+    // guerrier qui faisait le chemin en parallele se fige.
+    //
+    // Il ne se releve qu'au combat - celui de CE bot - ou si son Empereur
+    // disparait.
+    bool _parti = false;
+
     // DEPUIS QUAND CE PULLEUR EST-IL PRET. Sans cette sortie, un seul tank qui
     // n'arrive pas a son poste - bloque, assis, mort, ou simplement en
     // surnombre sur un point deja occupe - gele le raid pour toujours : la

@@ -86,10 +86,23 @@ bool Aq40TakeStationTrigger::IsActive()
 bool Aq40PullTogetherTrigger::IsActive()
 {
     if (!bot->IsAlive() || bot->IsInCombat())
+    {
+        _parti = false;
         return false;
+    }
 
-    // Deja parti : le pull appartient au passe.
-    if (RaidAq40Utils::AreTwinsEngaged(bot))
+    // PARTI, DONC ON FINIT. Le script envoie le second Empereur sur celui qui a
+    // engage le premier -
+    //
+    //     if (Creature* twin = GetTwin())
+    //         if (!twin->IsInCombat())
+    //             twin->AI()->AttackStart(who);
+    //
+    // - donc les deux passent "engages" au MEME instant, des le premier sort du
+    // demoniste. Couper la regle la-dessus figeait sur place tous ceux qui
+    // marchaient encore, et c'est exactement ce qu'on voyait : le demoniste
+    // pulle, le guerrier d'en face s'arrete au milieu de son chemin.
+    if (!_parti && RaidAq40Utils::AreTwinsEngaged(bot))
         return false;
 
     // QUI PULLE : les tanks, et celui qui tient Vek'lor.
@@ -105,13 +118,23 @@ bool Aq40PullTogetherTrigger::IsActive()
     // tank de Vek'nilash et les deux Empereurs se rejoignent avant le premier
     // coup. Et aucun tank ne peut l'en empecher : il est immunise au physique
     // comme a la provocation.
-    if (!RaidAq40Utils::IsVeknilashTank(bot) && !RaidAq40Utils::IsVeklorHolder(bot))
+    //
+    // ET UN SEUL TANK Y VA : celui du cote ou Vek'nilash se trouve. L'autre
+    // garde son bout de salle - il n'a rien a faire a l'autre bout, et il doit
+    // etre le plus proche quand l'echange lui amenera l'Empereur dans trente
+    // secondes.
+    bool const pulleur = RaidAq40Utils::IsVeklorHolder(bot) ||
+                         (RaidAq40Utils::IsVeknilashTank(bot) && RaidAq40Utils::IsVeknilashOnMySide(bot));
+    if (!pulleur)
         return false;
 
     // ET SEULEMENT QUAND TOUT LE MONDE EST EN PLACE. Les partants voient cette
     // condition devenir vraie au MEME tick, donc ils s'elancent ensemble.
-    if (RaidAq40Utils::AllTanksPosted(bot))
+    if (_parti || RaidAq40Utils::AllTanksPosted(bot))
+    {
+        _parti = true;
         return true;
+    }
 
     // MAIS L'ATTENTE A UNE FIN. Ce pulleur est a son poste et attend les
     // autres; si au bout de vingt secondes la condition n'est toujours pas
@@ -130,7 +153,11 @@ bool Aq40PullTogetherTrigger::IsActive()
     if (!_pretDepuis)
         _pretDepuis = maintenant;
 
-    return getMSTimeDiff(_pretDepuis, maintenant) > PREPULL_HOLD_MAX_MS;
+    if (getMSTimeDiff(_pretDepuis, maintenant) <= PREPULL_HOLD_MAX_MS)
+        return false;
+
+    _parti = true;
+    return true;
 }
 
 bool Aq40TankTrigger::IsActive()
