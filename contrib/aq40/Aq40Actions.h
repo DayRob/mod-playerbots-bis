@@ -132,16 +132,23 @@ public:
     bool Execute(Event event) override;
 };
 
-// NE PAS FRAPPER tant que l'Empereur n'est pas pose, et lacher la cible qu'on
-// avait deja prise.
+// NE PAS FRAPPER tant que l'Empereur n'est pas pose - ET EN PROFITER POUR
+// CHANGER DE COTE.
 //
-// Lacher ne suffirait pas : l'IA de classe en reprendrait une au tick suivant.
-// L'action rend donc VRAI, ce qui arrete la file au-dessus des regles
+// Lacher la cible ne suffirait pas : l'IA de classe en reprendrait une au tick
+// suivant. L'action rend donc VRAI, ce qui arrete la file au-dessus des regles
 // d'attaque - c'est ce "vrai" qui retient le raid, pas le lacher lui-meme.
-class Aq40HoldFireAction : public AttackAction
+//
+// Mais retenir ses coups ne veut pas dire rester plante. La teleportation
+// echange les deux Empereurs : les corps-a-corps se retrouvent du cote de
+// Vek'lor, qu'ils ne peuvent pas blesser, et les lanceurs de sorts du cote de
+// Vek'nilash, dont ils prennent les Uppercuts. Le temps que les tanks
+// replacent les boss est exactement celui qu'il faut au raid pour traverser,
+// et c'est ce que fait un vrai raid : on ne tape pas, on se deplace.
+class Aq40HoldFireAction : public MovementAction
 {
 public:
-    Aq40HoldFireAction(PlayerbotAI* botAI) : AttackAction(botAI, "aq40 hold your fire") {}
+    Aq40HoldFireAction(PlayerbotAI* botAI) : MovementAction(botAI, "aq40 hold your fire") {}
     bool Execute(Event event) override;
 };
 

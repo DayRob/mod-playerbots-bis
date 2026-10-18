@@ -373,10 +373,31 @@ bool Aq40HoldFireAction::Execute(Event /*event*/)
         bot->AttackStop();
     }
 
-    // ET ON REND VRAI, MEME SI ON N'A RIEN LACHE. C'est ce "vrai" qui retient
-    // le raid : il arrete la file au-dessus des regles d'attaque, donc l'IA de
-    // classe ne reprend pas de cible au tick suivant. Rendre faux quand il n'y
-    // avait rien a lacher rouvrirait le feu a chaque tick.
+    // ── ET ON CHANGE DE COTE PENDANT CE TEMPS ─────────────────────────────
+    //
+    // Retenir ses coups ne veut pas dire rester plante. La teleportation
+    // echange les deux Empereurs : apres elle, les corps-a-corps se retrouvent
+    // du cote de Vek'lor - immunise au physique, et son Jaillissement des
+    // arcanes les repousse - et les lanceurs de sorts du cote de Vek'nilash,
+    // dont ils prennent les Uppercuts. Les deux groupes doivent traverser.
+    //
+    // Le temps que les tanks replacent les boss est exactement celui qu'il faut
+    // pour le faire, et c'est ce que fait un vrai raid : on ne tape pas, on se
+    // deplace. La destination se lit sur la position de l'Empereur qu'on peut
+    // blesser, donc elle bascule d'elle-meme a chaque echange - il n'y a rien a
+    // memoriser et rien a remettre a zero.
+    Position place;
+    if (RaidAq40Utils::GetPrePullStation(bot, place) &&
+        bot->GetExactDist2d(place.GetPositionX(), place.GetPositionY()) >= MARK_TOLERANCE)
+    {
+        MoveTo(bot->GetMapId(), place.GetPositionX(), place.GetPositionY(), place.GetPositionZ(),
+               false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+    }
+
+    // ET ON REND VRAI, MEME SI ON N'A NI LACHE NI BOUGE. C'est ce "vrai" qui
+    // retient le raid : il arrete la file au-dessus des regles d'attaque, donc
+    // l'IA de classe ne reprend pas de cible au tick suivant. Rendre faux
+    // rouvrirait le feu des qu'il n'y a rien d'autre a faire.
     return true;
 }
 
