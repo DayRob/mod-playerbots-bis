@@ -146,7 +146,7 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     //    freres - donc le combat - est perdu. Les soigneurs n'en sont pas.
     triggers.push_back(
         new TriggerNode("aq40 twin not placed yet",
-            { NextAction("aq40 hold your fire", ACTION_RAID + 1.0f) }));
+            { NextAction("aq40 hold your fire", ACTION_RAID + 2.2f) }));
 
     triggers.push_back(
         new TriggerNode("aq40 twins wrong target",

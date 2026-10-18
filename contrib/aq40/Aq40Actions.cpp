@@ -365,13 +365,15 @@ bool Aq40BugTankAction::Execute(Event /*event*/)
 
 bool Aq40HoldFireAction::Execute(Event /*event*/)
 {
-    // On lache ce qu'on avait pris, s'il y avait quelque chose.
-    if (AI_VALUE(Unit*, "current target"))
-    {
-        context->GetValue<Unit*>("current target")->Set(nullptr);
-        bot->SetTarget();
-        bot->AttackStop();
-    }
+    // ON ARRETE DE FRAPPER, ON NE LACHE PAS LA CIBLE.
+    //
+    // Je remettais "current target" a nullptr et j'appelais SetTarget() a
+    // CHAQUE tick. L'IA de classe reprenait une cible au tick suivant, je la
+    // relachais, elle la reprenait : le bot passait son temps a se retourner
+    // sans avancer ni frapper - "bloque sur place a tourner la camera", vu en
+    // jeu. Garder la cible ne coute rien : la menace vient des degats, et le
+    // "vrai" rendu plus bas suffit a les empecher.
+    bot->AttackStop();
 
     // ── ET ON CHANGE DE COTE PENDANT CE TEMPS ─────────────────────────────
     //
@@ -394,10 +396,10 @@ bool Aq40HoldFireAction::Execute(Event /*event*/)
                false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
     }
 
-    // ET ON REND VRAI, MEME SI ON N'A NI LACHE NI BOUGE. C'est ce "vrai" qui
-    // retient le raid : il arrete la file au-dessus des regles d'attaque, donc
-    // l'IA de classe ne reprend pas de cible au tick suivant. Rendre faux
-    // rouvrirait le feu des qu'il n'y a rien d'autre a faire.
+    // ET ON REND VRAI, MEME SI ON N'A PAS BOUGE. C'est ce "vrai" qui retient le
+    // raid : il arrete la file au-dessus des regles d'attaque, donc aucun sort
+    // ni aucun coup ne part. Rendre faux rouvrirait le feu des qu'il n'y a plus
+    // rien d'autre a faire.
     return true;
 }
 
