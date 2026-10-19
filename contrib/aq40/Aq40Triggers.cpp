@@ -327,6 +327,26 @@ bool Aq40WrongSideTrigger::IsActive()
     return bot->GetExactDist2d(interdit) + WRONG_SIDE_MARGIN < bot->GetExactDist2d(assigne);
 }
 
+bool Aq40HealerPostTrigger::IsActive()
+{
+    if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // Un Empereur sur le dos, une bestiole aux mollets : ces deux-la passent
+    // avant, et ils ont leur propre consigne.
+    if (RaidAq40Utils::GetTwinOnMe(bot) || RaidAq40Utils::IsBugOnMe(bot))
+        return false;
+
+    if (RaidAq40Utils::HealerIndex(bot) == TANK_INDEX_NONE)
+        return false;
+
+    Position poste;
+    if (!RaidAq40Utils::GetPrePullStation(bot, poste))
+        return false;
+
+    return bot->GetExactDist2d(poste.GetPositionX(), poste.GetPositionY()) > HEALER_POST_TOLERANCE;
+}
+
 bool Aq40KeepAwayTrigger::IsActive()
 {
     // Un Empereur sur le dos passe avant tout le reste : ce bot le tient, il

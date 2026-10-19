@@ -198,6 +198,17 @@ public:
     bool Execute(Event event) override;
 };
 
+// REJOINT SON POSTE DE SOIN.
+//
+// Rend faux une fois arrive, pour rendre la main a l'IA de soin : ce bot est la
+// pour soigner, pas pour tenir une position.
+class Aq40TakeHealPostAction : public MovementAction
+{
+public:
+    Aq40TakeHealPostAction(PlayerbotAI* botAI) : MovementAction(botAI, "aq40 take your heal post") {}
+    bool Execute(Event event) override;
+};
+
 // S'ecarte du jumeau qu'il ne peut pas blesser.
 class Aq40KeepAwayAction : public MovementAction
 {

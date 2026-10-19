@@ -241,6 +241,24 @@ public:
     bool IsActive() override;
 };
 
+// UN SOIGNEUR LOIN DE SON POSTE, pendant le combat.
+//
+// Il en a un, maintenant : gauche, droite ou milieu. Et il n'en bouge pas de
+// tout le combat - la teleportation echange les Empereurs, pas les marques,
+// donc celui de gauche soigne qui tient la gauche, quel que soit le boss qui
+// s'y trouve a cet instant.
+//
+// HUIT YARDS DE JEU, ET UNE PERTINENCE BASSE. Se replacer, c'est ne pas
+// soigner : cette regle siege VOLONTAIREMENT sous les soins moyens et
+// critiques, pour qu'un soigneur ne lache jamais un tank a terre pour aller
+// corriger sa position.
+class Aq40HealerPostTrigger : public Trigger
+{
+public:
+    Aq40HealerPostTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 healer off his post") {}
+    bool IsActive() override;
+};
+
 // Ce bot est colle au jumeau qu'il ne peut pas blesser. Pour un physique c'est
 // Jaillissement des arcanes qui le repousse; pour un lanceur de sorts c'est
 // l'Uppercut de Vek'nilash, qui frappe au hasard parmi ce qui est a sa portee.

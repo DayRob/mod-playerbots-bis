@@ -28,6 +28,7 @@ public:
         creators["aq40 dismiss your pet"] = &RaidAq40ActionContext::dismiss_your_pet;
         creators["aq40 go where he will be"] = &RaidAq40ActionContext::go_where_he_will_be;
         creators["aq40 cross the room"] = &RaidAq40ActionContext::cross_the_room;
+        creators["aq40 take your heal post"] = &RaidAq40ActionContext::take_your_heal_post;
         creators["aq40 keep away"] = &RaidAq40ActionContext::keep_away;
         creators["aq40 attack my twin"] = &RaidAq40ActionContext::attack_my_twin;
     }
@@ -45,6 +46,7 @@ private:
     static Action* dismiss_your_pet(PlayerbotAI* botAI) { return new Aq40DismissPetAction(botAI); }
     static Action* go_where_he_will_be(PlayerbotAI* botAI) { return new Aq40PreSwapAction(botAI); }
     static Action* cross_the_room(PlayerbotAI* botAI) { return new Aq40CrossOverAction(botAI); }
+    static Action* take_your_heal_post(PlayerbotAI* botAI) { return new Aq40TakeHealPostAction(botAI); }
     static Action* keep_away(PlayerbotAI* botAI) { return new Aq40KeepAwayAction(botAI); }
     static Action* attack_my_twin(PlayerbotAI* botAI) { return new Aq40AttackMyTwinAction(botAI); }
 };

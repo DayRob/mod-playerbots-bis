@@ -27,6 +27,7 @@ public:
         creators["aq40 hunter pet is out"] = &RaidAq40TriggerContext::hunter_pet_out;
         creators["aq40 teleport is coming"] = &RaidAq40TriggerContext::teleport_is_coming;
         creators["aq40 on the wrong side"] = &RaidAq40TriggerContext::on_the_wrong_side;
+        creators["aq40 healer off his post"] = &RaidAq40TriggerContext::healer_off_post;
         creators["aq40 too close to the wrong twin"] = &RaidAq40TriggerContext::too_close;
         creators["aq40 twins wrong target"] = &RaidAq40TriggerContext::wrong_target;
     }
@@ -44,6 +45,7 @@ private:
     static Trigger* hunter_pet_out(PlayerbotAI* botAI) { return new Aq40HunterPetTrigger(botAI); }
     static Trigger* teleport_is_coming(PlayerbotAI* botAI) { return new Aq40AnticipateTrigger(botAI); }
     static Trigger* on_the_wrong_side(PlayerbotAI* botAI) { return new Aq40WrongSideTrigger(botAI); }
+    static Trigger* healer_off_post(PlayerbotAI* botAI) { return new Aq40HealerPostTrigger(botAI); }
     static Trigger* too_close(PlayerbotAI* botAI) { return new Aq40KeepAwayTrigger(botAI); }
     static Trigger* wrong_target(PlayerbotAI* botAI) { return new Aq40WrongTargetTrigger(botAI); }
 };

@@ -268,6 +268,24 @@ constexpr uint32 LEASH_COOLDOWN_MS = 3000;
 constexpr uint32 TELEPORT_MIN_MS = 30000;
 constexpr uint32 TELEPORT_LEAD_MS = 16000;
 
+// ─── LES TROIS POSTES DE SOIN ────────────────────────────────────────────────
+//
+// Un soigneur par bout de salle, et un pour le milieu. Celui de gauche soigne
+// qui tient la tete de mort de gauche, quel que soit l'Empereur qui s'y trouve
+// a cet instant - et il n'a donc JAMAIS a traverser. C'est tout l'interet d'un
+// poste fixe : la teleportation echange les boss, pas les marques.
+//
+// A trente yards de sa marque, vers le milieu. Deux contraintes le fixent : il
+// faut rester au-dela des vingt-cinq yards qui l'ecartent des Empereurs - sinon
+// l'echange lui offrirait ses 2000 de menace - et en deca des quarante yards
+// d'un sort de soin, pour atteindre le tank qui, lui, est SUR la marque.
+constexpr float HEALER_POST_OFFSET = 30.0f;
+
+// Au-dela de cet ecart, un soigneur rejoint son poste. Large a dessein : se
+// replacer, c'est ne pas soigner, et un soigneur qui corrige trois yards en
+// permanence ne sert plus a rien.
+constexpr float HEALER_POST_TOLERANCE = 8.0f;
+
 // Pas de poste : ni tank, ni en groupe.
 constexpr uint8 TANK_INDEX_NONE = 255;
 
@@ -325,6 +343,14 @@ public:
     // celui qui tourne avec la strategie de tank. C'est aussi la reponse qui ne
     // coute rien, et elle est demandee pour chaque membre du groupe.
     static uint8 TankIndex(Player* bot);
+
+    // Le rang de ce bot parmi les SOIGNEURS bots du groupe, meme principe que
+    // TankIndex : par ordre de GUID, un ordre qui ne change jamais.
+    //
+    // Rang 0 a gauche, rang 1 a droite, rang 2 au milieu avec le tank des
+    // bestioles. Au-dela, pas de poste : ils suivent le raid et soignent ou ils
+    // peuvent, ce qui est deja ce qu'un raid fait de ses soigneurs en surnombre.
+    static uint8 HealerIndex(Player* bot);
 
     // Tous les tanks sauf le rang 2.
     static bool IsVeknilashTank(Player* bot);

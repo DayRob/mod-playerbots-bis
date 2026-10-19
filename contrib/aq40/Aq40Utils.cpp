@@ -153,6 +153,34 @@ uint8 RaidAq40Utils::TankIndex(Player* bot)
     return rang;
 }
 
+uint8 RaidAq40Utils::HealerIndex(Player* bot)
+{
+    if (!bot || !bot->IsAlive() || !GET_PLAYERBOT_AI(bot) || !PlayerbotAI::IsHeal(bot, true))
+        return TANK_INDEX_NONE;
+
+    Group* groupe = bot->GetGroup();
+    if (!groupe)
+        return TANK_INDEX_NONE;
+
+    uint8 rang = 0;
+
+    for (GroupReference* ref = groupe->GetFirstMember(); ref; ref = ref->next())
+    {
+        Player* membre = ref->GetSource();
+        if (!membre || membre == bot || !membre->IsAlive())
+            continue;
+
+        // Un humain n'est jamais range : rien ici ne le ferait bouger.
+        if (!GET_PLAYERBOT_AI(membre) || !PlayerbotAI::IsHeal(membre, true))
+            continue;
+
+        if (membre->GetGUID().GetCounter() < bot->GetGUID().GetCounter())
+            ++rang;
+    }
+
+    return rang;
+}
+
 bool RaidAq40Utils::IsVeknilashTank(Player* bot)
 {
     uint8 const rang = TankIndex(bot);
@@ -420,9 +448,52 @@ bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
     if (IsVeklorHolder(bot))
         return GetVeklorStation(bot, out);
 
-    // Les soigneurs ne sont pas places : ils suivent le raid et soignent.
+    // ── LES SOIGNEURS : UN PAR BOUT DE SALLE, UN AU MILIEU ────────────────
+    //
+    // Un poste FIXE, comme les tanks, et pour la meme raison : celui de gauche
+    // soigne qui tient la tete de mort de gauche, quel que soit l'Empereur qui
+    // s'y trouve. La teleportation echange les boss, pas les marques, donc il
+    // n'a jamais a traverser.
     if (!IsSpellDamageDealer(bot) && !IsPhysicalDamageDealer(bot))
-        return false;
+    {
+        uint8 const soigneur = HealerIndex(bot);
+
+        // Le milieu, avec le tank des bestioles.
+        if (soigneur == 2)
+        {
+            GetMiddle(out);
+            return true;
+        }
+
+        // Au-dela du troisieme, pas de poste : ils suivent le raid et soignent
+        // ou ils peuvent, ce qu'un raid fait deja de ses soigneurs en surnombre.
+        if (soigneur != 0 && soigneur != 1)
+            return false;
+
+        Position marqueA;
+        Position marqueB;
+        GetMarks(marqueA, marqueB);
+        Position const& marque = (soigneur == 0) ? marqueA : marqueB;
+
+        // Trente yards vers le milieu : au-dela des vingt-cinq qui l'ecartent
+        // des Empereurs, en deca des quarante d'un sort de soin.
+        Position milieu;
+        GetMiddle(milieu);
+
+        float dX = milieu.GetPositionX() - marque.GetPositionX();
+        float dY = milieu.GetPositionY() - marque.GetPositionY();
+        float const axe = std::sqrt(dX * dX + dY * dY);
+        if (axe < 1.0f)
+        {
+            out = marque;
+            return true;
+        }
+
+        out.Relocate(marque.GetPositionX() + HEALER_POST_OFFSET * (dX / axe),
+                     marque.GetPositionY() + HEALER_POST_OFFSET * (dY / axe),
+                     marque.GetPositionZ());
+        return true;
+    }
 
     // CHACUN DU COTE DE CELUI QU'IL PEUT BLESSER, et c'est la position de cet
     // Empereur-la qui le dit. Les corps-a-corps vont donc du cote de

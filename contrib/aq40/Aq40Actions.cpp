@@ -490,6 +490,19 @@ bool Aq40CrossOverAction::Execute(Event /*event*/)
     return true;
 }
 
+bool Aq40TakeHealPostAction::Execute(Event /*event*/)
+{
+    Position poste;
+    if (!RaidAq40Utils::GetPrePullStation(bot, poste))
+        return false;
+
+    if (bot->GetExactDist2d(poste.GetPositionX(), poste.GetPositionY()) <= HEALER_POST_TOLERANCE)
+        return false;  // en place : l'IA de soin reprend la main
+
+    return MoveTo(bot->GetMapId(), poste.GetPositionX(), poste.GetPositionY(), poste.GetPositionZ(),
+                  false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+}
+
 bool Aq40KeepAwayAction::Execute(Event /*event*/)
 {
     Unit* interdit = RaidAq40Utils::GetForbiddenTwin(bot);

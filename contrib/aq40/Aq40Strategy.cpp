@@ -176,6 +176,20 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new TriggerNode("aq40 twin not placed yet",
             { NextAction("aq40 hold your fire", ACTION_RAID + 2.2f) }));
 
+    // 10. LES SOIGNEURS ONT AUSSI TROIS POSTES : gauche, droite, milieu. Celui
+    //     de gauche soigne qui tient la tete de mort de gauche, quel que soit
+    //     l'Empereur qui s'y trouve - la teleportation echange les boss, pas
+    //     les marques, donc il ne traverse jamais.
+    //
+    //     SOUS LES SOINS, ET C'EST VOLONTAIRE. ACTION_NORMAL + 2 passe au-dessus
+    //     des soins d'appoint et du remplissage, mais reste SOUS les soins
+    //     moyens (20) et critiques (30) : un soigneur ne lachera jamais un tank
+    //     a terre pour aller corriger sa position. Se replacer, c'est ne pas
+    //     soigner.
+    triggers.push_back(
+        new TriggerNode("aq40 healer off his post",
+            { NextAction("aq40 take your heal post", ACTION_NORMAL + 2.0f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 twins wrong target",
             { NextAction("aq40 attack my twin", ACTION_RAID) }));
