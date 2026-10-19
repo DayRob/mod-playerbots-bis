@@ -135,7 +135,20 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new TriggerNode("aq40 hunter pet is out",
             { NextAction("aq40 dismiss your pet", ACTION_RAID + 9.0f) }));
 
-    // 8. DU MAUVAIS COTE : ON TRAVERSE, ET ON NE FAIT QUE CA. La teleportation
+    // 8. LA TELEPORTATION APPROCHE : LES ATTAQUANTS PARTENT AVANT. Elle tombe
+    //    au plus tot trente secondes apres la precedente - c'est le plancher du
+    //    script, pas une estimation - et traverser la salle prend seize
+    //    secondes, mesurees en jeu. Partir seize secondes avant le plancher,
+    //    c'est arriver pile a la plus precoce des echeances possibles.
+    //
+    //    Au-dessus de la traversee de rattrapage : quand les deux sont vraies,
+    //    c'est que le bot est en retard d'un echange ET qu'il faut deja repartir
+    //    pour le suivant. La destination d'arrivee est la meme.
+    triggers.push_back(
+        new TriggerNode("aq40 teleport is coming",
+            { NextAction("aq40 go where he will be", ACTION_RAID + 2.45f) }));
+
+    // 9. DU MAUVAIS COTE : ON TRAVERSE, ET ON NE FAIT QUE CA. La teleportation
     //    echange les Empereurs, donc elle echange les cotes. Cette regle est
     //    volontairement au-dessus de l'ecartement et de la retenue des degats :
     //    portee par elles, la traversee se faisait couper en chemin - la

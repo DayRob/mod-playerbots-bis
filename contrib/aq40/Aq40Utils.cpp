@@ -356,45 +356,27 @@ bool RaidAq40Utils::GetVeklorStation(Player* bot, Position& out)
     return true;
 }
 
-bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
+bool RaidAq40Utils::GetOtherMark(Position const& marque, Position& out)
 {
-    if (!bot)
-        return false;
+    Position marqueA;
+    Position marqueB;
+    GetMarks(marqueA, marqueB);
 
-    // Les trois tanks d'abord.
-    if (IsBugTank(bot))
-    {
-        GetMiddle(out);
-        return true;
-    }
+    // Laquelle des deux on m'a donnee ? Elles sont a 133 yards l'une de
+    // l'autre, donc la comparaison n'est jamais serree.
+    out = (EcartPlan(marque, marqueA) <= EcartPlan(marque, marqueB)) ? marqueB : marqueA;
+    return true;
+}
 
-    if (IsVeknilashTank(bot))
-        return GetMyMark(bot, out);
-
-    // Puis celui qui tient Vek'lor.
-    if (IsVeklorHolder(bot))
-        return GetVeklorStation(bot, out);
-
-    // Les soigneurs ne sont pas places : ils suivent le raid et soignent.
-    bool const sorts = IsSpellDamageDealer(bot);
+bool RaidAq40Utils::GetStationAt(Player* bot, Position const& marque, Position& out)
+{
     bool const physique = IsPhysicalDamageDealer(bot);
-    if (!sorts && !physique)
-        return false;
 
-    // CHACUN DU COTE DE CELUI QU'IL PEUT BLESSER, et c'est la position de cet
-    // Empereur-la qui le dit. Les corps-a-corps vont donc du cote de
-    // Vek'nilash, les lanceurs de sorts du cote de Vek'lor - sans qu'une
-    // lettre ecrite ici ait son mot a dire.
-    Unit* const assigne = GetAssignedTwin(bot);
-    Position marque;
-    if (!assigne || !GetMarkNear(assigne, marque))
-        return false;
-
-    // Puis un decalage VERS LE MILIEU pour les corps-a-corps, qui ne doivent
-    // pas se tenir sur leur tank - les lanceurs de sorts sont deja en retrait -
-    // et un ecartement lateral propre a chaque bot, pour qu'ils ne se marchent
-    // pas dessus : la perpendiculaire, graduee sur son GUID, donc stable d'un
-    // tick a l'autre puisqu'un GUID ne change jamais.
+    // Un decalage VERS LE MILIEU pour les corps-a-corps, qui ne doivent pas se
+    // tenir sur leur tank - les lanceurs de sorts sont deja en retrait - et un
+    // ecartement lateral propre a chaque bot, pour qu'ils ne se marchent pas
+    // dessus : la perpendiculaire, graduee sur son GUID, donc stable d'un tick
+    // a l'autre puisqu'un GUID ne change jamais.
     Position milieu;
     GetMiddle(milieu);
 
@@ -418,6 +400,60 @@ bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
                  marque.GetPositionZ());
     return true;
 }
+
+bool RaidAq40Utils::GetPrePullStation(Player* bot, Position& out)
+{
+    if (!bot)
+        return false;
+
+    // Les trois tanks d'abord.
+    if (IsBugTank(bot))
+    {
+        GetMiddle(out);
+        return true;
+    }
+
+    if (IsVeknilashTank(bot))
+        return GetMyMark(bot, out);
+
+    // Puis celui qui tient Vek'lor.
+    if (IsVeklorHolder(bot))
+        return GetVeklorStation(bot, out);
+
+    // Les soigneurs ne sont pas places : ils suivent le raid et soignent.
+    if (!IsSpellDamageDealer(bot) && !IsPhysicalDamageDealer(bot))
+        return false;
+
+    // CHACUN DU COTE DE CELUI QU'IL PEUT BLESSER, et c'est la position de cet
+    // Empereur-la qui le dit. Les corps-a-corps vont donc du cote de
+    // Vek'nilash, les lanceurs de sorts du cote de Vek'lor - sans qu'une
+    // lettre ecrite ici ait son mot a dire.
+    Unit* const assigne = GetAssignedTwin(bot);
+    Position marque;
+    if (!assigne || !GetMarkNear(assigne, marque))
+        return false;
+
+    return GetStationAt(bot, marque, out);
+}
+
+bool RaidAq40Utils::GetSwapStation(Player* bot, Position& out)
+{
+    if (!bot || (!IsSpellDamageDealer(bot) && !IsPhysicalDamageDealer(bot)))
+        return false;
+
+    // LA PLACE QU'ON OCCUPERA APRES LA PROCHAINE TELEPORTATION, et elle se
+    // deduit sans rien deviner : l'echange permute les deux Empereurs, donc
+    // celui qu'on peut blesser sera exactement la ou se tient l'autre.
+    Unit* const assigne = GetAssignedTwin(bot);
+    Position marque;
+    if (!assigne || !GetMarkNear(assigne, marque))
+        return false;
+
+    Position opposee;
+    GetOtherMark(marque, opposee);
+    return GetStationAt(bot, opposee, out);
+}
+
 
 bool RaidAq40Utils::GetTwinMark(Creature* jumeau, Position& out)
 {

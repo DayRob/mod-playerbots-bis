@@ -220,6 +220,38 @@ constexpr float HEALER_STAY_AWAY = 25.0f;
 // fasse pas clignoter la regle d'un tick a l'autre.
 constexpr float WRONG_SIDE_MARGIN = 10.0f;
 
+// ─── LA MINUTERIE DE LA TELEPORTATION ────────────────────────────────────────
+//
+// Elle n'est pas devinee, elle est lue dans le script du coeur :
+//
+//     .Schedule(30s, [this](TaskContext context)
+//     {
+//         DoCastSelf(SPELL_TWIN_TELEPORT_0);
+//         context.Repeat(30s, 40s);
+//     })
+//
+// La PREMIERE tombe a exactement trente secondes; les suivantes entre trente et
+// quarante, au hasard. Trente est donc le PLANCHER, et c'est la seule date sur
+// laquelle on puisse s'appuyer sans se tromper : partir cinq secondes avant
+// elle, c'est partir cinq secondes avant la plus precoce des echeances
+// possibles, jamais apres.
+//
+// DE COMBIEN ON PART EN AVANCE : le temps de la traversee, mesure en jeu -
+// SEIZE secondes pour les 133 yards qui separent les deux marques.
+//
+// Et c'est bien le temps de trajet qu'il faut mettre ici, pas une marge de
+// confort. Une avance de cinq secondes sur un trajet de seize ferait arriver
+// le raid onze secondes APRES l'echange : il aurait paye cinq secondes de
+// degats pour rien. Partir seize secondes avant le plancher, c'est arriver
+// pile a la premiere echeance possible.
+//
+// Le prix est reel et il faut le savoir : les attaquants frappent de la
+// teleportation a T+14, puis traversent. Quatorze secondes de degats par
+// cycle, et jusqu'a dix de plus a attendre sur place quand l'echange tombe
+// tard. C'est le marche, et il se change ici, sur une ligne.
+constexpr uint32 TELEPORT_MIN_MS = 30000;
+constexpr uint32 TELEPORT_LEAD_MS = 16000;
+
 // Pas de poste : ni tank, ni en groupe.
 constexpr uint8 TANK_INDEX_NONE = 255;
 
@@ -363,6 +395,17 @@ public:
     // Ou ce bot doit se tenir AVANT le pull, selon son role. Faux pour les
     // soigneurs, qui ne sont pas places.
     static bool GetPrePullStation(Player* bot, Position& out);
+
+    // OU IL SE TIENDRA APRES LA PROCHAINE TELEPORTATION. Rien a deviner :
+    // l'echange permute les deux Empereurs, donc celui qu'on peut blesser sera
+    // exactement la ou se tient l'autre. Faux pour tous ceux qui ne sont pas un
+    // attaquant - les trois postes gardent leur bout de salle, les soigneurs
+    // suivent le raid.
+    static bool GetSwapStation(Player* bot, Position& out);
+
+    // L'autre des deux marques, et la place calculee sur une marque donnee.
+    static bool GetOtherMark(Position const& marque, Position& out);
+    static bool GetStationAt(Player* bot, Position const& marque, Position& out);
 
     // D'OU CE BOT VA ACCROCHER SON EMPEREUR. Faux pour tous ceux qui ne pullent
     // pas - c'est-a-dire tout le monde sauf les tanks de Vek'nilash et celui

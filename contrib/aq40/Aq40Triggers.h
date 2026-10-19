@@ -178,6 +178,38 @@ public:
     bool IsActive() override;
 };
 
+// LA PROCHAINE TELEPORTATION APPROCHE : ON PART AVANT.
+//
+// Ce n'est pas une devinette. Le script du coeur dit :
+//
+//     .Schedule(30s, [this](TaskContext context)
+//     {
+//         DoCastSelf(SPELL_TWIN_TELEPORT_0);
+//         context.Repeat(30s, 40s);
+//     })
+//
+// La premiere tombe a exactement trente secondes, les suivantes entre trente et
+// quarante. Trente est donc le PLANCHER, et c'est la seule date sur laquelle on
+// puisse s'appuyer sans jamais se tromper dans le mauvais sens : partir seize
+// secondes avant elle - le temps de la traversee, mesure en jeu - c'est arriver
+// pile a la plus precoce des echeances possibles.
+//
+// LE DECLENCHEUR SE SOUVIENT, et c'est tout ce qu'il memorise : la date du
+// dernier echange, reperee a la bascule de Vek'nilash d'une marque a l'autre.
+// Pas besoin de guetter un sort : l'echange, c'est deux Empereurs qui
+// permutent, et ca se lit sur leurs positions.
+class Aq40AnticipateTrigger : public Trigger
+{
+public:
+    Aq40AnticipateTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 teleport is coming") {}
+    bool IsActive() override;
+
+private:
+    bool _arme = false;        // la minuterie a-t-elle demarre
+    bool _coteA = false;       // Vek'nilash etait-il du cote de la marque A
+    uint32 _dernierEchange = 0;
+};
+
 // CE BOT EST DU MAUVAIS COTE DE LA SALLE, et il traverse.
 //
 // Apres chaque teleportation, les corps-a-corps se retrouvent du cote de

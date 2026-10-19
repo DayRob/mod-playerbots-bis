@@ -173,6 +173,18 @@ public:
     bool Execute(Event event) override;
 };
 
+// PART A L'AVANCE VERS LA PLACE QU'ON OCCUPERA APRES LA TELEPORTATION.
+//
+// Rien a deviner sur la destination : l'echange permute les deux Empereurs,
+// donc celui qu'on peut blesser sera exactement la ou se tient l'autre. On va
+// l'y attendre.
+class Aq40PreSwapAction : public MovementAction
+{
+public:
+    Aq40PreSwapAction(PlayerbotAI* botAI) : MovementAction(botAI, "aq40 go where he will be") {}
+    bool Execute(Event event) override;
+};
+
 // TRAVERSE LA SALLE, et ne fait que ca jusqu'a ce que ce soit fini.
 //
 // Pas de cible a reprendre, pas de coup a porter, pas d'ecart a corriger : un

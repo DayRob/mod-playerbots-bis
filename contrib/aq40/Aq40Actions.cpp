@@ -441,6 +441,29 @@ bool Aq40DismissPetAction::Execute(Event /*event*/)
     return true;
 }
 
+bool Aq40PreSwapAction::Execute(Event /*event*/)
+{
+    Position place;
+    if (!RaidAq40Utils::GetSwapStation(bot, place))
+        return false;
+
+    // Tant qu'on marche, on ne frappe pas : la cible est a l'autre bout, et lui
+    // donner de la menace maintenant la donnerait sur un Empereur qu'un tank
+    // s'apprete a reprendre.
+    if (bot->GetExactDist2d(place.GetPositionX(), place.GetPositionY()) >= MARK_TOLERANCE)
+    {
+        bot->AttackStop();
+        MoveTo(bot->GetMapId(), place.GetPositionX(), place.GetPositionY(), place.GetPositionZ(),
+               false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+        return true;
+    }
+
+    // ARRIVE, ET ON ATTEND. On rend vrai pour que rien ne renvoie le bot d'ou
+    // il vient pendant les quelques secondes qui restent - c'est tout l'objet
+    // d'etre parti en avance. Son Empereur va lui tomber dessus tout seul.
+    return true;
+}
+
 bool Aq40CrossOverAction::Execute(Event /*event*/)
 {
     // On ne frappe pas en traversant : ce serait donner de la menace sur un

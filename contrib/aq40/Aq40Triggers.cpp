@@ -209,6 +209,70 @@ bool Aq40DraggingTwinTrigger::IsActive()
     return RaidAq40Utils::GetTwinOnMe(bot) != nullptr;
 }
 
+bool Aq40AnticipateTrigger::IsActive()
+{
+    if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+    {
+        _arme = false;
+        return false;
+    }
+
+    Creature* const veknilash = RaidAq40Utils::GetVeknilash(bot);
+    if (!veknilash || !veknilash->IsAlive())
+        return false;
+
+    // ── LA MINUTERIE, TENUE SUR LA SEULE CHOSE QUI SE VOIE ────────────────
+    //
+    // On ne guette aucun sort : un echange, c'est deux Empereurs qui permutent,
+    // et ca se lit sur leur position. Des que Vek'nilash passe d'une marque a
+    // l'autre, l'echange vient d'avoir lieu et la minuterie repart.
+    Position marqueDeVeknilash;
+    if (!RaidAq40Utils::GetMarkNear(veknilash, marqueDeVeknilash))
+        return false;
+
+    Position marqueA;
+    Position marqueB;
+    RaidAq40Utils::GetMarks(marqueA, marqueB);
+    bool const enA = marqueDeVeknilash.GetPositionX() == marqueA.GetPositionX() &&
+                     marqueDeVeknilash.GetPositionY() == marqueA.GetPositionY();
+
+    uint32 const maintenant = getMSTime();
+    if (!_arme || enA != _coteA)
+    {
+        // Premier tick du combat, ou echange qu'on vient de voir. Dans les deux
+        // cas la prochaine echeance se compte a partir de maintenant : le
+        // script planifie la premiere a trente secondes du debut du combat.
+        _arme = true;
+        _coteA = enA;
+        _dernierEchange = maintenant;
+        return false;
+    }
+
+    // ── QUI PART EN AVANCE ────────────────────────────────────────────────
+    //
+    // Les trois postes gardent leur bout de salle : le tank qui attend doit
+    // etre le plus proche quand l'echange distribue ses 2000 de menace, et
+    // celui qui tient Vek'lor ne le tient que tant qu'il le touche. Les
+    // soigneurs suivent le raid. Restent les attaquants.
+    if (RaidAq40Utils::IsVeknilashTank(bot) || RaidAq40Utils::IsBugTank(bot) ||
+        RaidAq40Utils::IsVeklorHolder(bot))
+        return false;
+
+    if (RaidAq40Utils::GetTwinOnMe(bot) || RaidAq40Utils::IsBugOnMe(bot))
+        return false;
+
+    Position place;
+    if (!RaidAq40Utils::GetSwapStation(bot, place))
+        return false;
+
+    // Arrive : on attend la-bas. La regle reste vraie pour que rien ne renvoie
+    // le bot d'ou il vient entre son arrivee et l'echange.
+    if (TELEPORT_MIN_MS <= TELEPORT_LEAD_MS)
+        return true;
+
+    return getMSTimeDiff(_dernierEchange, maintenant) >= TELEPORT_MIN_MS - TELEPORT_LEAD_MS;
+}
+
 bool Aq40WrongSideTrigger::IsActive()
 {
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
