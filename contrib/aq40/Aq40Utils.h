@@ -293,6 +293,21 @@ constexpr float PRESWAP_STANDOFF = 35.0f;
 constexpr uint32 TELEPORT_MIN_MS = 30000;
 constexpr uint32 TELEPORT_LEAD_MS = 16000;
 
+// ET MOINS D'AVANCE POUR LES ECHANGES SUIVANTS.
+//
+// Le premier echange tombe a EXACTEMENT trente secondes : la date est connue,
+// et seize secondes d'avance y menent pile. Les suivants tombent entre trente
+// et quarante, donc partir aussi tot ne sert qu'a attendre plus longtemps sur
+// place - et attendre, c'est ne pas frapper.
+//
+// Onze secondes, et le chiffre vient du trajet reel : avec le point d'attente a
+// trente-cinq yards de la marque, les attaquants ne parcourent plus 133 yards
+// mais 98. A la vitesse mesuree en jeu - 8,3 yards par seconde, soit les 133
+// yards en seize secondes - cela fait un peu moins de douze secondes. Partir
+// onze secondes avant le plancher les y amene donc juste a temps, et leur rend
+// cinq secondes de degats a chaque cycle.
+constexpr uint32 TELEPORT_LEAD_NEXT_MS = 11000;
+
 // ─── LES TROIS POSTES DE SOIN ────────────────────────────────────────────────
 //
 // Un soigneur par bout de salle, et un pour le milieu. Celui de gauche soigne

@@ -207,6 +207,7 @@ public:
 private:
     bool _arme = false;        // la minuterie a-t-elle demarre
     bool _coteA = false;       // Vek'nilash etait-il du cote de la marque A
+    bool _echangeVu = false;   // en a-t-on deja vu un passer
     uint32 _dernierEchange = 0;
 };
 

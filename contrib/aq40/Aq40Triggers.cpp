@@ -237,6 +237,7 @@ bool Aq40AnticipateTrigger::IsActive()
     if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
     {
         _arme = false;
+        _echangeVu = false;
         return false;
     }
 
@@ -260,12 +261,23 @@ bool Aq40AnticipateTrigger::IsActive()
                      marqueDeVeknilash.GetPositionY() == marqueA.GetPositionY();
 
     uint32 const maintenant = getMSTime();
-    if (!_arme || enA != _coteA)
+    if (!_arme)
     {
-        // Premier tick du combat, ou echange qu'on vient de voir. Dans les deux
-        // cas la prochaine echeance se compte a partir de maintenant : le
-        // script planifie la premiere a trente secondes du debut du combat.
+        // Premier tick du combat. La prochaine echeance se compte a partir de
+        // maintenant : le script planifie la premiere a trente secondes pile.
         _arme = true;
+        _echangeVu = false;
+        _coteA = enA;
+        _dernierEchange = maintenant;
+        return false;
+    }
+
+    if (enA != _coteA)
+    {
+        // Un echange vient de passer. La prochaine tombera entre trente et
+        // quarante secondes, et non plus a trente pile : on partira donc moins
+        // en avance, pour ne pas passer le cycle a attendre sur place.
+        _echangeVu = true;
         _coteA = enA;
         _dernierEchange = maintenant;
         return false;
@@ -288,12 +300,17 @@ bool Aq40AnticipateTrigger::IsActive()
     if (!RaidAq40Utils::GetSwapStation(bot, place))
         return false;
 
+    // L'AVANCE DEPEND DE L'ECHANGE QU'ON ATTEND. Le premier tombe a trente
+    // secondes pile - on peut viser juste - tandis que les suivants tombent
+    // entre trente et quarante : y aller aussi tot ne ferait qu'attendre.
+    uint32 const avance = _echangeVu ? TELEPORT_LEAD_NEXT_MS : TELEPORT_LEAD_MS;
+
     // Arrive : on attend la-bas. La regle reste vraie pour que rien ne renvoie
     // le bot d'ou il vient entre son arrivee et l'echange.
-    if (TELEPORT_MIN_MS <= TELEPORT_LEAD_MS)
+    if (TELEPORT_MIN_MS <= avance)
         return true;
 
-    return getMSTimeDiff(_dernierEchange, maintenant) >= TELEPORT_MIN_MS - TELEPORT_LEAD_MS;
+    return getMSTimeDiff(_dernierEchange, maintenant) >= TELEPORT_MIN_MS - avance;
 }
 
 bool Aq40WrongSideTrigger::IsActive()
