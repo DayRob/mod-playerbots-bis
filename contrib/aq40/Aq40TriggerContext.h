@@ -25,6 +25,7 @@ public:
         creators["aq40 twin not placed yet"] = &RaidAq40TriggerContext::twin_not_placed;
         creators["aq40 a twin is on me"] = &RaidAq40TriggerContext::twin_on_me;
         creators["aq40 hunter pet is out"] = &RaidAq40TriggerContext::hunter_pet_out;
+        creators["aq40 on the wrong side"] = &RaidAq40TriggerContext::on_the_wrong_side;
         creators["aq40 too close to the wrong twin"] = &RaidAq40TriggerContext::too_close;
         creators["aq40 twins wrong target"] = &RaidAq40TriggerContext::wrong_target;
     }
@@ -40,6 +41,7 @@ private:
     static Trigger* twin_not_placed(PlayerbotAI* botAI) { return new Aq40HoldFireTrigger(botAI); }
     static Trigger* twin_on_me(PlayerbotAI* botAI) { return new Aq40DraggingTwinTrigger(botAI); }
     static Trigger* hunter_pet_out(PlayerbotAI* botAI) { return new Aq40HunterPetTrigger(botAI); }
+    static Trigger* on_the_wrong_side(PlayerbotAI* botAI) { return new Aq40WrongSideTrigger(botAI); }
     static Trigger* too_close(PlayerbotAI* botAI) { return new Aq40KeepAwayTrigger(botAI); }
     static Trigger* wrong_target(PlayerbotAI* botAI) { return new Aq40WrongTargetTrigger(botAI); }
 };

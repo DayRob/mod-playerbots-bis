@@ -178,6 +178,31 @@ public:
     bool IsActive() override;
 };
 
+// CE BOT EST DU MAUVAIS COTE DE LA SALLE, et il traverse.
+//
+// Apres chaque teleportation, les corps-a-corps se retrouvent du cote de
+// Vek'lor - immunise au physique - et les lanceurs de sorts du cote de
+// Vek'nilash, dont ils prennent les Uppercuts. Les deux groupes doivent
+// echanger de bout de salle.
+//
+// POURQUOI C'EST UNE REGLE A ELLE SEULE, ET PAS UN EFFET DE BORD D'UNE AUTRE.
+// La traversee etait portee par la retenue des degats, qui s'arrete au bout de
+// vingt secondes - or traverser 133 yards en prend dix-neuf. Au moindre retard
+// la retenue expirait en cours de route et le bot retombait sous les regles du
+// dessous : l'ecartement le repoussait d'un petit saut, il retombait a portee,
+// se faisait repousser encore. Sur place, a tourner, sans jamais partir.
+//
+// Elle n'a donc ni minuterie ni condition de combat : elle est vraie tant que
+// le jumeau INTERDIT est plus pres que le sien, et elle s'eteint quand le bot
+// a passe le milieu. Rien d'autre ne peut l'interrompre, sauf un Empereur qui
+// lui tombe dessus - et celui-la a sa propre consigne.
+class Aq40WrongSideTrigger : public Trigger
+{
+public:
+    Aq40WrongSideTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 on the wrong side") {}
+    bool IsActive() override;
+};
+
 // Ce bot est colle au jumeau qu'il ne peut pas blesser. Pour un physique c'est
 // Jaillissement des arcanes qui le repousse; pour un lanceur de sorts c'est
 // l'Uppercut de Vek'nilash, qui frappe au hasard parmi ce qui est a sa portee.

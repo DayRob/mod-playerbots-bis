@@ -173,6 +173,19 @@ public:
     bool Execute(Event event) override;
 };
 
+// TRAVERSE LA SALLE, et ne fait que ca jusqu'a ce que ce soit fini.
+//
+// Pas de cible a reprendre, pas de coup a porter, pas d'ecart a corriger : un
+// bot du mauvais cote n'a qu'une chose utile a faire, et c'est marcher. Tout
+// le reste - frapper, s'ecarter, changer de cible - redeviendra vrai tout seul
+// une fois qu'il sera arrive, et sera alors juste du premier coup.
+class Aq40CrossOverAction : public MovementAction
+{
+public:
+    Aq40CrossOverAction(PlayerbotAI* botAI) : MovementAction(botAI, "aq40 cross the room") {}
+    bool Execute(Event event) override;
+};
+
 // S'ecarte du jumeau qu'il ne peut pas blesser.
 class Aq40KeepAwayAction : public MovementAction
 {

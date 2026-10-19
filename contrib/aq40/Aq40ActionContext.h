@@ -26,6 +26,7 @@ public:
         creators["aq40 hold your fire"] = &RaidAq40ActionContext::hold_your_fire;
         creators["aq40 take him to the mark"] = &RaidAq40ActionContext::take_him_to_the_mark;
         creators["aq40 dismiss your pet"] = &RaidAq40ActionContext::dismiss_your_pet;
+        creators["aq40 cross the room"] = &RaidAq40ActionContext::cross_the_room;
         creators["aq40 keep away"] = &RaidAq40ActionContext::keep_away;
         creators["aq40 attack my twin"] = &RaidAq40ActionContext::attack_my_twin;
     }
@@ -41,6 +42,7 @@ private:
     static Action* hold_your_fire(PlayerbotAI* botAI) { return new Aq40HoldFireAction(botAI); }
     static Action* take_him_to_the_mark(PlayerbotAI* botAI) { return new Aq40DragToMarkAction(botAI); }
     static Action* dismiss_your_pet(PlayerbotAI* botAI) { return new Aq40DismissPetAction(botAI); }
+    static Action* cross_the_room(PlayerbotAI* botAI) { return new Aq40CrossOverAction(botAI); }
     static Action* keep_away(PlayerbotAI* botAI) { return new Aq40KeepAwayAction(botAI); }
     static Action* attack_my_twin(PlayerbotAI* botAI) { return new Aq40AttackMyTwinAction(botAI); }
 };

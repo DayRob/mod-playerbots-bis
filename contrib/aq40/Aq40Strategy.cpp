@@ -135,6 +135,21 @@ void RaidAq40Strategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new TriggerNode("aq40 hunter pet is out",
             { NextAction("aq40 dismiss your pet", ACTION_RAID + 9.0f) }));
 
+    // 8. DU MAUVAIS COTE : ON TRAVERSE, ET ON NE FAIT QUE CA. La teleportation
+    //    echange les Empereurs, donc elle echange les cotes. Cette regle est
+    //    volontairement au-dessus de l'ecartement et de la retenue des degats :
+    //    portee par elles, la traversee se faisait couper en chemin - la
+    //    retenue expire au bout de vingt secondes, et traverser 133 yards en
+    //    prend dix-neuf. Le bot retombait alors sous l'ecartement, qui le
+    //    repoussait d'un petit saut, encore et encore, sur place.
+    //
+    //    Elle n'a ni minuterie ni condition de combat : vraie tant que le
+    //    jumeau interdit est plus pres que le sien, eteinte une fois le milieu
+    //    passe.
+    triggers.push_back(
+        new TriggerNode("aq40 on the wrong side",
+            { NextAction("aq40 cross the room", ACTION_RAID + 2.4f) }));
+
     triggers.push_back(
         new TriggerNode("aq40 too close to the wrong twin",
             { NextAction("aq40 keep away", ACTION_RAID + 2.0f) }));

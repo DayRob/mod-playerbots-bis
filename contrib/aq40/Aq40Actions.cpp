@@ -441,6 +441,28 @@ bool Aq40DismissPetAction::Execute(Event /*event*/)
     return true;
 }
 
+bool Aq40CrossOverAction::Execute(Event /*event*/)
+{
+    // On ne frappe pas en traversant : ce serait donner de la menace sur un
+    // Empereur qu'un tank est en train de replacer, a l'autre bout.
+    bot->AttackStop();
+
+    Position place;
+    if (!RaidAq40Utils::GetPrePullStation(bot, place))
+        return false;
+
+    if (bot->GetExactDist2d(place.GetPositionX(), place.GetPositionY()) >= MARK_TOLERANCE)
+        MoveTo(bot->GetMapId(), place.GetPositionX(), place.GetPositionY(), place.GetPositionZ(),
+               false, false, false, false, MovementPriority::MOVEMENT_COMBAT, true, false);
+
+    // VRAI DANS TOUS LES CAS, et c'est tout l'interet de cette regle. Tant
+    // qu'elle est allumee, rien d'autre ne tourne sur ce bot : ni l'ecartement
+    // qui le repoussait d'un petit saut, ni l'IA de classe qui le renvoyait sur
+    // une cible du mauvais cote. Elle s'eteint quand il a passe le milieu, pas
+    // avant, et pas sur une minuterie.
+    return true;
+}
+
 bool Aq40KeepAwayAction::Execute(Event /*event*/)
 {
     Unit* interdit = RaidAq40Utils::GetForbiddenTwin(bot);

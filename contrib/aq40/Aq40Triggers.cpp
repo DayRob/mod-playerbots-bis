@@ -209,6 +209,35 @@ bool Aq40DraggingTwinTrigger::IsActive()
     return RaidAq40Utils::GetTwinOnMe(bot) != nullptr;
 }
 
+bool Aq40WrongSideTrigger::IsActive()
+{
+    if (!bot->IsAlive() || !RaidAq40Utils::AreTwinsEngaged(bot))
+        return false;
+
+    // Un Empereur sur le dos passe avant : ce bot le tient, il l'emmene.
+    if (RaidAq40Utils::GetTwinOnMe(bot))
+        return false;
+
+    // Les trois postes ont leur bout de salle et n'en changent pas.
+    if (RaidAq40Utils::IsVeknilashTank(bot) || RaidAq40Utils::IsBugTank(bot) ||
+        RaidAq40Utils::IsVeklorHolder(bot))
+        return false;
+
+    // Une bestiole le mord : qu'il la tue d'abord, il ne traversera rien avec
+    // ca dans les jambes.
+    if (RaidAq40Utils::IsBugOnMe(bot))
+        return false;
+
+    Unit* assigne = RaidAq40Utils::GetAssignedTwin(bot);
+    Unit* interdit = RaidAq40Utils::GetForbiddenTwin(bot);
+    if (!assigne || !interdit || !assigne->IsAlive())
+        return false;
+
+    // DU MAUVAIS COTE : celui qu'on ne peut pas blesser est plus pres que le
+    // sien. La marge evite qu'un bot pile au milieu fasse clignoter la regle.
+    return bot->GetExactDist2d(interdit) + WRONG_SIDE_MARGIN < bot->GetExactDist2d(assigne);
+}
+
 bool Aq40KeepAwayTrigger::IsActive()
 {
     // Un Empereur sur le dos passe avant tout le reste : ce bot le tient, il

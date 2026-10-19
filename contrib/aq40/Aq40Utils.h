@@ -212,6 +212,14 @@ constexpr uint32 HOLD_FIRE_MAX_MS = 20000;
 // laissant largement a portee de soin - un sort porte a 40.
 constexpr float HEALER_STAY_AWAY = 25.0f;
 
+// DE COMBIEN IL FAUT ETRE "DU MAUVAIS COTE" POUR QUE LA TRAVERSEE SE DECLENCHE,
+// et de combien il faut avoir passe le milieu pour qu'elle s'arrete.
+//
+// Les deux marques sont a 133 yards l'une de l'autre, donc cette marge ne
+// decide jamais rien de serre : elle existe pour qu'un bot pile au milieu ne
+// fasse pas clignoter la regle d'un tick a l'autre.
+constexpr float WRONG_SIDE_MARGIN = 10.0f;
+
 // Pas de poste : ni tank, ni en groupe.
 constexpr uint8 TANK_INDEX_NONE = 255;
 
