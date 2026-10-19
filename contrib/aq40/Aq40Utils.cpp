@@ -522,7 +522,38 @@ bool RaidAq40Utils::GetSwapStation(Player* bot, Position& out)
 
     Position opposee;
     GetOtherMark(marque, opposee);
-    return GetStationAt(bot, opposee, out);
+
+    // ── ET ON S'ARRETE AVANT LA MARQUE ────────────────────────────────────
+    //
+    // Pas la place de combat, mais un point d'attente a trente-cinq yards en
+    // deca. L'echange donne 2000 de menace au joueur LE PLUS PROCHE : des
+    // attaquants postes la ou l'Empereur va atterrir les prendraient a la place
+    // du tank, qui attend precisement pour ca.
+    //
+    // L'ecartement lateral est garde - sans lui, trente bots viseraient le meme
+    // point - mais le recul des corps-a-corps ne sert plus a rien ici : on est
+    // deja bien plus loin que lui.
+    Position milieu;
+    GetMiddle(milieu);
+
+    float dX = milieu.GetPositionX() - opposee.GetPositionX();
+    float dY = milieu.GetPositionY() - opposee.GetPositionY();
+    float const axe = std::sqrt(dX * dX + dY * dY);
+    if (axe < 1.0f)
+    {
+        out = opposee;
+        return true;
+    }
+
+    dX /= axe;
+    dY /= axe;
+
+    float const lateral = (float(bot->GetGUID().GetCounter() % 7u) - 3.0f) * PREPULL_SPREAD_STEP;
+
+    out.Relocate(opposee.GetPositionX() + PRESWAP_STANDOFF * dX - lateral * dY,
+                 opposee.GetPositionY() + PRESWAP_STANDOFF * dY + lateral * dX,
+                 opposee.GetPositionZ());
+    return true;
 }
 
 

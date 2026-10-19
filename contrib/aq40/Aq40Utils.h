@@ -265,6 +265,31 @@ constexpr uint32 LEASH_COOLDOWN_MS = 3000;
 // teleportation a T+14, puis traversent. Quatorze secondes de degats par
 // cycle, et jusqu'a dix de plus a attendre sur place quand l'echange tombe
 // tard. C'est le marche, et il se change ici, sur une ligne.
+// A QUELLE DISTANCE DE LA MARQUE LES ATTAQUANTS S'ARRETENT EN ATTENDANT.
+//
+// Ils traversent avant l'echange, mais ils ne vont PAS jusqu'au bout. Le
+// script donne ses 2000 de menace au joueur LE PLUS PROCHE :
+//
+//     if (Unit* victim = me->SelectNearestTarget())
+//     {
+//         me->AddThreat(victim, 2000.f);
+//         AttackStart(victim);
+//     }
+//
+// Des attaquants postes sur la marque ou l'Empereur va atterrir les
+// prendraient a la place du tank, qui attend la precisement pour ca. Toute la
+// traversee serait faite pour saboter le poste qu'elle vient rejoindre.
+//
+// Trente-cinq yards, et la marge n'est pas decorative : le tank se tient a
+// trois yards de sa marque, et la laisse laisse l'Empereur deriver de huit
+// avant de le ramener - donc le tank peut etre a onze yards du point
+// d'atterrissage dans le pire des cas. Les attaquants, eux, sont a vingt-sept
+// au minimum. Le tank gagne toujours.
+//
+// Ce qui reste a parcourir apres l'echange - trente-cinq yards, cinq secondes -
+// est le prix a payer pour que la menace aille au bon endroit.
+constexpr float PRESWAP_STANDOFF = 35.0f;
+
 constexpr uint32 TELEPORT_MIN_MS = 30000;
 constexpr uint32 TELEPORT_LEAD_MS = 16000;
 
