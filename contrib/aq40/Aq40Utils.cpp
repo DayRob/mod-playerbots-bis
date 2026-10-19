@@ -460,13 +460,13 @@ bool RaidAq40Utils::GetTwinMark(Creature* jumeau, Position& out)
     return jumeau && jumeau->IsAlive() && GetMarkNear(jumeau, out);
 }
 
-bool RaidAq40Utils::NeedsMoving(Creature* jumeau)
+bool RaidAq40Utils::NeedsMoving(Creature* jumeau, float tolerance)
 {
     Position marque;
     if (!GetTwinMark(jumeau, marque))
         return false;
 
-    return EcartPlan(jumeau->GetPosition(), marque) > MARK_TOLERANCE;
+    return EcartPlan(jumeau->GetPosition(), marque) > tolerance;
 }
 
 bool RaidAq40Utils::GetPullStation(Player* bot, Position& out)

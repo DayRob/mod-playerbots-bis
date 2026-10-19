@@ -59,6 +59,12 @@ class Aq40SetTheStageTrigger : public Trigger
 public:
     Aq40SetTheStageTrigger(PlayerbotAI* botAI) : Trigger(botAI, "aq40 twins not on their marks") {}
     bool IsActive() override;
+
+private:
+    // Quand on a ramene un Empereur pour la derniere fois. Une laisse qui tire
+    // a chaque tick se verrait; trois secondes suffisent largement, un boss ne
+    // derive pas plus vite que ca.
+    uint32 _dernierRecalage = 0;
 };
 
 // Le raid est dans la salle, les Empereurs dorment encore, et ce bot n'est pas

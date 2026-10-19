@@ -220,6 +220,22 @@ constexpr float HEALER_STAY_AWAY = 25.0f;
 // fasse pas clignoter la regle d'un tick a l'autre.
 constexpr float WRONG_SIDE_MARGIN = 10.0f;
 
+// ─── LA LAISSE ───────────────────────────────────────────────────────────────
+//
+// De combien un Empereur peut s'ecarter de sa tete de mort avant qu'on l'y
+// ramene, et a quelle frequence au maximum.
+//
+// Huit yards, pas trois : un boss au contact de son tank oscille de quelques
+// yards en permanence, et le ramener pour ca ferait une teleportation par
+// seconde. Et trois secondes entre deux recalages, parce qu'une laisse qui tire
+// a chaque tick se verrait.
+//
+// ELLE SUIT L'ECHANGE, ELLE NE LE CONTRARIE PAS : on ramene chaque Empereur sur
+// la tete de mort dont il est LE PLUS PRES, donc apres une teleportation c'est
+// l'autre, et les bots doivent bien changer de cote.
+constexpr float LEASH_DRIFT_RANGE = 8.0f;
+constexpr uint32 LEASH_COOLDOWN_MS = 3000;
+
 // ─── LA MINUTERIE DE LA TELEPORTATION ────────────────────────────────────────
 //
 // Elle n'est pas devinee, elle est lue dans le script du coeur :
@@ -296,7 +312,7 @@ public:
     // CET EMPEREUR DOIT-IL ETRE AMENE SUR SA MARQUE ? Plus exigeant que
     // IsTwinPlaced, qui tolere trente yards parce qu'il juge un boss en train
     // d'etre traine. Ici on pose, donc on pose juste.
-    static bool NeedsMoving(Creature* jumeau);
+    static bool NeedsMoving(Creature* jumeau, float tolerance = MARK_TOLERANCE);
 
     // La marque ou cet Empereur doit se tenir : celle de son cote.
     static bool GetTwinMark(Creature* jumeau, Position& out);

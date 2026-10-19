@@ -10,27 +10,52 @@
 
 bool Aq40SetTheStageTrigger::IsActive()
 {
-    if (!bot->IsAlive() || bot->IsInCombat())
+    if (!bot->IsAlive())
         return false;
 
     // UN SEUL BOT S'EN CHARGE. Quarante bots qui repositionnent les Empereurs
     // au meme tick, ce sont quarante teleportations pour un seul deplacement.
-    if (RaidAq40Utils::TankIndex(bot) != 0)
-        return false;
-
-    if (!RaidAq40Utils::IsInTwinsRoom(bot) || RaidAq40Utils::AreTwinsEngaged(bot))
-        return false;
-
-    // APRES la mise en place, pas avant : on ne deplace rien tant que le raid
-    // n'est pas pret a enchainer, sinon les Empereurs attendraient en bas,
-    // a portee de tout ce qui passe.
-    if (!RaidAq40Utils::AllTanksPosted(bot))
+    if (RaidAq40Utils::TankIndex(bot) != 0 || !RaidAq40Utils::IsInTwinsRoom(bot))
         return false;
 
     Creature* const veklor = RaidAq40Utils::GetVeklor(bot);
     Creature* const veknilash = RaidAq40Utils::GetVeknilash(bot);
 
-    return RaidAq40Utils::NeedsMoving(veklor) || RaidAq40Utils::NeedsMoving(veknilash);
+    bool const engages = RaidAq40Utils::AreTwinsEngaged(bot);
+
+    // ── AVANT LE PULL : ON LES POSE ───────────────────────────────────────
+    //
+    // Apres la mise en place, pas avant : on ne deplace rien tant que le raid
+    // n'est pas pret a enchainer, sinon les Empereurs attendraient en bas, a
+    // portee de tout ce qui passe. Et au yard pres, puisque rien ne bouge.
+    if (!engages)
+    {
+        if (!RaidAq40Utils::AllTanksPosted(bot))
+            return false;
+
+        return RaidAq40Utils::NeedsMoving(veklor) || RaidAq40Utils::NeedsMoving(veknilash);
+    }
+
+    // ── PENDANT LE COMBAT : LA LAISSE ─────────────────────────────────────
+    //
+    // Chaque Empereur est ramene sur la tete de mort dont il est LE PLUS PRES.
+    // Elle suit donc l'echange au lieu de le contrarier : apres une
+    // teleportation, le plus proche est l'autre bout de la salle, et les bots
+    // doivent bien changer de cote.
+    //
+    // Huit yards de jeu, pas trois : un boss au contact de son tank oscille en
+    // permanence, et le ramener pour ca ferait une teleportation par seconde.
+    // Trois secondes entre deux recalages, pour la meme raison.
+    uint32 const maintenant = getMSTime();
+    if (_dernierRecalage && getMSTimeDiff(_dernierRecalage, maintenant) < LEASH_COOLDOWN_MS)
+        return false;
+
+    if (!RaidAq40Utils::NeedsMoving(veklor, LEASH_DRIFT_RANGE) &&
+        !RaidAq40Utils::NeedsMoving(veknilash, LEASH_DRIFT_RANGE))
+        return false;
+
+    _dernierRecalage = maintenant;
+    return true;
 }
 
 bool Aq40TakeStationTrigger::IsActive()

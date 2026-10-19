@@ -73,10 +73,14 @@ bool Aq40SetTheStageAction::Execute(Event /*event*/)
     if (Creature* veknilash = RaidAq40Utils::GetVeknilash(bot))
         fait |= PoserSurSaMarque(veknilash);
 
-    // Chacun sur SA marque, c'est-a-dire celle de son cote, donc 133 yards les
-    // separent - plus du double des 60 de Heal Brother. Le pull qui suit part
-    // de deux bots deja au contact de leur Empereur : plus d'escaliers, plus de
-    // trainage sur soixante yards, plus rien a rater.
+    // Chacun sur SA marque, c'est-a-dire celle dont il est LE PLUS PRES, donc
+    // 133 yards les separent - plus du double des 60 de Heal Brother.
+    //
+    // "Le plus pres" est ce qui fait que cette regle suit l'echange au lieu de
+    // le contrarier : apres une teleportation, la marque la plus proche de
+    // chacun est celle d'en face, donc la laisse les y maintient et les bots
+    // doivent bien changer de cote. Elle bloque les Empereurs sur les tetes de
+    // mort sans jamais figer lequel est de quel cote.
     return fait;
 }
 
