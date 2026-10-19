@@ -166,6 +166,32 @@ namespace
         if (sBisPriorityMgr->UniqueAlreadyWorn(bot, proto, targetSlot))
             return ITEM_USAGE_NONE;
 
+        // ── UNE MAIN GAUCHE NE SE PORTE PAS AVEC UNE ARME A DEUX MAINS ───────
+        //
+        // Vu en jeu : un soigneur portant le Baton beni d'augure qiraji - rang
+        // 3, deux mains - essayait d'enfiler le Pouvoir de Sartura - rang 1,
+        // main gauche - et le coeur le refusait a chaque tick :
+        //
+        //     Cannot equip with two-handed weapon equipped
+        //     (EQUIP_ERR_CANT_EQUIP_WITH_TWOHANDED)
+        //
+        // La comparaison de priorites ne peut pas voir ca : la main gauche EST
+        // mieux classee que ce qu'il porte a ce creneau - rien du tout - et le
+        // bâton occupe un AUTRE creneau. Il faut le dire explicitement.
+        //
+        // BAD_EQUIP ET NON NONE, ET C'EST TOUT LE POINT. La piece reste son
+        // BiS : elle lui servira des qu'il aura une arme a une main, et d'ici
+        // la il doit continuer a la RECLAMER. BisLootRollAction compte
+        // BAD_EQUIP parmi les verdicts qui donnent un besoin; NONE l'aurait
+        // fait passer son tour sur sa propre piece.
+        if (targetSlot == EQUIPMENT_SLOT_OFFHAND)
+        {
+            Item const* const mainDroite = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+            ItemTemplate const* const portee = mainDroite ? mainDroite->GetTemplate() : nullptr;
+            if (portee && portee->InventoryType == INVTYPE_2HWEAPON)
+                return ITEM_USAGE_BAD_EQUIP;
+        }
+
         // What it costs, named here rather than at the equip. The equip that
         // follows a roll is playerbots' own EquipAction, which answers with its
         // "Equipping ..." and knows nothing of this module - only a sweep over
