@@ -185,7 +185,29 @@ SET @spec_absente := (
     WHERE `TABLE_SCHEMA` = DATABASE()
       AND `TABLE_NAME` = 'playerbots_bis_quest_token'
       AND `COLUMN_NAME` = 'spec');
-SET @ordre := IF(@spec_absente, 'DROP TABLE IF EXISTS `playerbots_bis_quest_token`', 'DO 0');
+
+-- ET LA CLE DOIT CONTENIR piece_id.
+--
+-- Elle valait (token_id, class, spec), donc UNE piece par bot. Les jetons
+-- hakkari n'en donnent qu'une et ne s'en plaignaient pas; ceux d'Ahn'Qiraj en
+-- ouvrent DEUX, et la seconde devenait inaccessible pour toujours. Les deux
+-- fichiers doivent creer la MEME table : sans ce test ici, le 75 la trouverait
+-- a l'ancienne cle, la recreerait, et effacerait les lignes que ce fichier
+-- vient de poser.
+SET @piece_hors_cle := (
+    SELECT COUNT(*) = 0 FROM `information_schema`.`STATISTICS`
+    WHERE `TABLE_SCHEMA` = DATABASE()
+      AND `TABLE_NAME` = 'playerbots_bis_quest_token'
+      AND `INDEX_NAME` = 'PRIMARY'
+      AND `COLUMN_NAME` = 'piece_id');
+
+SET @table_presente := (
+    SELECT COUNT(*) > 0 FROM `information_schema`.`TABLES`
+    WHERE `TABLE_SCHEMA` = DATABASE()
+      AND `TABLE_NAME` = 'playerbots_bis_quest_token');
+
+SET @ordre := IF(@spec_absente OR (@table_presente AND @piece_hors_cle),
+                 'DROP TABLE IF EXISTS `playerbots_bis_quest_token`', 'DO 0');
 PREPARE migre FROM @ordre;
 EXECUTE migre;
 DEALLOCATE PREPARE migre;
@@ -196,9 +218,9 @@ CREATE TABLE IF NOT EXISTS `playerbots_bis_quest_token` (
     `spec`     TINYINT UNSIGNED NOT NULL COMMENT 'spe du bot - 10 = ours druide',
     `piece_id` INT UNSIGNED NOT NULL COMMENT 'piece que le jeton achete',
     `comment`  VARCHAR(120) NOT NULL DEFAULT '',
-    PRIMARY KEY (`token_id`, `class`, `spec`)
+    PRIMARY KEY (`token_id`, `class`, `spec`, `piece_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  COMMENT='mod-playerbots-bis : jeton de quete -> piece, par classe et par spe';
+  COMMENT='mod-playerbots-bis : jeton de quete -> pieces, par classe et par spe';
 
 -- Rejouable, comme le bloc precedent.
 DELETE FROM `playerbots_bis_quest_token`

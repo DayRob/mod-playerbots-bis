@@ -215,7 +215,11 @@ void BisPriorityMgr::LoadQuestTokens()
         if (!tokenId || !pieceId)
             continue;
 
-        _questTokens[QuestTokenKey(tokenId, cls, spec)] = pieceId;
+        // TOUTES les pieces, pas la derniere lue. Un jeton qui en ouvre deux a
+        // deux lignes, et les deux comptent.
+        std::vector<uint32>& pieces = _questTokens[QuestTokenKey(tokenId, cls, spec)];
+        if (std::find(pieces.begin(), pieces.end(), pieceId) == pieces.end())
+            pieces.push_back(pieceId);
     } while (result->NextRow());
 }
 
@@ -296,10 +300,12 @@ bool BisPriorityMgr::WantsExtraItem(Player* bot, uint32 itemId) const
     return bot->GetItemCount(itemId, true) < it->second;
 }
 
-uint32 BisPriorityMgr::QuestTokenReward(uint32 tokenId, uint8 cls, uint8 spec) const
+std::vector<uint32> const& BisPriorityMgr::QuestTokenRewards(uint32 tokenId, uint8 cls, uint8 spec) const
 {
+    static std::vector<uint32> const aucune;
+
     auto const it = _questTokens.find(QuestTokenKey(tokenId, cls, spec));
-    return it == _questTokens.end() ? 0 : it->second;
+    return it == _questTokens.end() ? aucune : it->second;
 }
 
 uint8 BisPriorityMgr::ResolveSpec(Player* bot)
@@ -821,13 +827,8 @@ bool BisPriorityMgr::WantsQuestToken(Player* bot, uint32 itemId, uint16* outTier
     // Interroger la table est aussi plus juste que l'ancien test : un bot ne
     // reclame plus un jeton qu'il ne saurait pas convertir, alors qu'avant il
     // suffisait que le jeton figure dans sa liste.
-    if (!QuestTokenReward(itemId, bot->getClass(), GetSpec(bot)))
-        return false;
-
-    uint8 slot = 0;
-    uint16 tierId = 0;
-    uint32 const priority = GetItemPriority(bot, itemId, &slot, &tierId);
-    if (!priority)
+    std::vector<uint32> const& pieces = QuestTokenRewards(itemId, bot->getClass(), GetSpec(bot));
+    if (pieces.empty())
         return false;
 
     // Un second exemplaire ne vaut rien : une quete, un jeton. Le prendre
@@ -835,16 +836,41 @@ bool BisPriorityMgr::WantsQuestToken(Player* bot, uint32 itemId, uint16* outTier
     if (bot->GetItemCount(itemId, true) > 0)
         return false;
 
-    // Et rien a reclamer si le creneau porte deja aussi bien. La piece que le
-    // jeton achete partage sa priorite, donc la comparaison est la meme que
-    // pour une piece d'equipement.
-    if (priority <= GetWornPriorityPaired(bot, slot))
-        return false;
+    // ── UNE SEULE PIECE QUI MANQUE SUFFIT ─────────────────────────────────
+    //
+    // On interroge CHAQUE piece que le jeton ouvre, et chacune dans SON
+    // creneau. Je posais la question au jeton lui-meme, dont les lignes copient
+    // celles des pieces : GetItemPriority n'en retenait que la mieux classee,
+    // donc la comparaison portait toujours sur le meme creneau. Un guerrier qui
+    // portait les epaules rang 1 cessait de reclamer le jeton, et n'allait
+    // jamais chercher les bottes rang 5 qu'il ouvrait pourtant aussi.
+    //
+    // Le palier rendu est celui de la premiere piece qui manque, et l'ordre
+    // vient de la table - les pieces y sont rangees par rang, la meilleure
+    // d'abord.
+    for (uint32 const pieceId : pieces)
+    {
+        uint8 slot = 0;
+        uint16 tierId = 0;
+        uint32 const priority = GetItemPriority(bot, pieceId, &slot, &tierId);
+        if (!priority)
+            continue;
 
-    if (outTierId)
-        *outTierId = tierId;
+        // Deja porte, en sac ou en banque : celle-la ne motive plus rien.
+        if (bot->GetItemCount(pieceId, true) > 0)
+            continue;
 
-    return true;
+        // Et rien a reclamer si le creneau porte deja aussi bien.
+        if (priority <= GetWornPriorityPaired(bot, slot))
+            continue;
+
+        if (outTierId)
+            *outTierId = tierId;
+
+        return true;
+    }
+
+    return false;
 }
 
 bool BisPriorityMgr::WantsAsUpgrade(Player* bot, uint32 itemId, uint16* outTierId,

@@ -202,45 +202,78 @@ bool BisEquipUpgradesAction::ConvertQuestTokens(ChatHandler* report)
             continue;
 
         // Pas de filtre sur la classe d'objet : les jetons du tier 2.5 d'AQ40
-        // sont ITEM_CLASS_MISCELLANEOUS, pas ITEM_CLASS_QUEST. QuestTokenReward
-        // rend zero pour tout ce qui n'est pas un jeton, donc c'est elle qui
-        // tranche, et elle ne se trompe pas de classe.
+        // sont ITEM_CLASS_MISCELLANEOUS, pas ITEM_CLASS_QUEST. QuestTokenRewards
+        // rend une liste VIDE pour tout ce qui n'est pas un jeton, donc c'est
+        // elle qui tranche, et elle ne se trompe pas de classe.
         ItemTemplate const* const proto = item->GetTemplate();
         if (!proto)
             continue;
 
         // La SPE compte autant que la classe : Imperial Qiraji Armaments donne
         // une hache a un guerrier Fureur et un BOUCLIER a un Protection.
-        uint32 const pieceId = sBisPriorityMgr->QuestTokenReward(
+        //
+        // ET UN JETON PEUT EN OUVRIR PLUSIEURS. Les jetons epaules/bottes
+        // d'Ahn'Qiraj rendent DEUX pieces a la meme classe - Qiraji Bindings of
+        // Command donne au guerrier les Conqueror's Spaulders et les
+        // Conqueror's Greaves. Le bot les prend toutes, et ne garde que celles
+        // qui lui manquent : une seule quete dans le jeu d'origine, mais ici un
+        // jeton rendu doit laisser le bot complet, sinon la seconde piece reste
+        // hors d'atteinte pour toujours.
+        std::vector<uint32> const& pieces = sBisPriorityMgr->QuestTokenRewards(
             proto->ItemId, bot->getClass(), sBisPriorityMgr->GetSpec(bot));
-        if (!pieceId)
+        if (pieces.empty())
             continue;
 
-        ItemTemplate const* const piece = sObjectMgr->GetItemTemplate(pieceId);
-        if (!piece)
+        // ── CE QU'IL VA RECEVOIR, DECIDE AVANT DE DETRUIRE QUOI QUE CE SOIT ──
+        //
+        // Le jeton ne part qu'une fois la liste arretee. L'ordre inverse -
+        // detruire puis distribuer - perdrait le jeton ET les pieces le jour ou
+        // un controle echoue a mi-chemin.
+        std::vector<ItemTemplate const*> aRemettre;
+
+        for (uint32 const pieceId : pieces)
+        {
+            ItemTemplate const* const piece = sObjectMgr->GetItemTemplate(pieceId);
+            if (!piece)
+                continue;
+
+            // La piece doit etre sur la liste du bot A SON PALIER. C'est la
+            // meme condition que celle qui lui a fait reclamer le jeton; si le
+            // plafond a baisse depuis, le jeton reste un objet de quete
+            // ordinaire que le maitre peut toujours rendre lui-meme.
+            if (!sBisPriorityMgr->GetItemPriority(bot, pieceId))
+                continue;
+
+            if (bot->CanUseItem(piece) != EQUIP_ERR_OK)
+                continue;
+
+            // Deja porte, en sac ou en banque : un second exemplaire ne sert a
+            // rien. GetItemCount part de EQUIPMENT_SLOT_START, donc la piece
+            // sur le dos compte aussi.
+            if (bot->GetItemCount(pieceId, true) > 0)
+                continue;
+
+            aRemettre.push_back(piece);
+        }
+
+        if (aRemettre.empty())
             continue;
 
-        // La piece doit etre sur la liste du bot A SON PALIER. C'est la meme
-        // condition que celle qui lui a fait reclamer le jeton; si le plafond a
-        // baisse depuis, le jeton reste un objet de quete ordinaire que le
-        // maitre peut toujours rendre lui-meme.
-        if (!sBisPriorityMgr->GetItemPriority(bot, pieceId))
-            continue;
+        // La place pour TOUT, avant d'echanger. Un sac qui ne tient qu'une des
+        // deux pieces fait remettre l'echange entier a plus tard : mieux vaut
+        // un jeton qui attend qu'une piece perdue.
+        bool placeSuffisante = true;
+        for (ItemTemplate const* const piece : aRemettre)
+        {
+            ItemPosCountVec essai;
+            if (bot->CanStoreNewItem(NULL_BAG, NULL_SLOT, essai, piece->ItemId, 1) != EQUIP_ERR_OK)
+            {
+                placeSuffisante = false;
+                break;
+            }
+        }
 
-        if (bot->CanUseItem(piece) != EQUIP_ERR_OK)
-            continue;
-
-        // Deja porte, en sac ou en banque : un second exemplaire ne sert a
-        // rien. Le bot ne peut pas s'etre reclame ce jeton dans cet etat -
-        // WantsQuestToken exige de faire MIEUX que le creneau - mais un jeton
-        // donne par un maitre de jeu arrive ici sans etre passe par la.
-        // GetItemCount part de EQUIPMENT_SLOT_START, donc la piece sur le dos
-        // compte aussi.
-        if (bot->GetItemCount(pieceId, true) > 0)
-            continue;
-
-        ItemPosCountVec dest;
-        if (bot->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, pieceId, 1) != EQUIP_ERR_OK)
+        if (!placeSuffisante)
         {
             if (report)
                 report->PSendSysMessage("  {} : sacs pleins, echange remis a plus tard",
@@ -250,20 +283,31 @@ bool BisEquipUpgradesAction::ConvertQuestTokens(ChatHandler* report)
 
         bot->DestroyItemCount(proto->ItemId, 1, true);
 
-        Item* const reward = bot->StoreNewItem(dest, pieceId, true);
-        if (!reward)
+        for (ItemTemplate const* const piece : aRemettre)
         {
-            LOG_ERROR("playerbots", "[mod-playerbots-bis] {} : jeton {} detruit mais piece {} non remise",
-                      bot->GetName(), proto->ItemId, pieceId);
-            continue;
+            ItemPosCountVec place;
+            if (bot->CanStoreNewItem(NULL_BAG, NULL_SLOT, place, piece->ItemId, 1) != EQUIP_ERR_OK)
+            {
+                LOG_ERROR("playerbots", "[mod-playerbots-bis] {} : jeton {} detruit mais piece {} sans place",
+                          bot->GetName(), proto->ItemId, piece->ItemId);
+                continue;
+            }
+
+            Item* const reward = bot->StoreNewItem(place, piece->ItemId, true);
+            if (!reward)
+            {
+                LOG_ERROR("playerbots", "[mod-playerbots-bis] {} : jeton {} detruit mais piece {} non remise",
+                          bot->GetName(), proto->ItemId, piece->ItemId);
+                continue;
+            }
+
+            bot->SendNewItem(reward, 1, true, false);
+            converted = true;
+
+            if (report)
+                report->PSendSysMessage("  {} echange contre {}",
+                                        ChatHelper::FormatItem(proto), ChatHelper::FormatItem(piece));
         }
-
-        bot->SendNewItem(reward, 1, true, false);
-        converted = true;
-
-        if (report)
-            report->PSendSysMessage("  {} echange contre {}",
-                                    ChatHelper::FormatItem(proto), ChatHelper::FormatItem(piece));
     }
 
     return converted;

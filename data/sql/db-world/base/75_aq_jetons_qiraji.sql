@@ -219,7 +219,30 @@ SET @spec_absente := (
     WHERE `TABLE_SCHEMA` = DATABASE()
       AND `TABLE_NAME` = 'playerbots_bis_quest_token'
       AND `COLUMN_NAME` = 'spec');
-SET @ordre := IF(@spec_absente, 'DROP TABLE IF EXISTS `playerbots_bis_quest_token`', 'DO 0');
+
+-- ET LA CLE DOIT CONTENIR piece_id.
+--
+-- Elle valait (token_id, class, spec), donc UNE piece par bot : c'est ce qui
+-- rendait la seconde piece d'un jeton inaccessible pour toujours. Un guerrier
+-- qui portait les Conqueror's Spaulders - rang 1 - ne reclamait plus le jeton
+-- et n'obtenait jamais les Conqueror's Greaves qu'il ouvrait pourtant aussi.
+--
+-- Le test porte sur la CLE et non sur la table : une base d'avant le changement
+-- a bien les quatre colonnes, c'est la cle primaire qui lui manque.
+SET @piece_hors_cle := (
+    SELECT COUNT(*) = 0 FROM `information_schema`.`STATISTICS`
+    WHERE `TABLE_SCHEMA` = DATABASE()
+      AND `TABLE_NAME` = 'playerbots_bis_quest_token'
+      AND `INDEX_NAME` = 'PRIMARY'
+      AND `COLUMN_NAME` = 'piece_id');
+
+SET @table_presente := (
+    SELECT COUNT(*) > 0 FROM `information_schema`.`TABLES`
+    WHERE `TABLE_SCHEMA` = DATABASE()
+      AND `TABLE_NAME` = 'playerbots_bis_quest_token');
+
+SET @ordre := IF(@spec_absente OR (@table_presente AND @piece_hors_cle),
+                 'DROP TABLE IF EXISTS `playerbots_bis_quest_token`', 'DO 0');
 PREPARE migre FROM @ordre;
 EXECUTE migre;
 DEALLOCATE PREPARE migre;
@@ -230,78 +253,38 @@ CREATE TABLE IF NOT EXISTS `playerbots_bis_quest_token` (
     `spec`     TINYINT UNSIGNED NOT NULL COMMENT 'spe du bot - 10 = ours druide',
     `piece_id` INT UNSIGNED NOT NULL COMMENT 'piece que le jeton achete',
     `comment`  VARCHAR(120) NOT NULL DEFAULT '',
-    PRIMARY KEY (`token_id`, `class`, `spec`)
+    PRIMARY KEY (`token_id`, `class`, `spec`, `piece_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  COMMENT='mod-playerbots-bis : jeton de quete -> piece, par classe et par spe';
+  COMMENT='mod-playerbots-bis : jeton de quete -> pieces, par classe et par spe';
 
 DELETE FROM `playerbots_bis_quest_token`
 WHERE `token_id` IN (SELECT DISTINCT `jeton` FROM `bis_jetons_aq`);
 
--- UNE SEULE PIECE PAR (JETON, CLASSE), ET C'EST LA MEILLEURE.
+-- TOUTES LES PIECES QUE LE JETON OUVRE, PLUS UNE SEULE.
 --
--- La cle primaire de la table l'impose, et Ahn'Qiraj le met vraiment a
--- l'epreuve : Imperial Qiraji Armaments offre un CHOIX d'armes, dont le
--- guerrier a plusieurs en liste. Un INSERT IGNORE nu garderait celle que le
--- moteur sort en premier - donc le Pugio de rang 3 aussi bien que la hache de
--- rang 1.
+-- La table en gardait une par (jeton, classe, spe) : la mieux classee, choisie
+-- ici a l'import. C'etait defendable tant qu'un jeton n'ouvrait qu'un creneau,
+-- et faux des qu'il en ouvre deux - les jetons epaules/bottes d'Ahn'Qiraj
+-- rendent au guerrier les Conqueror's Spaulders ET les Conqueror's Greaves.
+-- La seconde devenait inaccessible : jamais echangee, et plus jamais reclamee
+-- des que la premiere etait portee.
 --
--- EN TROIS ETAPES, ET C'EST UNE CONTRAINTE DU MOTEUR, PAS UN GOUT
--- La premiere version posait la question en une seule instruction, avec un
--- NOT EXISTS qui relisait les deux tables temporaires. MySQL a refuse :
+-- Un jeton rend donc tout ce qu'il ouvre. Le bot ne garde que ce qui lui
+-- manque - ConvertQuestTokens ecarte ce qu'il porte deja - et il continue de
+-- reclamer le jeton tant qu'une seule des pieces lui fait defaut.
 --
---     ERROR 1137 (HY000) : Can't reopen table: 'j'
---
--- Une table TEMPORARY ne peut pas etre ouverte deux fois dans la meme
--- instruction. MariaDB, lui, l'accepte - c'est pour ca que le banc d'essai
--- local n'avait rien vu et que la panne est arrivee chez le joueur. Chaque
--- table temporaire n'est desormais lue QU'UNE FOIS par instruction, et
--- tools/verifier_tables_temporaires.py le controle sur tout le depot.
---
--- Etape 1 : le meilleur rang de chaque (jeton, classe).
-DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_rang`;
-CREATE TEMPORARY TABLE `bis_jetons_aq_rang` (
-    `jeton` INT UNSIGNED NOT NULL,
-    `class` TINYINT UNSIGNED NOT NULL,
-    `spec`  TINYINT UNSIGNED NOT NULL,
-    `rang`  TINYINT UNSIGNED NOT NULL,
-    PRIMARY KEY (`jeton`, `class`, `spec`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO `bis_jetons_aq_rang` (`jeton`, `class`, `spec`, `rang`)
-SELECT j.`jeton`, b.`class`, b.`spec`, MIN(b.`rank`)
+-- L'ORDRE COMPTE, et c'est le seul reste de l'ancien choix : les pieces sont
+-- rangees par rang, la meilleure d'abord. WantsQuestToken rend le palier de la
+-- premiere qui manque, et le lire dans cet ordre donne le palier de la piece la
+-- mieux classee plutot que celui d'une queue de liste.
+INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `spec`, `piece_id`, `comment`)
+SELECT j.`jeton`, b.`class`, b.`spec`, j.`piece`,
+       CONCAT(t.`name`, ' -> ', i.`name`)
 FROM `bis_jetons_aq` j
 JOIN `bis_listes_aq` b ON b.`item_id` = j.`piece`
-GROUP BY j.`jeton`, b.`class`, b.`spec`;
-
--- Etape 2 : a ce rang, la piece de plus petit identifiant. Le MIN tranche les
--- egalites, pour que deux imports rendent le meme resultat.
-DROP TEMPORARY TABLE IF EXISTS `bis_jetons_aq_choix`;
-CREATE TEMPORARY TABLE `bis_jetons_aq_choix` (
-    `jeton` INT UNSIGNED NOT NULL,
-    `class` TINYINT UNSIGNED NOT NULL,
-    `spec`  TINYINT UNSIGNED NOT NULL,
-    `piece` INT UNSIGNED NOT NULL,
-    PRIMARY KEY (`jeton`, `class`, `spec`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO `bis_jetons_aq_choix` (`jeton`, `class`, `spec`, `piece`)
-SELECT r.`jeton`, r.`class`, r.`spec`, MIN(j.`piece`)
-FROM `bis_jetons_aq_rang` r
-JOIN `bis_jetons_aq` j ON j.`jeton` = r.`jeton`
-JOIN `bis_listes_aq` b
-  ON b.`item_id` = j.`piece` AND b.`class` = r.`class`
- AND b.`spec` = r.`spec` AND b.`rank` = r.`rang`
-GROUP BY r.`jeton`, r.`class`, r.`spec`;
-
--- Etape 3 : la conversion elle-meme. Le nom du jeton se relit dans
--- item_template plutot que dans bis_jetons_aq, qui le porte aussi : ce serait
--- une seconde lecture d'une table temporaire deja jointe.
-INSERT IGNORE INTO `playerbots_bis_quest_token` (`token_id`, `class`, `spec`, `piece_id`, `comment`)
-SELECT c.`jeton`, c.`class`, c.`spec`, c.`piece`,
-       CONCAT(t.`name`, ' -> ', i.`name`)
-FROM `bis_jetons_aq_choix` c
-JOIN `item_template` i ON i.`entry` = c.`piece`
-JOIN `item_template` t ON t.`entry` = c.`jeton`;
+JOIN `item_template` i ON i.`entry` = j.`piece`
+JOIN `item_template` t ON t.`entry` = j.`jeton`
+ORDER BY j.`jeton`, b.`class`, b.`spec`, b.`rank`, j.`piece`;
 
 -- ---------------------------------------------------------------------
 -- VERIFICATIONS

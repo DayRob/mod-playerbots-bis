@@ -185,7 +185,18 @@ public:
     // pas d'une deduction : chercher la piece par creneau, palier et rang
     // tomberait juste aujourd'hui et faux le jour ou deux pieces partagent un
     // rang.
-    uint32 QuestTokenReward(uint32 tokenId, uint8 cls, uint8 spec) const;
+    // TOUTES les pieces que ce jeton ouvre pour cette classe et cette spe, et
+    // non plus la seule mieux classee.
+    //
+    // Les jetons epaules/bottes d'Ahn'Qiraj en ouvrent DEUX : Qiraji Bindings
+    // of Command rend a un guerrier les Conqueror's Spaulders - rang 1 - et les
+    // Conqueror's Greaves - rang 5. N'en garder qu'une laissait l'autre
+    // inaccessible : le bot n'echangeait jamais son jeton contre elle, et
+    // cessait meme de reclamer le jeton des qu'il portait la premiere.
+    //
+    // Rend une liste vide quand le jeton n'est pas connu, ce qui est aussi la
+    // reponse pour tout objet qui n'est pas un jeton.
+    std::vector<uint32> const& QuestTokenRewards(uint32 tokenId, uint8 cls, uint8 spec) const;
 
     // Un objet que le bot doit RECLAMER sans qu'il soit sur sa liste
     // d'equipement, tant qu'il en possede moins que le compte voulu.
@@ -322,12 +333,12 @@ private:
     // itemId -> every (cls<<8|spec) that lists it. Backs IsBisForAnotherSpec
     // without scanning the whole table on each decision.
     std::unordered_map<uint32, std::vector<uint16>> _bisOwners;
-    // (tokenId<<8|cls) -> piece achetee. Plat plutot qu'imbrique : la table
+    // (tokenId<<8|cls) -> les pieces achetees. Plat plutot qu'imbrique : la table
     // compte quelques dizaines de lignes, et une classe tient sur huit bits.
     // Cle sur 64 bits : (jeton << 16) | (classe << 8) | spe. Le jeton seul tient
     // deja sur plus de 16 bits, et la spe d'ours vaut 10 - les deux decalages de
     // huit laissent la place aux trois sans se chevaucher.
-    std::unordered_map<uint64, uint32> _questTokens;
+    std::unordered_map<uint64, std::vector<uint32>> _questTokens;
 
     // objet -> nombre au-dela duquel le bot cesse d'en vouloir.
     std::unordered_map<uint32, uint32> _wantedItems;
