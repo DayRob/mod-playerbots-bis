@@ -350,6 +350,66 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
                          return offHand(a) < offHand(b);
                      });
 
+    // ── FAUT-IL OUVRIR LA MAIN GAUCHE ? ───────────────────────────────────
+    //
+    // Un bot qui porte une arme a deux mains ne peut rien mettre en main
+    // gauche, et la comparaison piece par piece ne voit pas le probleme : la
+    // main gauche est mieux classee que ce qu'il porte a CE creneau - rien -
+    // et le baton occupe un AUTRE creneau. Vu en jeu : un soigneur avec le
+    // Baton beni d'augure qiraji, rang 3, et le Pouvoir de Sartura, rang 1,
+    // qui dormait dans ses sacs.
+    //
+    // La question se pose UNE FOIS, avant la boucle, et elle se pose en rangs :
+    // si la main gauche qui attend est mieux classee que l'arme a deux mains
+    // portee, alors la paire vaut mieux que le baton, et il faut une arme a une
+    // main pour la porter. On autorise alors une une-main que les listes ne
+    // nomment pas - elle n'est pas la pour etre bonne, elle est la pour ouvrir
+    // la main gauche.
+    uint8 rangMainGauche = 255;  // la meilleure main gauche qui attend en sac
+    uint8 rangDeuxMains = 255;   // le rang de l'arme a deux mains portee
+    bool deuxMainsPortee = false;
+
+    {
+        Item const* const enMain = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+        ItemTemplate const* const protoMain = enMain ? enMain->GetTemplate() : nullptr;
+        if (protoMain && protoMain->InventoryType == INVTYPE_2HWEAPON)
+        {
+            deuxMainsPortee = true;
+
+            uint8 rang = 0;
+            if (sBisPriorityMgr->GetItemPriority(bot, protoMain->ItemId, nullptr, nullptr, &rang) && rang)
+                rangDeuxMains = rang;
+        }
+    }
+
+    if (deuxMainsPortee)
+    {
+        for (Item const* sac : visitor.items)
+        {
+            ItemTemplate const* const p = sac ? sac->GetTemplate() : nullptr;
+            if (!p)
+                continue;
+
+            if (p->InventoryType != INVTYPE_SHIELD && p->InventoryType != INVTYPE_WEAPONOFFHAND &&
+                p->InventoryType != INVTYPE_HOLDABLE)
+                continue;
+
+            uint8 rang = 0;
+            if (!sBisPriorityMgr->GetItemPriority(bot, p->ItemId, nullptr, nullptr, &rang) || !rang)
+                continue;
+
+            if (bot->CanUseItem(p) != EQUIP_ERR_OK)
+                continue;
+
+            if (rang < rangMainGauche)
+                rangMainGauche = rang;
+        }
+    }
+
+    // Strictement mieux : a rang egal on ne touche a rien, le baton a l'avantage
+    // de ne demander aucune seconde piece.
+    bool ouvrirLaMainGauche = deuxMainsPortee && rangMainGauche < rangDeuxMains;
+
     bool equipped = false;
 
     for (Item* item : visitor.items)
@@ -371,7 +431,18 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         uint16 tierId = 0;
         uint8 rank = 0;
         uint32 const priority = sBisPriorityMgr->GetItemPriority(bot, proto->ItemId, &slot, &tierId, &rank);
-        if (!priority)
+
+        // CELLE QUI OUVRE LA MAIN GAUCHE N'A PAS BESOIN D'ETRE LISTEE. Elle
+        // n'est pas choisie pour sa valeur mais pour ce qu'elle libere : une
+        // main gauche mieux classee que le baton qu'elle remplace. Sans cette
+        // porte, un bot sans une-main EN LISTE restait bloque avec son arme a
+        // deux mains et sa main gauche dormait dans les sacs pour toujours.
+        bool const ouvreur = ouvrirLaMainGauche && !priority &&
+                             (proto->InventoryType == INVTYPE_WEAPON ||
+                              proto->InventoryType == INVTYPE_WEAPONMAINHAND) &&
+                             bot->CanUseItem(proto) == EQUIP_ERR_OK;
+
+        if (!priority && !ouvreur)
         {
             // No list names it AT THIS BOT'S CAP - which is not the same as
             // "no list names it at all". A piece listed only for Blackwing Lair
@@ -394,7 +465,9 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         }
 
         uint8 targetSlot = slot;
-        uint32 const worn = sBisPriorityMgr->GetWornPriorityPaired(bot, slot, &targetSlot);
+        uint32 const worn = ouvreur ? 0u : sBisPriorityMgr->GetWornPriorityPaired(bot, slot, &targetSlot);
+        if (ouvreur)
+            targetSlot = EQUIPMENT_SLOT_MAINHAND;
 
         // A two-hander fills both hands, so the core refuses this one every
         // single time. Sending the packet anyway spent a refusal per item
@@ -404,12 +477,16 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         if (sBisPriorityMgr->OffHandClosed(bot, targetSlot))
         {
             if (report)
-                report->PSendSysMessage("  {} : main gauche fermee par l'arme a deux mains portee",
+                report->PSendSysMessage("  {} : main gauche fermee par l'arme a deux mains portee"
+                                        " - en attente d'une arme a une main",
                                         ChatHelper::FormatItem(proto));
             continue;
         }
 
-        if (priority <= worn)
+        // Celle qui ouvre la main gauche echappe a la comparaison : elle est
+        // peut-etre moins bonne que le baton prise seule, et c'est justement le
+        // calcul - une main gauche mieux classee la compense.
+        if (!ouvreur && priority <= worn)
         {
             if (report)
                 report->PSendSysMessage("  {} : deja mieux au creneau {} (porte {}, sac {})",
@@ -496,6 +573,12 @@ bool BisEquipUpgradesAction::EquipBisFromBags(ChatHandler* report)
         // returned above - but a stale claim here would be worse than silence.
         if (displacedOffHand && bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
             displacedOffHand = nullptr;
+
+        // UNE SEULE SUFFIT. Sans ca, une seconde arme a une main plus loin dans
+        // les sacs se croirait elle aussi chargee d'ouvrir la main gauche, et
+        // les deux se remplaceraient a chaque passage.
+        if (ouvreur)
+            ouvrirLaMainGauche = false;
 
         // LE RANG DES DEUX PIECES. Celui qui arrive ne dit que la moitie de
         // l'echange : "rang 3 a la place de rang 7" se lit d'un coup d'oeil,
