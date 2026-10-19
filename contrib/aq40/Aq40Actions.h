@@ -47,6 +47,12 @@ class Aq40SetTheStageAction : public Action
 public:
     Aq40SetTheStageAction(PlayerbotAI* botAI) : Action(botAI, "aq40 put the twins on their marks") {}
     bool Execute(Event event) override;
+
+private:
+    // Quand la laisse a tire pour la derniere fois. ICI et pas dans le
+    // declencheur : une question doit pouvoir etre posee sans rien changer, et
+    // seule l'action sait si un Empereur a vraiment ete deplace.
+    uint32 _dernierRecalage = 0;
 };
 
 // Rejoint l'endroit d'ou ce bot doit partir, avant que le combat commence - et,

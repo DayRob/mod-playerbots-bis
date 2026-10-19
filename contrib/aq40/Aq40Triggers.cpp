@@ -45,17 +45,15 @@ bool Aq40SetTheStageTrigger::IsActive()
     //
     // Huit yards de jeu, pas trois : un boss au contact de son tank oscille en
     // permanence, et le ramener pour ca ferait une teleportation par seconde.
-    // Trois secondes entre deux recalages, pour la meme raison.
-    uint32 const maintenant = getMSTime();
-    if (_dernierRecalage && getMSTimeDiff(_dernierRecalage, maintenant) < LEASH_COOLDOWN_MS)
-        return false;
-
-    if (!RaidAq40Utils::NeedsMoving(veklor, LEASH_DRIFT_RANGE) &&
-        !RaidAq40Utils::NeedsMoving(veknilash, LEASH_DRIFT_RANGE))
-        return false;
-
-    _dernierRecalage = maintenant;
-    return true;
+    //
+    // ET LE DELAI N'EST PLUS ICI. Je comptais les trois secondes dans ce
+    // declencheur, qui est une QUESTION : il doit pouvoir etre pose dix fois
+    // sans rien changer. En armant le compteur, il se croyait tire des qu'on
+    // lui demandait son avis - meme quand l'action ne s'executait pas - et la
+    // laisse restait muette. Le delai vit maintenant dans l'action, le seul
+    // endroit qui sache ce qui s'est vraiment passe.
+    return RaidAq40Utils::NeedsMoving(veklor, LEASH_DRIFT_RANGE) ||
+           RaidAq40Utils::NeedsMoving(veknilash, LEASH_DRIFT_RANGE);
 }
 
 bool Aq40TakeStationTrigger::IsActive()

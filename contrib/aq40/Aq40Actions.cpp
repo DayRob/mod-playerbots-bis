@@ -65,6 +65,15 @@ namespace
 
 bool Aq40SetTheStageAction::Execute(Event /*event*/)
 {
+    // LE DELAI DE LA LAISSE, pendant le combat seulement. Hors combat rien ne
+    // bouge, donc rien a espacer : on pose au yard pres et on n'y revient pas.
+    uint32 const maintenant = getMSTime();
+    if (bot->IsInCombat())
+    {
+        if (_dernierRecalage && getMSTimeDiff(_dernierRecalage, maintenant) < LEASH_COOLDOWN_MS)
+            return false;
+    }
+
     bool fait = false;
 
     if (Creature* veklor = RaidAq40Utils::GetVeklor(bot))
@@ -81,6 +90,12 @@ bool Aq40SetTheStageAction::Execute(Event /*event*/)
     // chacun est celle d'en face, donc la laisse les y maintient et les bots
     // doivent bien changer de cote. Elle bloque les Empereurs sur les tetes de
     // mort sans jamais figer lequel est de quel cote.
+    //
+    // Le compteur ne part que si quelque chose a VRAIMENT bouge. Un passage
+    // pour rien ne doit pas endormir la laisse pour trois secondes.
+    if (fait)
+        _dernierRecalage = maintenant;
+
     return fait;
 }
 
