@@ -421,7 +421,12 @@ bool RaidAq40Utils::GetStationAt(Player* bot, Position const& marque, Position& 
     dY /= axe;
 
     float const lateral = (float(bot->GetGUID().GetCounter() % 7u) - 3.0f) * PREPULL_SPREAD_STEP;
-    float const recul = physique ? MELEE_PREPULL_OFFSET : 0.0f;
+
+    // Les deux reculent, et pour deux raisons differentes : un corps-a-corps
+    // pour ne pas se tenir sur son tank, un lanceur de sorts pour ne pas
+    // declencher Jaillissement des arcanes - qui ne demande qu'un seul joueur
+    // au contact de Vek'lor pour repousser toute la salle.
+    float const recul = physique ? MELEE_PREPULL_OFFSET : CASTER_PREPULL_OFFSET;
 
     out.Relocate(marque.GetPositionX() + recul * dX - lateral * dY,
                  marque.GetPositionY() + recul * dY + lateral * dX,

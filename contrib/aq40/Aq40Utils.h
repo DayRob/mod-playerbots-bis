@@ -156,6 +156,20 @@ constexpr float VEKLOR_HOLDER_OFFSET = 25.0f;
 // ne pas se tenir sur son tank.
 constexpr float MELEE_PREPULL_OFFSET = 10.0f;
 
+// ET LES LANCEURS DE SORTS SE TIENNENT LOIN, EUX AUSSI.
+//
+// Ils ne reculaient pas du tout - zero yard - donc ils se posaient SUR leur
+// marque, c'est-a-dire sur Vek'lor, que la laisse y maintient. Or le script ne
+// demande rien d'autre pour lancer Jaillissement des arcanes :
+//
+//     if (Player* player = me->SelectNearestPlayer(NOMINAL_MELEE_RANGE))
+//
+// Un seul joueur au contact, et toute la salle est repoussee.
+//
+// Vingt yards : au-dela du contact, et bien en deca des trente d'un sort. La
+// meme bande que celle ou le demoniste tient Vek'lor, pour la meme raison.
+constexpr float CASTER_PREPULL_OFFSET = 20.0f;
+
 // L'ecartement lateral entre deux bots du meme groupe, gradue sur leur GUID :
 // sans lui, trente bots visent le meme point et s'empilent.
 constexpr float PREPULL_SPREAD_STEP = 4.0f;
