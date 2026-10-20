@@ -964,6 +964,61 @@ les force (souvent à 100) alors que le fichier conf dit 0 — et 0 signifie
 « hériter des seuils de playerbots », qui s'arrêtent bien avant le plein. La
 commande ci-dessus est un coup de pouce ponctuel, pas un remplacement.
 
+## Les sorts que seul un livre enseigne
+
+```
+PlayerbotsBis.TeachBookSpells = 1
+```
+
+mod-playerbots apprend leurs sorts aux bots en parcourant les listes des
+**maîtres de classe** (`PlayerbotFactory::InitAvailableSpells`). Un sort absent
+de ces listes — ou verrouillé au-dessus du niveau du bot — ne lui arrive donc
+jamais.
+
+Or une trentaine de sorts de rang maximum de l'ère vanilla ne s'apprenaient
+qu'en livre : Codex, Grimoire, Tome, Tablette, Manuel. TBC les a bien reversés
+sur les maîtres, mais **à `ReqLevel` 61**, pour que le livre garde sa valeur à
+60 :
+
+```sql
+SELECT TrainerId, ReqLevel, ReqAbility1 FROM trainer_spell WHERE SpellId = 25316;
+-- 11 | 61 | 10961      -- Prière de soins V, enseignée par les 36 maîtres prêtres
+```
+
+À 60, le maître refuse, `GetTrainerSpellState` renvoie rouge, et le bot soigne
+au **rang 4 pour toujours**. Ce n'est pas un cas isolé : Soins supérieurs V,
+Rénovation X, Soins XI, Rajeunissement XI, Étoile du soir VII, Morsure féroce V,
+Boule de feu XII, Trait de l'ombre X, Immolation VIII, Corruption VII, Vague de
+soins X, Choc de flammes VI, Éviscération IX, Attaque sournoise IX, Poison
+mortel V, Tir multiple V, Piqûre de serpent IX… soit un sort majeur manquant
+chez presque chaque soigneur et chaque DPS caster d'un raid niveau 60.
+
+La liste n'est pas codée en dur. Elle est lue dans `item_template` — classe 9
+(recette), sous-classe 0 (livre de sort), premier sort 483 « Apprentissage » —
+donc un serveur qui modifie ou ajoute ces items est suivi sans toucher au
+module. Pour chaque bot : même classe, niveau atteint, rang précédent déjà
+connu, sort pas déjà su → `learnSpell`.
+
+**Jamais un personnage de joueur, jamais un alt passé en bot.** Seuls les bots
+du vivier (randombots et addclass) sont concernés, exactement comme le filtre de
+`BisBotGate`. Le livre reste une vraie trouvaille pour qui le loote, et un
+personnage qu'on peut reprendre au clavier ne gagne rien gratuitement.
+
+Le rattrapage passe à la connexion, à chaque montée de niveau, et toutes les
+cinq minutes — ce dernier parce qu'une randomisation complète repasse sur les
+sorts du bot sans prévenir.
+
+Pour voir le trou sur ton propre serveur avant et après :
+
+```sql
+SELECT i.name, i.spellid_2 AS sort, i.RequiredLevel,
+       (SELECT COUNT(DISTINCT cs.guid) FROM acore_characters.character_spell cs
+        WHERE cs.spell = i.spellid_2) AS perso_qui_lont
+FROM acore_world.item_template i
+WHERE i.class = 9 AND i.subclass = 0 AND i.spellid_1 = 483 AND i.spellid_2 > 0
+ORDER BY perso_qui_lont, i.RequiredLevel;
+```
+
 ## Libérer les verrous d'instance des bots
 
 ```
