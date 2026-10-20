@@ -60,10 +60,11 @@ public:
     // jusqu'a ce qu'il ait bu. Voir BisBotGate.cpp.
     bool FullAfterResurrect() const { return _fullAfterResurrect; }
 
-    // Les bots recoivent-ils les sorts de classe que seul un livre enseigne ?
-    // TBC a bien reverse ces rangs sur les maitres, mais a ReqLevel 61 : a 60
-    // ils restent hors de portee, et InitAvailableSpells les saute. Voir
-    // BisBookSpells.cpp.
+    // Les bots recoivent-ils les sorts de livre SANS le livre ? A faux - le
+    // defaut - la regle du jeu tient : a 60 le maitre s'arrete, et seul un
+    // livre ramasse donne le dernier rang. Le module se contente alors de
+    // faire ce qu'un bot ne savait pas faire, ouvrir le livre qu'il porte et
+    // le reclamer au jet. Voir BisBookSpells.cpp.
     bool TeachBookSpells() const { return _teachBookSpells; }
 
     // Vrai quand le bot annonce des le JET, avant de savoir s'il emporte la
@@ -367,7 +368,7 @@ private:
     bool _leaveOtherSpecsBis = true;
     bool _announceOwnBis = true;
     bool _fullAfterResurrect = true;
-    bool _teachBookSpells = true;
+    bool _teachBookSpells = false;
     bool _announceOnRoll = true;
     uint32 _minBotLevel = 0;
     bool _blockDeathKnights = false;

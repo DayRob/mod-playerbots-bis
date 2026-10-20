@@ -964,51 +964,61 @@ les force (souvent à 100) alors que le fichier conf dit 0 — et 0 signifie
 « hériter des seuils de playerbots », qui s'arrêtent bien avant le plein. La
 commande ci-dessus est un coup de pouce ponctuel, pas un remplacement.
 
-## Les sorts que seul un livre enseigne
+## Les livres de sort
 
-```
-PlayerbotsBis.TeachBookSpells = 1
-```
-
-mod-playerbots apprend leurs sorts aux bots en parcourant les listes des
-**maîtres de classe** (`PlayerbotFactory::InitAvailableSpells`). Un sort absent
-de ces listes — ou verrouillé au-dessus du niveau du bot — ne lui arrive donc
-jamais.
-
-Or une trentaine de sorts de rang maximum de l'ère vanilla ne s'apprenaient
-qu'en livre : Codex, Grimoire, Tome, Tablette, Manuel. TBC les a bien reversés
-sur les maîtres, mais **à `ReqLevel` 61**, pour que le livre garde sa valeur à
-60 :
+À niveau 60, le maître de classe s'arrête au rang précédent : le dernier rang
+s'apprend **dans un livre**. Codex de Prière de soins V, Tome de Boule de feu
+XII, Grimoire de Trait de l'ombre X, Tablette de Vague de soins X… TBC a bien
+reversé ces sorts sur les maîtres, mais à `ReqLevel` 61, précisément pour que le
+livre garde sa valeur à 60 :
 
 ```sql
-SELECT TrainerId, ReqLevel, ReqAbility1 FROM trainer_spell WHERE SpellId = 25316;
--- 11 | 61 | 10961      -- Prière de soins V, enseignée par les 36 maîtres prêtres
+SELECT TrainerId, ReqLevel FROM trainer_spell WHERE SpellId = 25316;
+-- 11 | 61      -- Prière de soins V, enseignée par les 36 maîtres prêtres
 ```
 
-À 60, le maître refuse, `GetTrainerSpellState` renvoie rouge, et le bot soigne
-au **rang 4 pour toujours**. Ce n'est pas un cas isolé : Soins supérieurs V,
-Rénovation X, Soins XI, Rajeunissement XI, Étoile du soir VII, Morsure féroce V,
-Boule de feu XII, Trait de l'ombre X, Immolation VIII, Corruption VII, Vague de
-soins X, Choc de flammes VI, Éviscération IX, Attaque sournoise IX, Poison
-mortel V, Tir multiple V, Piqûre de serpent IX… soit un sort majeur manquant
-chez presque chaque soigneur et chaque DPS caster d'un raid niveau 60.
+**C'est la règle du jeu, et le module ne la contourne pas.** Le dernier rang
+reste une trouvaille.
 
-La liste n'est pas codée en dur. Elle est lue dans `item_template` — classe 9
-(recette), sous-classe 0 (livre de sort), premier sort 483 « Apprentissage » —
-donc un serveur qui modifie ou ajoute ces items est suivi sans toucher au
-module. Pour chaque bot : même classe, niveau atteint, rang précédent déjà
-connu, sort pas déjà su → `learnSpell`.
+### Ce qui manquait vraiment
 
-**Jamais un personnage de joueur, jamais un alt passé en bot.** Seuls les bots
-du vivier (randombots et addclass) sont concernés, exactement comme le filtre de
-`BisBotGate`. Le livre reste une vraie trouvaille pour qui le loote, et un
-personnage qu'on peut reprendre au clavier ne gagne rien gratuitement.
+mod-playerbots n'apprend les sorts que par les maîtres
+(`PlayerbotFactory::InitAvailableSpells`). Un livre qui tombe dans le sac d'un
+bot n'est donc **jamais ouvert** : il y dort, ou part chez le marchand. Et comme
+un livre n'est ni arme ni armure, aucun bot ne vote dessus au jet de butin — il
+échoit au premier venu, souvent à qui ne peut pas le lire.
 
-Le rattrapage passe à la connexion, à chaque montée de niveau, et toutes les
-cinq minutes — ce dernier parce qu'une randomisation complète repasse sur les
-sorts du bot sans prévenir.
+Le module ferme la boucle des deux côtés :
 
-Pour voir le trou sur ton propre serveur avant et après :
+- **au jet**, un bot qui saurait lire le livre le réclame (BESOIN, comme pour un
+  jeton : un GREED le laisserait à n'importe qui) ;
+- **en sac**, il l'ouvre — le sort est appris, le livre consommé, exactement ce
+  que ferait un joueur d'un clic droit.
+
+Le test est celui du jeu : même classe, niveau atteint, rang précédent déjà
+connu, sort pas déjà su. Un livre que le bot ne peut pas lire reste en sac. La
+liste n'est pas codée en dur : elle est lue dans `item_template` — classe 9
+(recette), sous-classe 0 (livre de sort), premier sort 483 « Apprentissage ».
+
+Le passage a lieu à la connexion, à chaque montée de niveau (un livre niveau 60
+ramassé à 58 dort en sac jusque-là) et **chaque minute** — un livre gagné au jet
+doit être lu avant le combat suivant, pas au prochain quart d'heure.
+
+Jamais un personnage de joueur, jamais un alt passé en bot : seuls les bots du
+vivier. Tes livres restent les tiens.
+
+### La porte de service
+
+```
+PlayerbotsBis.TeachBookSpells = 0
+```
+
+À 1, les bots du vivier reçoivent directement tout sort de livre de leur classe
+et de leur niveau, sans le livre. C'est une **triche assumée** — utile si tu veux
+tes soigneurs au plein rang tout de suite sans attendre les drops, au prix de la
+valeur du livre. Par défaut à 0.
+
+Pour voir où en sont tes bots :
 
 ```sql
 SELECT i.name, i.spellid_2 AS sort, i.RequiredLevel,

@@ -5,6 +5,7 @@
  */
 
 #include "BisLootRollAction.h"
+#include "BisBookSpells.h"
 #include "BisPriorityMgr.h"
 #include "ChatHelper.h"
 #include "Event.h"
@@ -170,6 +171,23 @@ bool BisLootRollAction::Execute(Event event)
         // y a de pretendants - et le client dit deja "X a choisi Besoin pour
         // [objet]", ce qui porte l'essentiel.
         if (forceNeed && sBisPriorityMgr->WantsExtraItem(bot, roll->itemid))
+        {
+            need.push_back(roll->itemGUID);
+            continue;
+        }
+
+        // LES LIVRES DE SORT, pour la meme raison et avec la meme conclusion.
+        // A 60, le maitre de classe s'arrete au rang precedent : le Codex de
+        // Priere de soins V, le Tome de Boule de feu XII ou le Grimoire de
+        // Trait de l'ombre X sont la SEULE facon d'avoir le dernier rang. Et
+        // un livre n'est ni arme ni armure, donc le filtre plus bas l'ecarte
+        // et personne ne vote : il part au premier venu, souvent a qui ne
+        // peut pas le lire.
+        //
+        // PeutApprendre applique exactement le test du jeu - classe, niveau,
+        // rang precedent, sort pas deja su - donc seul un bot qui l'ouvrira
+        // vraiment le reclame, et il cesse de voter une fois servi.
+        if (forceNeed && BisBookSpells::PeutApprendre(bot, roll->itemid))
         {
             need.push_back(roll->itemGUID);
             continue;

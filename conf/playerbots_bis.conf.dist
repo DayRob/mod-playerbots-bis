@@ -363,44 +363,39 @@ PlayerbotsBis.VipGuildId = 0
 
 #
 #    PlayerbotsBis.TeachBookSpells
-#        Description: Donne aux bots du vivier les sorts de classe que SEUL un
-#                     livre enseigne.
+#        Description: Donne aux bots les sorts de livre SANS le livre.
 #
-#                     POURQUOI. mod-playerbots apprend ses sorts aux bots en
-#                     parcourant les listes des maitres de classe
-#                     (PlayerbotFactory::InitAvailableSpells). Une trentaine de
-#                     sorts de rang maximum de l'ere vanilla ne s'obtenaient
-#                     qu'en livre ; TBC les a reverses sur les maitres, mais a
-#                     ReqLevel 61 pour que le livre garde sa valeur a 60 :
+#                     A LIRE AVANT DE PASSER A 1 : c'est une triche assumee,
+#                     et le module n'en a pas besoin pour bien se comporter.
+#
+#                     LA REGLE DU JEU. A niveau 60, le maitre de classe
+#                     s'arrete au rang precedent, et le dernier rang s'apprend
+#                     dans un livre - Codex de Priere de soins V, Tome de Boule
+#                     de feu XII, Grimoire de Trait de l'ombre X. TBC a bien
+#                     reverse ces sorts sur les maitres, mais a ReqLevel 61,
+#                     precisement pour que le livre garde sa valeur a 60 :
 #
 #                         SELECT TrainerId, ReqLevel FROM trainer_spell
 #                         WHERE SpellId = 25316;   -- Priere de soins V
 #                         -> 11 | 61
 #
-#                     A niveau 60, le maitre refuse donc, et le bot soigne au
-#                     rang 4 pour toujours. Idem pour Soins superieurs V,
-#                     Renovation X, Soins XI, Rajeunissement XI, Boule de feu
-#                     XII, Trait de l'ombre X, Immolation VIII, Corruption VII,
-#                     Vague de soins X, Eviscration IX, Poison mortel V... soit
-#                     un sort majeur manquant chez presque chaque soigneur et
-#                     chaque DPS caster d'un raid niveau 60.
+#                     CE QUE LE MODULE FAIT DE TOUTE FACON, reglage a 0 : il
+#                     ferme la boucle du livre, que mod-playerbots laissait
+#                     ouverte. Un bot qui ramasse un livre qu'il sait lire
+#                     l'OUVRE - le sort est appris, le livre consomme - et au
+#                     jet de butin il le RECLAME, parce qu'un livre n'etant ni
+#                     arme ni armure, aucun bot ne votait dessus et il partait
+#                     au premier venu, souvent a qui ne pouvait pas le lire.
 #
-#                     CE QUI EST TOUCHE. Uniquement les bots du vivier
-#                     (randombots et addclass). Jamais un personnage de joueur,
-#                     jamais un alt passe en bot : le livre reste une vraie
-#                     trouvaille pour qui le loote, et un personnage qu'on peut
-#                     reprendre au clavier ne gagne rien gratuitement.
+#                     Rien n'est donne : il faut que le livre soit tombe.
 #
-#                     La liste n'est pas codee en dur : elle est lue dans
-#                     item_template (classe 9, sous-classe 0, premier sort 483
-#                     "Apprentissage"). Un serveur qui modifie ces items est
-#                     suivi sans toucher au module.
-#
-#                     Le rattrapage passe a la connexion, a chaque montee de
-#                     niveau, et toutes les cinq minutes - ce dernier parce
-#                     qu'une randomisation complete repasse sur les sorts du
-#                     bot sans prevenir.
-#        Default:     1 (actif)
+#                     A 1, les bots du vivier recoivent directement tout sort
+#                     de livre de leur classe et de leur niveau. Utile si tu
+#                     veux tes soigneurs au plein rang tout de suite sans
+#                     attendre les drops - au prix de la valeur du livre.
+#                     Jamais un personnage de joueur, jamais un alt passe en
+#                     bot, dans les deux cas.
+#        Default:     0 (la regle du jeu tient)
 #
 
-PlayerbotsBis.TeachBookSpells = 1
+PlayerbotsBis.TeachBookSpells = 0
