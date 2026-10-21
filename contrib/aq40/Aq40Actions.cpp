@@ -42,13 +42,35 @@ namespace
 namespace
 {
     // Pose un Empereur sur sa marque, et l'y ancre.
-    bool PoserSurSaMarque(Creature* jumeau)
+    bool PoserSurSaMarque(Creature* jumeau, bool enCombat)
     {
+        if (!jumeau || !jumeau->IsAlive())
+            return false;
+
+        // DEJA EN EVASION : on ne tire pas dessus. Il rentre chez lui et se
+        // soigne ; le ramener pendant ce retour ne ferait que prolonger l'etat
+        // sans rendre le combat.
+        if (jumeau->IsInEvadeMode())
+            return false;
+
         Position marque;
         if (!RaidAq40Utils::GetTwinMark(jumeau, marque))
             return false;
 
-        if (!RaidAq40Utils::NeedsMoving(jumeau))
+        // La meme tolerance que le declencheur. Avec la valeur par defaut, il
+        // suffisait qu'UN des deux ait depasse huit yards pour que l'action
+        // replace aussi l'autre, qui n'avait bouge que de quatre - une
+        // teleportation gratuite, au milieu du combat.
+        float const tolerance = enCombat ? LEASH_DRIFT_RANGE : MARK_TOLERANCE;
+        if (!RaidAq40Utils::NeedsMoving(jumeau, tolerance))
+            return false;
+
+        // LE PLAFOND EN COMBAT. Voir Aq40Utils.h : ramener un Empereur de
+        // quatre-vingts yards en plein combat le fait passer en evasion, et le
+        // combat est perdu. Une laisse corrige une derive, elle ne demenage pas
+        // un boss.
+        if (enCombat &&
+            jumeau->GetExactDist2d(marque.GetPositionX(), marque.GetPositionY()) > LEASH_MAX_MOVE)
             return false;
 
         float const o = jumeau->GetOrientation();
@@ -74,13 +96,14 @@ bool Aq40SetTheStageAction::Execute(Event /*event*/)
             return false;
     }
 
+    bool const enCombat = bot->IsInCombat();
     bool fait = false;
 
     if (Creature* veklor = RaidAq40Utils::GetVeklor(bot))
-        fait |= PoserSurSaMarque(veklor);
+        fait |= PoserSurSaMarque(veklor, enCombat);
 
     if (Creature* veknilash = RaidAq40Utils::GetVeknilash(bot))
-        fait |= PoserSurSaMarque(veknilash);
+        fait |= PoserSurSaMarque(veknilash, enCombat);
 
     // Chacun sur SA marque, c'est-a-dire celle dont il est LE PLUS PRES, donc
     // 133 yards les separent - plus du double des 60 de Heal Brother.

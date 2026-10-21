@@ -250,6 +250,25 @@ constexpr float WRONG_SIDE_MARGIN = 10.0f;
 constexpr float LEASH_DRIFT_RANGE = 8.0f;
 constexpr uint32 LEASH_COOLDOWN_MS = 3000;
 
+// ─── LE PLAFOND DE LA LAISSE, EN COMBAT ──────────────────────────────────────
+//
+// UNE LAISSE CORRIGE UNE DERIVE, ELLE NE DEMENAGE PAS UN BOSS.
+//
+// En fonctionnement normal, la correction en combat vaut quelques yards : les
+// Empereurs sont poses sur leurs marques AVANT le pull, et apres leur propre
+// teleportation chacun atterrit sur la marque d'en face - celle dont il est le
+// plus pres - donc l'ecart reste petit.
+//
+// Un ecart enorme en plein combat ne peut venir que d'une situation anormale :
+// la strategie armee alors que le combat a deja commence, un boss parti au bout
+// de la salle derriere un bot. Le ramener de quatre-vingts yards d'un coup fait
+// basculer la creature en EVASION - elle rentre chez elle, se soigne et devient
+// immunisee, et le combat est perdu. Constate en jeu.
+//
+// Au-dela de ce plafond, la laisse ne fait donc rien : le combat se deroule mal
+// mais il se deroule, ce qui vaut mieux qu'un boss qui se soigne a fond.
+constexpr float LEASH_MAX_MOVE = 30.0f;
+
 // ─── LA MINUTERIE DE LA TELEPORTATION ────────────────────────────────────────
 //
 // Elle n'est pas devinee, elle est lue dans le script du coeur :
