@@ -107,6 +107,12 @@ local defaults = {
     -- shows, since pre-raid is then its highest. Default on: the history is
     -- what people asked to stop reading.
     topOnly = true,
+    -- L'identifiant de l'objet, en gris sous l'infobulle. Le client ne le montre
+    -- nulle part, et c'est pourtant la seule cle qui relie ce qu'on voit a
+    -- l'ecran aux tables du serveur : playerbots_bis_item, item_template,
+    -- creature_loot_template. Sans lui il faut retrouver la piece par son nom,
+    -- traduit, dans une base qui ne l'est pas.
+    montrerId = true,
 }
 
 local db
@@ -421,6 +427,12 @@ local function AddTooltipLines(tooltip, itemId)
     -- "qui l'a deja ?" se pose.
     AddWearersLine(tooltip, itemId)
 
+    -- En dernier, et en gris : c'est une information de travail, pas une
+    -- information de jeu. Elle ne doit pas disputer la place aux lignes BiS.
+    if db.montrerId then
+        tooltip:AddLine(Tint("808080", "ID " .. itemId))
+    end
+
     tooltip:Show()  -- the frame must be resized around the lines we just added
 end
 
@@ -493,6 +505,10 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
         else
             Print("usage : /pbbis maxtier <nombre> | auto, 0 pour aucun plafond.")
         end
+    elseif cmd == "id" then
+        db.montrerId = not db.montrerId
+        Print(db.montrerId and "identifiant de l'objet affiche sous l'infobulle."
+                            or "identifiant de l'objet masque.")
     elseif cmd == "jets" or cmd == "roll" or cmd == "rolls" then
         if PlayerbotsBisRolls_Command then
             PlayerbotsBisRolls_Command(arg)
@@ -596,6 +612,8 @@ SlashCmdList["PLAYERBOTSBISTOOLTIP"] = function(input)
               .. (db.compact and "compact" or "detaille") .. ")")
         Print("En compact, le rang suit la spe entre parentheses et la colore : "
               .. "|cff1eff00(1)|r, |cffffe650(2)|r, |cff999999(3)|r.")
+        Print("/pbbis id - affiche l'identifiant de l'objet sous l'infobulle (actuel : "
+              .. (db.montrerId and "oui" or "non") .. ")")
         Print("/pbbis top - n'affiche que le palier le plus haut (actuel : "
               .. (db.topOnly and "oui" or "non") .. ")")
         -- Without a ceiling, "highest" can mean a phase the server does not

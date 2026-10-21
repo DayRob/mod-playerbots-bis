@@ -352,6 +352,7 @@ local function LigneEnter(self)
         end
 
         GameTooltip:AddLine(" ")
+        GameTooltip:AddLine("ID " .. ligne.data.id, 0.5, 0.5, 0.5)
         GameTooltip:AddLine("Maj+clic : coller le lien", 0.6, 0.6, 0.6)
         GameTooltip:Show()
         return

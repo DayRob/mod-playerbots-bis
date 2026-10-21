@@ -29,6 +29,17 @@ quoi.
 
 `/pbbis detail` rend l'ancien affichage, une ligne par classe, spé et palier.
 
+### L'identifiant de l'objet
+
+Une dernière ligne, en gris : `ID 19355`.
+
+Le client ne montre l'identifiant nulle part, et c'est pourtant la seule clé qui
+relie ce qu'on voit à l'écran aux tables du serveur — `playerbots_bis_item`,
+`item_template`, `creature_loot_template`. Sans lui il faut retrouver la pièce
+par son nom, **traduit**, dans une base qui ne l'est pas.
+
+`/pbbis id` la masque et la remontre.
+
 ### Qui la porte déjà
 
 Sous les lignes de palier, une ligne verte nomme les bots qui ont la pièce
