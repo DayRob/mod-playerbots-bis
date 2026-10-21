@@ -153,8 +153,7 @@ bool BisReport::HandleReport(ChatHandler* handler, char const* args)
 
             uint8 const state = ResolveState(bot, row.itemId);
 
-            auto target = targets.find(row.slot);
-            bool const isTarget = target != targets.end() && target->second.itemId == row.itemId;
+            bool const isTarget = EstUneCible(targets, row);
 
             if (isTarget)
             {
@@ -269,8 +268,7 @@ bool BisReport::HandleMissing(ChatHandler* handler, char const* args)
     uint32 shown = 0;
     for (BisItem const& row : list)
     {
-        auto target = targets.find(row.slot);
-        bool const isTarget = target != targets.end() && target->second.itemId == row.itemId;
+        bool const isTarget = EstUneCible(targets, row);
 
         // A fallback is only worth a line when it is the one the bot actually
         // wears: it explains why a slot is not empty despite its target missing.

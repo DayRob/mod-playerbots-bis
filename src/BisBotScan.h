@@ -137,15 +137,57 @@ namespace BisBotScan
         return proto && (proto->Class == ITEM_CLASS_WEAPON || proto->Class == ITEM_CLASS_ARMOR);
     }
 
+    // LES DOIGTS ET LES BIJOUX VONT PAR DEUX.
+    //
+    // BisPriorityMgr le dit deja pour l'equipement : "Rings and trinkets have
+    // two interchangeable slots. The list names one of them". Les listes ne s'en
+    // privent pas - a Zul'Gurub, le druide Ours porte CINQ bagues au slot 10,
+    // rangs 1 a 5, et pas une seule au slot 11.
+    //
+    // Traites comme deux creneaux independants, cela donnait une absurdite : le
+    // doigt 1 progressait de palier en palier pendant que le doigt 2, faute de
+    // ligne recente, restait accroche a sa derniere mention - une bague du Coeur
+    // du Magma, reclamee en boucle quatre phases plus tard, alors que la bague
+    // de rang 2 du meme palier attendait sur l'autre main.
+    //
+    // La paire est donc mise en commun : les candidats des deux creneaux sont
+    // ranges ensemble, et les DEUX meilleurs sont pris. C'est exactement ce que
+    // dit la liste d'origine - les deux premieres bagues du palier - et ce que
+    // ferait un joueur.
+    inline uint8 CreneauJumele(uint8 slot)
+    {
+        switch (slot)
+        {
+            case EQUIPMENT_SLOT_FINGER1:
+            case EQUIPMENT_SLOT_FINGER2:
+                return EQUIPMENT_SLOT_FINGER1;
+            case EQUIPMENT_SLOT_TRINKET1:
+            case EQUIPMENT_SLOT_TRINKET2:
+                return EQUIPMENT_SLOT_TRINKET1;
+            default:
+                return 0xFF;
+        }
+    }
+
     // One target per slot: the best reachable pick, highest phase first and rank
-    // 1 within it - among the pieces that can actually be worn.
+    // 1 within it - among the pieces that can actually be worn. Paired slots are
+    // pooled and take the best TWO.
     inline std::map<uint8, BisItem> TargetsPerSlot(std::vector<BisItem> const& list)
     {
         std::map<uint8, BisItem> targets;
+        std::map<uint8, std::vector<BisItem>> paires;
+
         for (BisItem const& row : list)
         {
             if (!CanBeWorn(row.itemId))
                 continue;
+
+            uint8 const tete = CreneauJumele(row.slot);
+            if (tete != 0xFF)
+            {
+                paires[tete].push_back(row);
+                continue;
+            }
 
             auto it = targets.find(row.slot);
             if (it == targets.end())
@@ -154,7 +196,67 @@ namespace BisBotScan
                      (row.tierId == it->second.tierId && row.rank < it->second.rank))
                 it->second = row;
         }
+
+        for (auto& paire : paires)
+        {
+            std::vector<BisItem>& candidats = paire.second;
+
+            // Le meme ordre que pour un creneau simple : le palier d'abord, le
+            // rang ensuite. std::stable_sort pour que deux lignes identiques sur
+            // ces deux champs - une piece listee deux fois - gardent leur ordre
+            // d'arrivee plutot qu'un ordre indefini.
+            std::stable_sort(candidats.begin(), candidats.end(),
+                             [](BisItem const& a, BisItem const& b)
+                             {
+                                 if (a.tierId != b.tierId)
+                                     return a.tierId > b.tierId;
+                                 return a.rank < b.rank;
+                             });
+
+            uint8 pris = 0;
+            std::vector<uint32> dejaVus;
+
+            for (BisItem const& row : candidats)
+            {
+                // Deux fois la meme bague n'est pas une paire : les listes
+                // repetent une piece d'un palier a l'autre, et on ne peut pas
+                // la porter aux deux doigts.
+                if (std::find(dejaVus.begin(), dejaVus.end(), row.itemId) != dejaVus.end())
+                    continue;
+                dejaVus.push_back(row.itemId);
+
+                targets[static_cast<uint8>(paire.first + pris)] = row;
+                if (++pris == 2)
+                    break;
+            }
+        }
+
         return targets;
+    }
+
+    // Cette ligne est-elle une cible ?
+    //
+    // La question ne peut plus se poser creneau par creneau : la mise en commun
+    // des paires peut placer au doigt 2 une piece que la liste nommait au doigt
+    // 1. On regarde donc les deux creneaux de la paire.
+    inline bool EstUneCible(std::map<uint8, BisItem> const& targets, BisItem const& row)
+    {
+        auto const direct = targets.find(row.slot);
+        if (direct != targets.end() && direct->second.itemId == row.itemId)
+            return true;
+
+        uint8 const tete = CreneauJumele(row.slot);
+        if (tete == 0xFF)
+            return false;
+
+        for (uint8 decalage = 0; decalage < 2; ++decalage)
+        {
+            auto const it = targets.find(static_cast<uint8>(tete + decalage));
+            if (it != targets.end() && it->second.itemId == row.itemId)
+                return true;
+        }
+
+        return false;
     }
 
     // Bots the module applies to, optionally narrowed to one guild. Only bots in
