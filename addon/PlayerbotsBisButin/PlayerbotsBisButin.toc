@@ -1,0 +1,9 @@
+## Interface: 30300
+## Title: Playerbots BiS |cff00ff00Butin|r
+## Notes: Ce qu'il reste a faire tomber : raid, boss, objet rang 1, et pour combien de bots (/pbbutin).
+## Author: mod-playerbots-bis
+## Version: 1.0
+## SavedVariables: PlayerbotsBisButinDB
+
+ButinData.lua
+PlayerbotsBisButin.lua

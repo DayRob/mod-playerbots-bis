@@ -964,6 +964,34 @@ les force (souvent à 100) alors que le fichier conf dit 0 — et 0 signifie
 « hériter des seuils de playerbots », qui s'arrêtent bien avant le plein. La
 commande ci-dessus est un coup de pouce ponctuel, pas un remplacement.
 
+## Le butin restant : quel raid, quel boss
+
+Un second addon, `PlayerbotsBisButin`, lit le **même relevé** que l'état BiS des
+bots et le retourne : au lieu de « qu'est-ce qui manque à Gorkozu », il répond
+« qu'est-ce qu'il reste à aller chercher, et où ».
+
+```
++ Temple d'Ahn'Qiraj                      18 objets    31 bots
+    + Princesse Huhuran                    4 objets     7 bots
+        Ailes de Huhuran                                3 bots
+```
+
+Trois niveaux qu'on déplie : le raid, le boss, la pièce — et pour chaque pièce,
+**combien de bots l'attendent encore**. Seules comptent les lignes **rang 1** à
+l'état *manquant* : une pièce déjà portée, ou déjà en sac, n'a plus besoin de
+tomber, et un objet que tous ses prétendants portent déjà disparaît de la
+fenêtre.
+
+Le client 3.3.5 ne sait pas d'où tombe un objet ; la base monde, si.
+`tools/export_bis_butin.ps1` y lit le butin direct, les tables de référence et
+les pièces achetées avec un jeton, puis écrit `ButinData.lua`.
+
+```powershell
+.\tools\export_bis_butin.ps1 -WowPath "C:\Wow335"
+```
+
+Détails, limites et commandes : `addon/PlayerbotsBisButin/README.md`.
+
 ## Les livres de sort
 
 À niveau 60, le maître de classe s'arrête au rang précédent : le dernier rang

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Copie l'addon PlayerbotsBisTooltip dans le dossier AddOns du client.
+    Copie un addon du depot dans le dossier AddOns du client.
 
 .DESCRIPTION
     L'addon est UN dossier contenant plusieurs fichiers .lua, listes dans le
@@ -31,12 +31,17 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [string]$WowPath
+    [string]$WowPath,
+
+    # Le dossier d'addon a copier. Le depot en contient plusieurs - l'etat BiS
+    # et le butin restant - et chacun est un dossier independant pour le client.
+    [ValidateSet('PlayerbotsBisTooltip', 'PlayerbotsBisButin', 'PlayerbotsCensus')]
+    [string]$Addon = 'PlayerbotsBisTooltip'
 )
 
 $ErrorActionPreference = 'Stop'
 
-$source = Join-Path $PSScriptRoot '..\addon\PlayerbotsBisTooltip'
+$source = Join-Path $PSScriptRoot "..\addon\$Addon"
 $source = (Resolve-Path $source).Path
 
 $addons = Join-Path $WowPath 'Interface\AddOns'
@@ -44,7 +49,7 @@ if (-not (Test-Path $addons)) {
     throw "Dossier AddOns introuvable : $addons`nVerifie -WowPath : il doit pointer sur le dossier contenant Wow.exe."
 }
 
-$target = Join-Path $addons 'PlayerbotsBisTooltip'
+$target = Join-Path $addons $Addon
 
 # BisData.lua est GENERE depuis la base par export_bis_tooltip.ps1. L'ecraser
 # avec une version plus ANCIENNE viderait les infobulles ou les ferait mentir,
@@ -56,7 +61,9 @@ $target = Join-Path $addons 'PlayerbotsBisTooltip'
 # un substitut "plus recent" que l'export reel du client. Comparer les dates du
 # systeme de fichiers aurait donc remplace de vraies donnees par le substitut,
 # ce qui est exactement l'accident que cette regle doit empecher.
-$generated = 'BisData.lua'
+# Chaque addon a SON fichier genere. Le butin a ses sources de drop, la
+# version BiS ses listes : la regle "le plus recent gagne" vaut pour les deux.
+$generated = if ($Addon -eq 'PlayerbotsBisButin') { 'ButinData.lua' } else { 'BisData.lua' }
 
 # Lit l'horodatage inscrit en tete d'un BisData.lua genere. Renvoie $null pour
 # le substitut du depot, qui n'en porte pas.
@@ -117,13 +124,14 @@ $copied | Format-Table -AutoSize
 
 if ($skipped.Count -gt 0) {
     Write-Host "Laisse en place, la copie du client est plus recente ou plus complete : $($skipped -join ', ')" -ForegroundColor DarkGray
-    Write-Host "Pour la regenerer : .\tools\export_bis_tooltip.ps1 -WowPath ""$WowPath""" -ForegroundColor DarkGray
+    $regen = if ($Addon -eq 'PlayerbotsBisButin') { 'export_bis_butin.ps1' } else { 'export_bis_tooltip.ps1' }
+    Write-Host "Pour la regenerer : .\tools\$regen -WowPath ""$WowPath""" -ForegroundColor DarkGray
     Write-Host ""
 }
 
 # Le .toc est la liste de chargement : un .lua qui n'y figure pas est ignore
 # par le client, meme present dans le dossier.
-$toc = Join-Path $target 'PlayerbotsBisTooltip.toc'
+$toc = Join-Path $target "$Addon.toc"
 $tocLines = Get-Content $toc
 $version = ($tocLines | Where-Object { $_ -match '^## Version:' }) -replace '^## Version:\s*', ''
 $listed = $tocLines | Where-Object { $_ -match '\.lua\s*$' }
