@@ -334,7 +334,7 @@ function Retenir([int] $objet, [int] $creature, [double] $chance, [int] $jeton) 
     # Une source directe l'emporte toujours sur un jeton : si la piece tombe
     # elle-meme quelque part, c'est la qu'on l'attend.
     if ($jeton -eq 0)                    { $score += 4000 }
-    if ($script:cartes.Contains($carte)) { $score += 1000 }
+    if ($script:cartes.Contains([int]$carte)) { $score += 1000 }
     if ($grade -eq 3)                    { $score += 500 }
     elseif ($grade -ge 1)                { $score += 100 }
     $score += [math]::Min([int]$chance, 99)
@@ -411,9 +411,18 @@ $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine()
 
 [void]$sb.AppendLine("PlayerbotsBisButinMaps = {")
-foreach ($cle in $cartes.Keys) {
-    $c = $cartes[$cle]
-    [void]$sb.AppendLine("  [$cle] = { nom = `"$(Escape-Lua $c.nom)`", ordre = $($c.ordre) },")
+# GetEnumerator et non $cartes[$cle] : un [ordered]@{} est un OrderedDictionary,
+# et INDEXE PAR UN ENTIER il rend la valeur a cette POSITION, pas celle de cette
+# cle. Pour la carte 389 sur 29 entrees, PowerShell ne levait rien - il rendait
+# $null - et la ligne ecrite devenait "[389] = { nom = \"\", ordre =  }," :
+# une erreur de syntaxe Lua que le client rejette en silence, dans un fichier
+# par ailleurs parfaitement propre ligne par ligne.
+foreach ($entree in $cartes.GetEnumerator()) {
+    $c = $entree.Value
+    if ($null -eq $c -or $null -eq $c.nom -or $null -eq $c.ordre) {
+        throw "Carte $($entree.Key) incomplete - la table des cartes est corrompue."
+    }
+    [void]$sb.AppendLine("  [$($entree.Key)] = { nom = `"$(Escape-Lua $c.nom)`", ordre = $($c.ordre) },")
 }
 [void]$sb.AppendLine("}")
 [void]$sb.AppendLine()
@@ -438,8 +447,27 @@ if ($dir -and -not (Test-Path $dir)) {
     New-Item -ItemType Directory -Path $dir -Force | Out-Null
 }
 
+$texte = $sb.ToString()
+
+# UN FICHIER LUA CASSE NE SE VOIT PAS. Le client qui refuse un fichier le fait
+# en silence : l'addon se charge, ses variables restent nulles, et rien ne dit
+# pourquoi. Une valeur manquante produit "ordre =  ," ou "map = ," - on le
+# verifie ici plutot que de le decouvrir en jeu.
+$suspectes = @()
+$numero = 0
+foreach ($ligne in ($texte -split "`r?`n")) {
+    $numero++
+    if ($ligne -match '=\s*,' -or $ligne -match '=\s*}' -or $ligne -match '=\s*$') {
+        $suspectes += "  ligne $numero : $ligne"
+    }
+}
+if ($suspectes.Count -gt 0) {
+    throw ("Valeurs manquantes dans le fichier genere - il ne serait pas lu par le client :`n"
+           + (($suspectes | Select-Object -First 10) -join "`n"))
+}
+
 # UTF-8 sans BOM : le client 3.3.5 avale mal la marque d'ordre des octets.
-[System.IO.File]::WriteAllText($Out, $sb.ToString(), (New-Object System.Text.UTF8Encoding $false))
+[System.IO.File]::WriteAllText($Out, $texte, (New-Object System.Text.UTF8Encoding $false))
 
 $sansSource = 0
 foreach ($id in $noms.Keys) {
