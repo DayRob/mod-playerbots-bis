@@ -462,8 +462,10 @@ foreach ($ligne in ($texte -split "`r?`n")) {
     }
 }
 if ($suspectes.Count -gt 0) {
-    throw ("Valeurs manquantes dans le fichier genere - il ne serait pas lu par le client :`n"
-           + (($suspectes | Select-Object -First 10) -join "`n"))
+    # Message assemble avant d'etre lance : PowerShell ne poursuit pas une
+    # expression sur la ligne suivante quand celle-ci COMMENCE par l'operateur.
+    $apercu = ($suspectes | Select-Object -First 10) -join "`n"
+    throw "Valeurs manquantes dans le fichier genere - il ne serait pas lu par le client :`n$apercu"
 }
 
 # UTF-8 sans BOM : le client 3.3.5 avale mal la marque d'ordre des octets.
