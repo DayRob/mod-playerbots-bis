@@ -296,6 +296,43 @@ foreach ($l in (Invoke-Sql "SELECT $colSpawn, MIN(map) FROM creature GROUP BY $c
 }
 Write-Host "  $($nomCreature.Count) creatures, $($carteCreature.Count) avec une carte"
 
+# ---------------------------------------------------------------------------
+# LES BOSS QUI N'EXISTENT PAS DANS LE MONDE.
+#
+# Ragnaros, Nefarian, Ouro, C'Thun, Sapphiron, Kel'Thuzad : aucun n'a de ligne
+# dans creature. Ils ne sont pas poses sur la carte, ils sont INVOQUES par le
+# script de leur rencontre - le Majordome appelle Ragnaros, Victor Nefarius
+# appelle Nefarian, le generateur appelle Ouro. MIN(map) n'a donc rien a en
+# dire, et les plus gros boss du jeu tombaient sous "Sans lieu connu".
+#
+# Rien dans la base monde ne relie un invoque a sa carte : le lien vit dans le
+# C++ du script. Cette table est donc ecrite ici, comme celle des noms de
+# cartes, et pour la meme raison - la donnee n'existe pas ailleurs.
+#
+# Elle ne sert que de dernier recours : une entree qui aurait un spawn garde
+# sa carte reelle.
+# ---------------------------------------------------------------------------
+$carteDeSecours = @{
+    11502 = 409   # Ragnaros - invoque par le Majordome Executus
+    11583 = 469   # Nefarian - invoque par Lord Victor Nefarius
+    15517 = 531   # Ouro - invoque par son generateur
+    15727 = 531   # C'Thun - eveille par son oeil
+    15989 = 533   # Sapphiron - invoque a la fin du quartier
+    15990 = 533   # Kel'Thuzad - invoque par Sapphiron
+    15114 = 309   # Gahz'ranka - invoque a la peche
+}
+
+$secourus = 0
+foreach ($entree in $carteDeSecours.GetEnumerator()) {
+    if ($carteCreature.ContainsKey($entree.Key)) { continue }
+    $carteCreature[$entree.Key] = $entree.Value
+    $secourus++
+}
+if ($secourus -gt 0) {
+    Write-Host "  $secourus boss invoque(s) par script rattache(s) a leur instance"
+}
+
+
 Write-Host "Noms des objets..."
 $noms = @{}
 foreach ($l in (Invoke-SqlEnPaquets "SELECT entry, name FROM item_template WHERE entry IN" $rang1 ";")) {
@@ -476,8 +513,26 @@ foreach ($id in $noms.Keys) {
     if (-not $meilleur.ContainsKey([int]$id)) { $sansSource++ }
 }
 
+# Une source trouvee mais sans carte reste affichee sous "Sans lieu connu" :
+# autant la nommer ici, c'est la seule facon de completer $carteDeSecours.
+$sansCarte = @{}
+foreach ($id in $meilleur.Keys) {
+    $m = $meilleur[$id]
+    if ($m.carte -ge 0) { continue }
+    if (-not $sansCarte.ContainsKey($m.boss)) { $sansCarte[$m.boss] = 0 }
+    $sansCarte[$m.boss]++
+}
+
 Write-Host "Ecrit : $Out"
 Write-Host "$($meilleur.Count) objets rang 1 avec une source, $($noms.Count) objets rang 1 au total."
+if ($sansCarte.Count -gt 0) {
+    Write-Host "Source connue mais carte inconnue - ces creatures n'ont pas de spawn :" -ForegroundColor Yellow
+    foreach ($e in ($sansCarte.GetEnumerator() | Sort-Object -Property Value -Descending | Select-Object -First 10)) {
+        Write-Host "  $($e.Key) : $($e.Value) objet(s)" -ForegroundColor Yellow
+    }
+    Write-Host '  Ajoute-les a $carteDeSecours dans ce script pour les rattacher a leur instance.' -ForegroundColor DarkGray
+}
+
 if ($sansSource -gt 0) {
     Write-Host "$sansSource objet(s) sans source connue - ils seront groupes sous 'Source inconnue'." -ForegroundColor Yellow
     Write-Host "  C'est normal pour une piece de quete, de reputation ou d'artisanat." -ForegroundColor Yellow
