@@ -51,9 +51,21 @@ remplit la fenetre.
 ## D'ou viennent les chiffres
 
 Du flux de `.playerbotsbis report`, le meme que l'etat BiS des bots. Le serveur
-envoie, bot par bot, chaque ligne de sa liste avec son rang et son etat. Cet
-addon ne retient que les lignes **rang 1** dont l'etat est **manquant** : ni
-portee, ni en sac.
+envoie, bot par bot, chaque ligne de sa liste avec son rang, son etat, et un
+drapeau marquant **la cible** du creneau. Cet addon ne retient que les **cibles
+manquantes** : ni portees, ni en sac.
+
+La cible, et non le rang brut. Les listes empilent les phases : une piece rang 1
+au Coeur du Magma reste « rang 1 » dans le flux alors qu'a la phase AQ40 le bot
+vise mieux. Filtrer sur le rang comptait donc le meme creneau une fois par
+phase - le module le dit lui-meme dans `BisBotScan.h` :
+
+> Counting every rank-1 row instead counts the same slot once per phase [...]
+> A warrior showed 35 "pieces" for seventeen slots.
+
+`TargetsPerSlot` tranche cote serveur : **une** piece par creneau, palier le plus
+haut d'abord, rang 1 a l'interieur, et portable. C'est ce verdict que la fenetre
+affiche.
 
 Consequences a connaitre :
 

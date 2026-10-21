@@ -23,8 +23,15 @@
   D'OU VIENNENT LES CHIFFRES
   --------------------------
   Du meme flux que l'etat BiS : .playerbotsbis report. Le serveur envoie, bot
-  par bot, chaque ligne de sa liste avec son rang et son etat. On ne retient
-  que les lignes RANG 1 dont l'etat est "manquant" - ni portee, ni en sac.
+  par bot, chaque ligne de sa liste avec son rang, son etat, et un drapeau
+  marquant LA CIBLE du creneau. On ne retient que les cibles manquantes - ni
+  portees, ni en sac.
+
+  La cible plutot que le rang brut : les listes empilent les phases, donc une
+  piece rang 1 au Coeur du Magma reste "rang 1" dans le flux alors qu'a la
+  phase AQ40 le bot vise mieux. TargetsPerSlot tranche cote serveur - une
+  piece par creneau, palier le plus haut d'abord, rang 1 a l'interieur - et
+  c'est ce verdict qu'on affiche.
 
   L'addon ecoute CHAT_MSG_SYSTEM directement, et non le filtre de tchat : un
   filtre qui renvoie true interrompt la chaine, donc l'addon charge en second
@@ -130,12 +137,27 @@ end
 local function AjouterObjets(nom, packed)
     if not encours or encours.nom ~= nom then return end
 
-    for id, state, _, _, rank, _ in string.gmatch(packed, "(%d+):(%d+):(%d+):(%d+):(%d+):(%d+)") do
+    for id, state, _, _, _, cible in string.gmatch(packed, "(%d+):(%d+):(%d+):(%d+):(%d+):(%d+)") do
         id = tonumber(id)
 
-        -- Rang 1 et manquant, rien d'autre. Un rang 2 n'a pas a faire courir le
-        -- raid, et une piece deja en sac n'a plus besoin de tomber.
-        if tonumber(rank) == 1 and tonumber(state) == STATE_MISSING then
+        -- LA CIBLE, et non le rang brut.
+        --
+        -- Le serveur envoie toutes les lignes atteignables de la liste du bot,
+        -- chacune avec son rang DANS SON PALIER. Filtrer sur "rang 1" compte
+        -- donc le meme creneau une fois par phase : des gants rang 1 au Coeur
+        -- du Magma restent rang 1 dans ce flux alors qu'a la phase AQ40 le bot
+        -- vise tout autre chose. Le module le dit lui-meme (BisBotScan.h) :
+        --
+        --     Counting every rank-1 row instead counts the same slot once per
+        --     phase [...] A warrior showed 35 "pieces" for seventeen slots.
+        --
+        -- Le drapeau de cible, lui, est pose par TargetsPerSlot : une seule
+        -- piece par creneau, palier le plus haut d'abord, rang 1 a l'interieur,
+        -- et portable. C'est exactement "le rang 1 que ce bot attend", donc
+        -- c'est lui qu'on lit.
+        --
+        -- Manquant aussi : une piece deja en sac n'a plus besoin de tomber.
+        if cible == "1" and tonumber(state) == STATE_MISSING then
             local e = besoins[id]
             if not e then
                 e = { bots = {}, vus = {} }
