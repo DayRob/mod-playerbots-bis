@@ -90,25 +90,64 @@ if (-not (Table-Existe 'playerbots_bis_item')) {
 # ---------------------------------------------------------------------------
 $colSpawn = if (Colonne-Existe 'creature' 'id1') { 'id1' } else { 'id' }
 
-$joinLocCrea = ''
-$nomBoss     = 'ct.name'
-if (Table-Existe 'creature_template_locale') {
-    $joinLocCrea = "LEFT JOIN creature_template_locale cl ON cl.ID = ct.entry AND cl.locale = 'frFR'"
-    $nomBoss     = "COALESCE(NULLIF(cl.Name, ''), ct.name)"
-} elseif (Table-Existe 'locales_creature') {
-    $joinLocCrea = "LEFT JOIN locales_creature cl ON cl.entry = ct.entry"
-    $nomBoss     = "COALESCE(NULLIF(cl.name_loc3, ''), ct.name)"
+# Rien n'est supposé d'une table de traduction : ni son nom, ni sa clé, ni sa
+# colonne de texte. Une base dont creature_template_locale est clé sur entry
+# plutot que sur ID faisait echouer toute la requete sur un ERROR 1054, pour un
+# simple confort d'affichage. On regarde, et a defaut on se passe du francais.
+function Premiere-Colonne([string] $table, [string[]] $candidats) {
+    foreach ($c in $candidats) {
+        if (Colonne-Existe $table $c) { return $c }
+    }
+    return $null
 }
 
-$joinLocItem = ''
-$nomItem     = 'it.name'
-if (Table-Existe 'item_template_locale') {
-    $joinLocItem = "LEFT JOIN item_template_locale il ON il.ID = it.entry AND il.locale = 'frFR'"
-    $nomItem     = "COALESCE(NULLIF(il.Name, ''), it.name)"
-} elseif (Table-Existe 'locales_item') {
-    $joinLocItem = "LEFT JOIN locales_item il ON il.entry = it.entry"
-    $nomItem     = "COALESCE(NULLIF(il.name_loc3, ''), it.name)"
+function Jointure-Locale([string] $alias, [string] $cibleCle, [string] $defaut) {
+    # Les deux dispositions rencontrees : la moderne (une ligne par langue,
+    # colonne locale) et l'ancienne (une colonne par langue, name_loc3 pour le
+    # francais). Les noms de tables changent avec, d'ou les deux essais.
+    $pistes = @(
+        @{ table = $script:tableLocale;  cles = @('ID', 'entry'); noms = @('Name', 'name') },
+        @{ table = $script:tableAncienne; cles = @('entry', 'ID'); noms = @('name_loc3') }
+    )
+
+    foreach ($piste in $pistes) {
+        if (-not $piste.table) { continue }
+        if (-not (Table-Existe $piste.table)) { continue }
+
+        $cle = Premiere-Colonne $piste.table $piste.cles
+        $nom = Premiere-Colonne $piste.table $piste.noms
+        if (-not $cle -or -not $nom) { continue }
+
+        $filtre = ''
+        if (Colonne-Existe $piste.table 'locale') {
+            $filtre = " AND $alias.locale = 'frFR'"
+        }
+
+        return @{
+            join = "LEFT JOIN $($piste.table) $alias ON $alias.$cle = $cibleCle$filtre"
+            nom  = "COALESCE(NULLIF($alias.$nom, ''), $defaut)"
+            dit  = "$($piste.table) ($cle / $nom)"
+        }
+    }
+
+    return @{ join = ''; nom = $defaut; dit = 'aucune - noms en anglais' }
 }
+
+$tableLocale   = 'creature_template_locale'
+$tableAncienne = 'locales_creature'
+$loc = Jointure-Locale 'cl' 'ct.entry' 'ct.name'
+$joinLocCrea = $loc.join
+$nomBoss     = $loc.nom
+Write-Host "Traductions des creatures : $($loc.dit)"
+
+$tableLocale   = 'item_template_locale'
+$tableAncienne = 'locales_item'
+$loc = Jointure-Locale 'il' 'it.entry' 'it.name'
+$joinLocItem = $loc.join
+$nomItem     = $loc.nom
+Write-Host "Traductions des objets    : $($loc.dit)"
+Write-Host "Colonne de spawn          : creature.$colSpawn"
+
 
 $tete = "SELECT DISTINCT i.item_id, $nomBoss, IFNULL(c.map, -1), ct.rank, clt.Chance"
 
