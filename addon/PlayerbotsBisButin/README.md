@@ -16,6 +16,12 @@ Lu : il reste dix-huit objets **rang 1** a faire tomber dans AQ40 ; quatre chez
 Huhuran ; et les Ailes doivent tomber encore **trois** fois, parce que trois
 bots les attendent.
 
+**Du plus gros au plus petit**, a tous les niveaux : chaque liste descend par
+son premier chiffre, celui de la colonne *Objets*. La premiere ligne est donc
+toujours celle qui rapporte le plus. A egalite parfaite, l'ordre de progression
+tranche. Seul « Sans lieu connu » reste en bas : ce n'est pas un endroit ou
+l'on va.
+
 L'etat BiS des bots repond bot par bot - ce qui manque a Gorkozu. Utile quand on
 regarde un bot, inutile quand on choisit un raid. C'est la meme information lue
 par l'autre bout : par la piece, et par le boss qui la lache.

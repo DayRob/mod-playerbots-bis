@@ -179,6 +179,10 @@ local function Construire()
                     ordre  = (info and info.ordre) or 999,
                     boss   = {},
                     parNom = {},
+                    -- "Sans lieu connu" n'est pas un endroit ou l'on va : le
+                    -- classer par taille le ferait remonter en tete alors
+                    -- qu'il ne repond a aucune question. Il reste en bas.
+                    inconnu = (map < 0),
                     nbObjets = 0,
                     nbBots   = 0,
                 }
@@ -201,17 +205,28 @@ local function Construire()
         end
     end
 
-    -- L'ordre de progression d'abord : c'est celui dans lequel on choisit un
-    -- raid. A egalite - deux cartes inconnues du fichier genere - le nom.
+    -- Du plus gros au plus petit, a tous les niveaux : chaque liste descend
+    -- par son PREMIER chiffre, celui de la colonne "Objets". L'oeil n'a donc
+    -- qu'une seule regle a retenir, et la premiere ligne est toujours celle
+    -- qui rapporte le plus.
+    --
+    -- A egalite parfaite, l'ordre de progression tranche : entre deux raids qui
+    -- rapportent autant, le plus accessible passe devant.
     table.sort(arbre, function(a, b)
+        if a.inconnu ~= b.inconnu then return b.inconnu end
+        if a.nbObjets ~= b.nbObjets then return a.nbObjets > b.nbObjets end
+        if a.nbBots ~= b.nbBots then return a.nbBots > b.nbBots end
         if a.ordre ~= b.ordre then return a.ordre < b.ordre end
         return a.nom < b.nom
     end)
 
     for _, raid in ipairs(arbre) do
-        -- Les boss par ce qu'ils rapportent. Un classement alphabetique ne
-        -- repond a aucune question ; celui-ci repond a "lequel d'abord".
+        -- Meme regle pour les boss : combien de pieces d'abord, combien de bots
+        -- ensuite. Un classement alphabetique ne repondrait a aucune question ;
+        -- celui-ci repond a "lequel d'abord".
         table.sort(raid.boss, function(a, b)
+            local na, nb = table.getn(a.objets), table.getn(b.objets)
+            if na ~= nb then return na > nb end
             if a.total ~= b.total then return a.total > b.total end
             return a.nom < b.nom
         end)
