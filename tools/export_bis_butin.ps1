@@ -101,13 +101,15 @@ function Premiere-Colonne([string] $table, [string[]] $candidats) {
     return $null
 }
 
-function Jointure-Locale([string] $alias, [string] $cibleCle, [string] $defaut) {
+function Table-Locale([string] $moderne, [string] $ancienne) {
     # Les deux dispositions rencontrees : la moderne (une ligne par langue,
     # colonne locale) et l'ancienne (une colonne par langue, name_loc3 pour le
-    # francais). Les noms de tables changent avec, d'ou les deux essais.
+    # francais). Ni le nom de la table, ni sa cle, ni sa colonne de texte ne
+    # sont supposes - une base dont creature_template_locale est clee sur entry
+    # plutot que sur ID faisait echouer tout l'export sur un ERROR 1054.
     $pistes = @(
-        @{ table = $script:tableLocale;  cles = @('ID', 'entry'); noms = @('Name', 'name') },
-        @{ table = $script:tableAncienne; cles = @('entry', 'ID'); noms = @('name_loc3') }
+        @{ table = $moderne;  cles = @('ID', 'entry'); noms = @('Name', 'name') },
+        @{ table = $ancienne; cles = @('entry', 'ID'); noms = @('name_loc3') }
     )
 
     foreach ($piste in $pistes) {
@@ -119,103 +121,22 @@ function Jointure-Locale([string] $alias, [string] $cibleCle, [string] $defaut) 
         if (-not $cle -or -not $nom) { continue }
 
         $filtre = ''
-        if (Colonne-Existe $piste.table 'locale') {
-            $filtre = " AND $alias.locale = 'frFR'"
-        }
+        if (Colonne-Existe $piste.table 'locale') { $filtre = " WHERE locale = 'frFR'" }
 
-        return @{
-            join = "LEFT JOIN $($piste.table) $alias ON $alias.$cle = $cibleCle$filtre"
-            nom  = "COALESCE(NULLIF($alias.$nom, ''), $defaut)"
-            dit  = "$($piste.table) ($cle / $nom)"
-        }
+        return @{ table = $piste.table; cle = $cle; nom = $nom; filtre = $filtre
+                  dit = "$($piste.table) ($cle / $nom)" }
     }
 
-    return @{ join = ''; nom = $defaut; dit = 'aucune - noms en anglais' }
+    return @{ table = $null; dit = 'aucune - noms en anglais' }
 }
 
-$tableLocale   = 'creature_template_locale'
-$tableAncienne = 'locales_creature'
-$loc = Jointure-Locale 'cl' 'ct.entry' 'ct.name'
-$joinLocCrea = $loc.join
-$nomBoss     = $loc.nom
-Write-Host "Traductions des creatures : $($loc.dit)"
+$locCrea = Table-Locale 'creature_template_locale' 'locales_creature'
+$locItem = Table-Locale 'item_template_locale' 'locales_item'
 
-$tableLocale   = 'item_template_locale'
-$tableAncienne = 'locales_item'
-$loc = Jointure-Locale 'il' 'it.entry' 'it.name'
-$joinLocItem = $loc.join
-$nomItem     = $loc.nom
-Write-Host "Traductions des objets    : $($loc.dit)"
+Write-Host "Traductions des creatures : $($locCrea.dit)"
+Write-Host "Traductions des objets    : $($locItem.dit)"
 Write-Host "Colonne de spawn          : creature.$colSpawn"
-
-
-$tete = "SELECT DISTINCT i.item_id, $nomBoss, IFNULL(c.map, -1), ct.rank, clt.Chance"
-
-# 1. Le butin direct de la creature.
-$direct = @"
-$tete, 0
-FROM playerbots_bis_item i
-JOIN creature_loot_template clt ON clt.Item = i.item_id
-JOIN creature_template ct ON ct.entry = clt.Entry
-$joinLocCrea
-LEFT JOIN creature c ON c.$colSpawn = ct.entry
-WHERE i.rank = 1
-"@
-
-# 2. Le butin passant par une table de reference - c'est le cas de beaucoup de
-#    pieces de raid, dont les jetons de tier.
-$reference = @"
-SELECT DISTINCT i.item_id, $nomBoss, IFNULL(c.map, -1), ct.rank, rlt.Chance, 0
-FROM playerbots_bis_item i
-JOIN reference_loot_template rlt ON rlt.Item = i.item_id
-JOIN creature_loot_template clt ON clt.Reference = rlt.Entry
-JOIN creature_template ct ON ct.entry = clt.Entry
-$joinLocCrea
-LEFT JOIN creature c ON c.$colSpawn = ct.entry
-WHERE i.rank = 1
-"@
-
-$morceaux = @($direct, $reference)
-
-# 3. Les pieces qu'on ACHETE avec un jeton. La piece elle-meme ne tombe nulle
-#    part : c'est le jeton qui tombe. Sans ce morceau, les sept jetons du tier
-#    2.5 d'Ahn'Qiraj et les jetons hakkari laisseraient leurs pieces sans
-#    source, c'est-a-dire invisibles au moment de choisir un raid.
-if (Table-Existe 'playerbots_bis_quest_token') {
-    $morceaux += @"
-SELECT DISTINCT i.item_id, $nomBoss, IFNULL(c.map, -1), ct.rank, clt.Chance, 1
-FROM playerbots_bis_item i
-JOIN playerbots_bis_quest_token t ON t.piece_id = i.item_id
-JOIN creature_loot_template clt ON clt.Item = t.token_id
-JOIN creature_template ct ON ct.entry = clt.Entry
-$joinLocCrea
-LEFT JOIN creature c ON c.$colSpawn = ct.entry
-WHERE i.rank = 1
-"@
-    $morceaux += @"
-SELECT DISTINCT i.item_id, $nomBoss, IFNULL(c.map, -1), ct.rank, rlt.Chance, 1
-FROM playerbots_bis_item i
-JOIN playerbots_bis_quest_token t ON t.piece_id = i.item_id
-JOIN reference_loot_template rlt ON rlt.Item = t.token_id
-JOIN creature_loot_template clt ON clt.Reference = rlt.Entry
-JOIN creature_template ct ON ct.entry = clt.Entry
-$joinLocCrea
-LEFT JOIN creature c ON c.$colSpawn = ct.entry
-WHERE i.rank = 1
-"@
-}
-
-Write-Host "Lecture des sources (butin direct, tables de reference, jetons)..."
-$sourceRows = Invoke-Sql (($morceaux -join "`nUNION ALL`n") + ";")
-
-Write-Host "Lecture des noms d'objets..."
-$nomRows = Invoke-Sql @"
-SELECT DISTINCT i.item_id, $nomItem
-FROM playerbots_bis_item i
-JOIN item_template it ON it.entry = i.item_id
-$joinLocItem
-WHERE i.rank = 1;
-"@
+Write-Host ""
 
 # ---------------------------------------------------------------------------
 # Les cartes. Le nom d'une carte n'est PAS dans la base monde - il vit dans les
@@ -259,45 +180,227 @@ $cartes = [ordered]@{
 }
 
 # ---------------------------------------------------------------------------
-# Un objet tombe souvent de plusieurs creatures : le boss, son trash, un rare
-# du meme donjon. On n'en garde qu'une - celle qui repond a "ou vais-je le
-# chercher" - et l'ordre de preference est explicite plutot que laisse au
-# hasard du tri de MySQL.
+# POURQUOI LA COLLECTE EST DECOUPEE, ET NON FAITE EN UNE REQUETE
+#
+# La version evidente - un UNION de jointures entre playerbots_bis_item,
+# creature_loot_template, reference_loot_template et creature_template - ne
+# revient jamais. La raison tient en une ligne de schema :
+#
+#     creature_loot_template : PRIMARY KEY (Entry, Item)
+#
+# Reference n'est PAS indexee. La jointure "clt.Reference = rlt.Entry" repart
+# donc en balayage complet de la table de butin pour CHAQUE ligne de reference,
+# et le cout devient quadratique. Sur une base complete, c'est des heures.
+#
+# On fait donc l'inverse de ce qu'on demanderait a un SGBD bien indexe : chaque
+# table est lue UNE fois, en bloc ou par paquets d'identifiants, et les
+# rapprochements se font ici, dans des tables de hachage. Chaque requete
+# ci-dessous est un seul balayage, et l'ensemble tient en quelques secondes.
+# ---------------------------------------------------------------------------
+
+# Un IN (...) ne peut pas grossir indefiniment : la ligne de commande Windows
+# s'arrete vers 8 000 caracteres. Les identifiants partent donc par paquets.
+function Invoke-SqlEnPaquets([string] $avant, [object[]] $ids, [string] $apres, [int] $taille = 400) {
+    $sortie = New-Object System.Collections.Generic.List[string]
+    if ($null -eq $ids -or $ids.Count -eq 0) { return $sortie }
+
+    for ($i = 0; $i -lt $ids.Count; $i += $taille) {
+        $fin = [math]::Min($i + $taille, $ids.Count) - 1
+        $paquet = ($ids[$i..$fin]) -join ','
+        foreach ($l in (Invoke-Sql "$avant ($paquet) $apres")) { [void]$sortie.Add([string]$l) }
+    }
+    return $sortie
+}
+
+function Colonne-Entiere([object[]] $lignes, [int] $index) {
+    $vus = @{}
+    foreach ($l in $lignes) {
+        $f = ([string]$l) -split "`t"
+        if ($f.Count -le $index) { continue }
+        $v = 0
+        if ([int]::TryParse($f[$index], [ref]$v)) { $vus[$v] = $true }
+    }
+    return @($vus.Keys)
+}
+
+Write-Host "Objets rang 1..."
+$rang1 = @(Colonne-Entiere (Invoke-Sql "SELECT DISTINCT i.item_id FROM playerbots_bis_item i WHERE i.rank = 1;") 0)
+Write-Host "  $($rang1.Count) objets"
+
+# Les jetons : la piece achetee ne tombe nulle part, c'est le jeton qui tombe.
+# Sans ce chemin, les sept jetons du tier 2.5 d'Ahn'Qiraj et les jetons hakkari
+# laisseraient leurs pieces sans source, donc invisibles au choix d'un raid.
+$pieceDuJeton = @{}   # token_id -> liste de pieces rang 1
+if (Table-Existe 'playerbots_bis_quest_token') {
+    $voulu = @{}
+    foreach ($id in $rang1) { $voulu[$id] = $true }
+
+    foreach ($l in (Invoke-Sql "SELECT DISTINCT token_id, piece_id FROM playerbots_bis_quest_token;")) {
+        $f = ([string]$l) -split "`t"
+        if ($f.Count -lt 2) { continue }
+        $tok = [int]$f[0]; $piece = [int]$f[1]
+        if (-not $voulu[$piece]) { continue }
+        if (-not $pieceDuJeton.ContainsKey($tok)) { $pieceDuJeton[$tok] = New-Object System.Collections.Generic.List[int] }
+        [void]$pieceDuJeton[$tok].Add($piece)
+    }
+    Write-Host "  $($pieceDuJeton.Count) jeton(s) donnant une piece rang 1"
+}
+
+$aChercher = @($rang1 + @($pieceDuJeton.Keys)) | Select-Object -Unique
+
+Write-Host "Butin direct des creatures..."
+$lignesDirect = Invoke-SqlEnPaquets "SELECT Entry, Item, Chance FROM creature_loot_template WHERE Item IN" $aChercher ";"
+Write-Host "  $($lignesDirect.Count) ligne(s)"
+
+Write-Host "Tables de reference..."
+$lignesRef = Invoke-SqlEnPaquets "SELECT Entry, Item, Chance FROM reference_loot_template WHERE Item IN" $aChercher ";"
+$refEntries = @(Colonne-Entiere $lignesRef 0)
+Write-Host "  $($lignesRef.Count) ligne(s), $($refEntries.Count) reference(s)"
+
+# Qui utilise ces references. C'est la jointure qui mettait la base a genoux ;
+# faite dans ce sens, sur une poignee d'identifiants, elle est immediate.
+$lignesQuiRef = Invoke-SqlEnPaquets "SELECT Entry, Reference FROM creature_loot_template WHERE Reference IN" $refEntries ";"
+Write-Host "  $($lignesQuiRef.Count) creature(s) tirant d'une reference"
+
+# ---------------------------------------------------------------------------
+# Les trois tables lues en bloc. Chacune est un seul balayage, et une table de
+# hachage cote PowerShell remplace la jointure.
+# ---------------------------------------------------------------------------
+Write-Host "Creatures (noms, grade, carte)..."
+
+$nomCreature = @{}
+$gradeCreature = @{}
+foreach ($l in (Invoke-Sql "SELECT ct.entry, ct.name, ct.rank FROM creature_template ct;")) {
+    $f = ([string]$l) -split "`t"
+    if ($f.Count -lt 3) { continue }
+    $e = [int]$f[0]
+    $nomCreature[$e] = $f[1]
+    $gradeCreature[$e] = [int]$f[2]
+}
+
+if ($locCrea.table) {
+    foreach ($l in (Invoke-Sql "SELECT $($locCrea.cle), $($locCrea.nom) FROM $($locCrea.table)$($locCrea.filtre);")) {
+        $f = ([string]$l) -split "`t"
+        if ($f.Count -lt 2) { continue }
+        if ($f[1] -and $f[1] -ne 'NULL' -and $f[1].Trim() -ne '') { $nomCreature[[int]$f[0]] = $f[1] }
+    }
+}
+
+# MIN(map) et non une ligne par spawn : un trash commun a des milliers de
+# spawns, et seule sa carte nous interesse.
+$carteCreature = @{}
+foreach ($l in (Invoke-Sql "SELECT $colSpawn, MIN(map) FROM creature GROUP BY $colSpawn;")) {
+    $f = ([string]$l) -split "`t"
+    if ($f.Count -lt 2) { continue }
+    $carteCreature[[int]$f[0]] = [int]$f[1]
+}
+Write-Host "  $($nomCreature.Count) creatures, $($carteCreature.Count) avec une carte"
+
+Write-Host "Noms des objets..."
+$noms = @{}
+foreach ($l in (Invoke-SqlEnPaquets "SELECT entry, name FROM item_template WHERE entry IN" $rang1 ";")) {
+    $f = ([string]$l) -split "`t"
+    if ($f.Count -lt 2) { continue }
+    $noms[[int]$f[0]] = $f[1]
+}
+if ($locItem.table) {
+    $sep = if ($locItem.filtre) { " AND" } else { " WHERE" }
+    foreach ($l in (Invoke-SqlEnPaquets "SELECT $($locItem.cle), $($locItem.nom) FROM $($locItem.table)$($locItem.filtre)$sep $($locItem.cle) IN" $rang1 ";")) {
+        $f = ([string]$l) -split "`t"
+        if ($f.Count -lt 2) { continue }
+        if ($f[1] -and $f[1] -ne 'NULL' -and $f[1].Trim() -ne '') { $noms[[int]$f[0]] = $f[1] }
+    }
+}
+Write-Host "  $($noms.Count) noms"
+
+# ---------------------------------------------------------------------------
+# Les candidatures : (objet, creature, chance, est-ce un jeton).
 # ---------------------------------------------------------------------------
 $meilleur = @{}
 
-foreach ($row in $sourceRows) {
-    $f = $row -split "`t"
-    if ($f.Count -lt 6) { continue }
-
-    $id     = [int]$f[0]
-    $boss   = $f[1]
-    $carte  = [int]$f[2]
-    $grade  = [int]$f[3]
-    $chance = [double]$f[4]
-    $jeton  = [int]$f[5]
+# Un objet tombe souvent de plusieurs creatures : le boss, son trash, un rare du
+# meme donjon. On n'en garde qu'une - celle qui repond a "ou vais-je le chercher"
+# - et l'ordre de preference est explicite plutot que laisse au hasard.
+#
+# Note au fil de l'eau plutot qu'apres coup : une piece vendue en butin de monde
+# peut tomber de plusieurs milliers de creatures, et garder toutes ces
+# candidatures en memoire avant de les departager coute bien plus cher que de
+# comparer chacune au passage.
+function Retenir([int] $objet, [int] $creature, [double] $chance, [int] $jeton) {
+    $carte = if ($script:carteCreature.ContainsKey($creature)) { $script:carteCreature[$creature] } else { -1 }
+    $grade = if ($script:gradeCreature.ContainsKey($creature)) { $script:gradeCreature[$creature] } else { 0 }
 
     $score = 0
     # Une source directe l'emporte toujours sur un jeton : si la piece tombe
     # elle-meme quelque part, c'est la qu'on l'attend.
-    if ($jeton -eq 0)            { $score += 4000 }
-    if ($cartes.Contains($carte)) { $score += 1000 }
-    if ($grade -eq 3)            { $score += 500 }
-    elseif ($grade -ge 1)        { $score += 100 }
+    if ($jeton -eq 0)                    { $score += 4000 }
+    if ($script:cartes.Contains($carte)) { $score += 1000 }
+    if ($grade -eq 3)                    { $score += 500 }
+    elseif ($grade -ge 1)                { $score += 100 }
     $score += [math]::Min([int]$chance, 99)
 
-    $ancien = $meilleur[$id]
-    if ($null -eq $ancien -or $score -gt $ancien.score) {
-        $meilleur[$id] = @{ score = $score; boss = $boss; carte = $carte; jeton = $jeton }
+    $ancien = $script:meilleur[$objet]
+    if ($null -ne $ancien -and $score -le $ancien.score) { return }
+
+    $boss = if ($script:nomCreature.ContainsKey($creature)) { $script:nomCreature[$creature] } else { "Creature $creature" }
+    $script:meilleur[$objet] = @{ score = $score; boss = $boss; carte = $carte; jeton = $jeton }
+}
+
+function Ajouter-Candidats([object[]] $lignes, [int] $colEntry, [int] $colItem, [int] $colChance) {
+    foreach ($l in $lignes) {
+        $f = ([string]$l) -split "`t"
+        if ($f.Count -le [math]::Max($colEntry, [math]::Max($colItem, $colChance))) { continue }
+
+        $creature = [int]$f[$colEntry]
+        $objet    = [int]$f[$colItem]
+        $chance   = [double]$f[$colChance]
+
+        # Une piece rang 1 qui tombe directement.
+        if ($script:voulus[$objet]) { Retenir $objet $creature $chance 0 }
+
+        # Un jeton : la source compte pour chaque piece qu'il donne.
+        if ($script:pieceDuJeton.ContainsKey($objet)) {
+            foreach ($piece in $script:pieceDuJeton[$objet]) {
+                Retenir $piece $creature $chance 1
+            }
+        }
     }
 }
 
-$noms = @{}
-foreach ($row in $nomRows) {
-    $f = $row -split "`t"
+$voulus = @{}
+foreach ($id in $rang1) { $voulus[$id] = $true }
+
+Ajouter-Candidats $lignesDirect 0 1 2
+
+# Le butin de reference : l'objet vient de la reference, la creature de qui s'en
+# sert. On recompose le couple ici.
+$creaturesParRef = @{}
+foreach ($l in $lignesQuiRef) {
+    $f = ([string]$l) -split "`t"
     if ($f.Count -lt 2) { continue }
-    $noms[[int]$f[0]] = $f[1]
+    $ref = [int]$f[1]
+    if (-not $creaturesParRef.ContainsKey($ref)) { $creaturesParRef[$ref] = New-Object System.Collections.Generic.List[int] }
+    [void]$creaturesParRef[$ref].Add([int]$f[0])
 }
+
+foreach ($l in $lignesRef) {
+    $f = ([string]$l) -split "`t"
+    if ($f.Count -lt 3) { continue }
+    $ref = [int]$f[0]; $objet = [int]$f[1]; $chance = [double]$f[2]
+    if (-not $creaturesParRef.ContainsKey($ref)) { continue }
+
+    foreach ($creature in $creaturesParRef[$ref]) {
+        if ($voulus[$objet]) { Retenir $objet $creature $chance 0 }
+        if ($pieceDuJeton.ContainsKey($objet)) {
+            foreach ($piece in $pieceDuJeton[$objet]) {
+                Retenir $piece $creature $chance 1
+            }
+        }
+    }
+}
+
+Write-Host "$($meilleur.Count) objet(s) rang 1 avec une source."
+Write-Host ""
 
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
 $sb = New-Object System.Text.StringBuilder
@@ -346,7 +449,7 @@ foreach ($id in $noms.Keys) {
 Write-Host "Ecrit : $Out"
 Write-Host "$($meilleur.Count) objets rang 1 avec une source, $($noms.Count) objets rang 1 au total."
 if ($sansSource -gt 0) {
-    Write-Host "$sansSource objet(s) sans source connue - ils seront groupes sous \"Source inconnue\"." -ForegroundColor Yellow
+    Write-Host "$sansSource objet(s) sans source connue - ils seront groupes sous 'Source inconnue'." -ForegroundColor Yellow
     Write-Host "  C'est normal pour une piece de quete, de reputation ou d'artisanat." -ForegroundColor Yellow
 }
 Write-Host "Relance le client (pas un simple /reload) si l'addon vient d'etre installe."
