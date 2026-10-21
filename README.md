@@ -992,6 +992,44 @@ les pièces achetées avec un jeton, puis écrit `ButinData.lua`.
 
 Détails, limites et commandes : `addon/PlayerbotsBisButin/README.md`.
 
+## Les buffs de monde
+
+```
+.playerbotsbis buff
+```
+
+Un buff de monde ne s'obtient pas, il se **reçoit**. Le Cri de ralliement du
+tueur de dragons vient du héraut qui crie en ville après une remise de tête, la
+Bénédiction du chef de guerre d'un événement d'Orgrimmar, l'Esprit de Zandalar
+d'une remise à Yojamba. **Aucun bot n'en aura jamais** : ils ne font pas la queue
+en ville, et personne ne va rendre une tête d'Onyxia toutes les deux heures pour
+quarante d'entre eux.
+
+Côté maître de jeu, les deux commandes du cœur ne suffisent pas : `.cast` refuse
+ces sorts — ils sont lancés par un PNJ et exigent une cible — et `.aura` ne
+touche **que la sélection**, sans rien afficher quand elle réussit. Trente-neuf
+bots, trente-neuf sélections, toutes les deux heures.
+
+La commande pose la liste sur **tout le groupe** d'un coup : le raid qui part
+maintenant, pas les bots restés en ville, parce que ces buffs ont une durée.
+
+```
+.playerbotsbis buff            -- la liste configurée
+.playerbotsbis buff 22888      -- seulement celui-là
+.playerbotsbis buff retire     -- les enlève
+```
+
+Elle dit ce qu'elle a posé, **avec le nom de chaque sort** : un identifiant juste
+mais pas celui qu'on croyait est l'erreur la plus facile à commettre ici, et la
+plus longue à voir — l'aura apparaît, simplement ce n'est pas la bonne. Une aura
+déjà en place n'est pas reposée, et jamais un autre joueur : celui qui tape la
+commande se l'applique à lui-même, c'est sa décision ; décider pour quelqu'un
+d'autre n'en est pas une.
+
+La liste par défaut couvre les sept buffs Vanilla (Onyxia, Orgrimmar, Zandalar,
+Chanteflore, et les trois de Hache-tripes) ; `PlayerbotsBis.WorldBuffs` la
+remplace.
+
 ## Les livres de sort
 
 À niveau 60, le maître de classe s'arrête au rang précédent : le dernier rang

@@ -10,6 +10,7 @@
 #include "BisPriorityMgr.h"
 #include "BisReport.h"
 #include "BisUnbind.h"
+#include "BisWorldBuffs.h"
 #include "BisValueContext.h"
 #include "Chat.h"
 #include "Config.h"
@@ -131,6 +132,7 @@ public:
             {"missing", HandleBisMissingCommand, SEC_GAMEMASTER, Console::No},
             {"libere",  HandleBisUnbindCommand,  SEC_GAMEMASTER, Console::No},
             {"equipe",  HandleBisEquipCommand,   SEC_GAMEMASTER, Console::No},
+            {"buff",    HandleBisBuffCommand,    SEC_GAMEMASTER, Console::No},
             {"avance",     HandleBisAdvanceCommand, SEC_GAMEMASTER, Console::No},
             {"ressuscite", HandleBisAdvanceCommand, SEC_GAMEMASTER, Console::No},
         };
@@ -210,6 +212,14 @@ public:
     static bool HandleBisEquipCommand(ChatHandler* handler, char const* args)
     {
         return BisEquipCommand::HandleEquipNow(handler, args);
+    }
+
+    // Les buffs de monde sur tout le groupe. ".cast" refuse ces sorts - ils
+    // sont lances par un PNJ - et ".aura" ne touche que la selection : quarante
+    // bots, quarante selections, toutes les deux heures.
+    static bool HandleBisBuffCommand(ChatHandler* handler, char const* args)
+    {
+        return BisWorldBuffs::HandleBuff(handler, args);
     }
 };
 

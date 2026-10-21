@@ -399,3 +399,45 @@ PlayerbotsBis.VipGuildId = 0
 #
 
 PlayerbotsBis.TeachBookSpells = 0
+
+#
+#    PlayerbotsBis.WorldBuffs
+#        Description: Les buffs de monde que pose ".playerbotsbis buff", en
+#                     identifiants de sorts separes par des espaces.
+#
+#                     POURQUOI CETTE COMMANDE EXISTE. Un buff de monde ne
+#                     s'obtient pas, il se RECOIT : le Cri de ralliement du
+#                     tueur de dragons vient du heraut qui crie en ville apres
+#                     une remise de tete, la Benediction du chef de guerre d'un
+#                     evenement d'Orgrimmar, l'Esprit de Zandalar d'une remise
+#                     a Yojamba. Aucun bot ne les aura jamais - ils ne font pas
+#                     la queue en ville, et personne ne va rendre une tete
+#                     d'Onyxia toutes les deux heures pour quarante d'entre eux.
+#
+#                     Du cote maitre de jeu, ".cast" refuse ces sorts (ils sont
+#                     lances par un PNJ et exigent une cible) et ".aura" ne
+#                     touche QUE la selection : trente-neuf bots, trente-neuf
+#                     selections, toutes les deux heures.
+#
+#                     ".playerbotsbis buff" pose la liste sur tout le GROUPE
+#                     d'un coup - le raid qui part maintenant, pas les bots
+#                     restes en ville, parce que ces buffs ont une duree.
+#                     ".playerbotsbis buff 22888" n'en pose qu'un, et
+#                     ".playerbotsbis buff retire" les enleve.
+#
+#                     Jamais un autre joueur : celui qui tape la commande se
+#                     l'applique a lui-meme, c'est sa decision ; decider pour
+#                     quelqu'un d'autre n'en est pas une.
+#
+#                     Vide = la liste Vanilla complete :
+#                       22888  Cri de ralliement du tueur de dragons (Onyxia)
+#                       16609  Benediction du chef de guerre (Orgrimmar)
+#                       24425  Esprit de Zandalar (Zul'Gurub)
+#                       15366  Serenade de Chanteflore (Felebois)
+#                       22817  Ferocite de Fengus (Hache-tripes)
+#                       22818  Cran de Mol'dar
+#                       22820  Astuce de Slip'kik
+#        Default:     "" (la liste ci-dessus)
+#
+
+PlayerbotsBis.WorldBuffs = ""

@@ -67,6 +67,11 @@ public:
     // le reclamer au jet. Voir BisBookSpells.cpp.
     bool TeachBookSpells() const { return _teachBookSpells; }
 
+    // Les buffs de monde poses par ".playerbotsbis buff" : des identifiants de
+    // sorts separes par des espaces. Un buff de monde ne s'obtient pas, il se
+    // recoit d'un PNJ apres un evenement - aucun bot n'en aura jamais.
+    std::string const& WorldBuffs() const { return _worldBuffs; }
+
     // Vrai quand le bot annonce des le JET, avant de savoir s'il emporte la
     // piece. A faux, il attend de la detenir - une seule ligne, par le gagnant,
     // juste avant l'equipement.
@@ -369,6 +374,7 @@ private:
     bool _announceOwnBis = true;
     bool _fullAfterResurrect = true;
     bool _teachBookSpells = false;
+    std::string _worldBuffs;
     bool _announceOnRoll = true;
     uint32 _minBotLevel = 0;
     bool _blockDeathKnights = false;
