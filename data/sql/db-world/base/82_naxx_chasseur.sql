@@ -1,5 +1,5 @@
 -- mod-playerbots-bis : GENERE par tools/convert_wowtbc_bis.py
--- Source : wowtbc.gg. Classe 3, spe 1, palier 70.
+-- Source : wowtbc.gg. Classe 3, spe 0,1,2, palier 70.
 -- Les rangs viennent de l'ordre d'apparition dans la page.
 -- PvP et reputation ecartes a la generation.
 
@@ -100,9 +100,48 @@ INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`, `entry`) VALUES
 (17, 5, 'Huhuran''s Stinger', NULL),
 (17, 6, 'Blessed Qiraji Musket', NULL);
 
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 3 AND `spec` = 0 AND `tier_id` = 70;
+
+INSERT IGNORE INTO `playerbots_bis_item`
+    (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
+SELECT 3, 0, s.`slot`, 0, 70, COALESCE(s.`entry`, r.entry), s.`rank`,
+       CONCAT('wowtbc.gg - ', s.`item_name`)
+FROM `bis_seed_wowtbc` s
+LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
+  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci
+WHERE COALESCE(s.`entry`, r.entry) IS NOT NULL;
+
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 3 AND `spec` = 1 AND `tier_id` = 70;
+
 INSERT IGNORE INTO `playerbots_bis_item`
     (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
 SELECT 3, 1, s.`slot`, 0, 70, COALESCE(s.`entry`, r.entry), s.`rank`,
+       CONCAT('wowtbc.gg - ', s.`item_name`)
+FROM `bis_seed_wowtbc` s
+LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
+  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci
+WHERE COALESCE(s.`entry`, r.entry) IS NOT NULL;
+
+-- REMPLACE : la liste existante de ce couple classe/spe/palier part
+-- d'abord. Sans ca elle coexisterait avec celle-ci, et un creneau
+-- se retrouverait avec deux objets de rang 1 - ce que l'echelle ne
+-- sait pas departager.
+DELETE FROM `playerbots_bis_item`
+WHERE `class` = 3 AND `spec` = 2 AND `tier_id` = 70;
+
+INSERT IGNORE INTO `playerbots_bis_item`
+    (`class`, `spec`, `slot`, `faction`, `tier_id`, `item_id`, `rank`, `comment`)
+SELECT 3, 2, s.`slot`, 0, 70, COALESCE(s.`entry`, r.entry), s.`rank`,
        CONCAT('wowtbc.gg - ', s.`item_name`)
 FROM `bis_seed_wowtbc` s
 LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
@@ -118,7 +157,7 @@ WHERE COALESCE(s.`entry`, r.entry) IS NULL;
 
 -- VERIFICATION 2 - couverture obtenue.
 SELECT `spec`, `slot`, `rank`, COUNT(*) AS objets FROM `playerbots_bis_item`
-WHERE `class` = 3 AND `spec` IN (1) AND `tier_id` = 70
+WHERE `class` = 3 AND `spec` IN (0,1,2) AND `tier_id` = 70
 GROUP BY `spec`, `slot`, `rank` ORDER BY `spec`, `slot`, `rank`;
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed_wowtbc`;
