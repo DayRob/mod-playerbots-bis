@@ -441,3 +441,56 @@ PlayerbotsBis.TeachBookSpells = 0
 #
 
 PlayerbotsBis.WorldBuffs = ""
+
+#
+#    PlayerbotsBis.AtieshCollector
+#        Description: Le nom du SEUL personnage autorise a reclamer les
+#                     composants d'Atiesh au jet de butin.
+#
+#                     POURQUOI UN SEUL. Atiesh ne tombe pas, il se construit :
+#                     quarante Eclats d'Atiesh ramasses sur les boss de
+#                     Naxxramas, plus la Base d'Atiesh sur Kel'Thuzad. Un eclat
+#                     n'etant ni arme ni armure, aucun chemin d'equipement ne
+#                     le voit, et le jet revient a mod-playerbots : quarante
+#                     bots se disputent les fragments et aucun n'atteint jamais
+#                     quarante. Nommer un collecteur ferme ce robinet - lui
+#                     reclame, tous les autres bots PASSENT explicitement.
+#
+#                     CE QUE LE MODULE FAIT ENSUITE. Des que le collecteur tient
+#                     les quarante eclats et la base, il les echange contre le
+#                     baton, et le dit. C'est exactement ce que rend la chaine
+#                     de quetes d'Anachronos ; seul le trajet est raccourci,
+#                     parce qu'un bot ne sait pas rendre une quete a Tanaris.
+#                     Rien n'est donne : il faut que les quarante eclats soient
+#                     tombes.
+#
+#                     LA VERSION DU BATON NE SE CONFIGURE PAS. Quatre objets
+#                     portent le nom "Atiesh, Greatstaff of the Guardian" -
+#                     mage, demoniste, pretre, druide - et AllowableClass les
+#                     departage. Le collecteur recoit celui que sa classe peut
+#                     porter ; changer de collecteur change de version.
+#
+#                     TON PROPRE PERSONNAGE EST UN CHOIX VALIDE, et meme le
+#                     seul moyen de porter Atiesh toi-meme : les composants
+#                     sont lies quand ramasses, donc le collecteur est
+#                     forcement le porteur final.
+#
+#                     Vide = eteint. Le jet des composants revient alors
+#                     entierement a mod-playerbots.
+#        Example:     PlayerbotsBis.AtieshCollector = "Eranko"
+#        Default:     ""
+#
+
+PlayerbotsBis.AtieshCollector = ""
+
+#
+#    PlayerbotsBis.AtieshSplinters
+#        Description: Le nombre d'Eclats d'Atiesh que l'assemblage consomme.
+#
+#                     40 est le compte de la quete d'Anachronos. Ce reglage
+#                     existe pour un serveur qui l'a modifie, pas pour rendre
+#                     le baton plus facile a obtenir.
+#        Default:     40
+#
+
+PlayerbotsBis.AtieshSplinters = 40

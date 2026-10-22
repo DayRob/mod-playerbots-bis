@@ -1095,6 +1095,55 @@ WHERE i.class = 9 AND i.subclass = 0 AND i.spellid_1 = 483 AND i.spellid_2 > 0
 ORDER BY perso_qui_lont, i.RequiredLevel;
 ```
 
+## Atiesh, le bâton du Gardien
+
+Atiesh ne tombe pas : il se **construit**. Quarante Éclats d'Atiesh ramassés sur
+les boss de Naxxramas, plus la Base d'Atiesh sur Kel'Thuzad, puis la chaîne de
+quêtes d'Anachronos à Tanaris.
+
+Rien dans le module ne savait traiter ça. L'échelle BiS compare des pièces
+portables ; la table des jetons échange un pour un. Un fragment qu'il faut
+accumuler quarante fois n'entre dans ni l'une ni l'autre. Et comme un éclat
+n'est ni arme ni armure, aucun chemin d'équipement ne le voit : le jet revenait
+à mod-playerbots, trente-neuf bots se disputaient les fragments, et aucun
+n'atteignait jamais quarante.
+
+```
+PlayerbotsBis.AtieshCollector = "Eranko"
+PlayerbotsBis.AtieshSplinters = 40
+```
+
+Nommer un collecteur ferme ce robinet : **lui seul** jette Besoin sur les
+éclats et sur la base, et **tous les autres bots passent explicitement** — un
+PASS, pas une absence de vote, pour ne pas laisser le jet ouvert jusqu'à son
+expiration.
+
+Dès qu'il tient les quarante éclats et la base, il les échange contre le bâton,
+et l'annonce. C'est le résultat de la chaîne de quêtes ; seul le trajet est
+raccourci, parce qu'un bot ne sait pas rendre une quête à Tanaris. Rien n'est
+donné : il faut que les quarante éclats soient tombés.
+
+**La version du bâton se déduit, elle ne se configure pas.** Quatre objets
+portent le nom `Atiesh, Greatstaff of the Guardian` — mage, démoniste, prêtre,
+druide — et `AllowableClass` les départage. Le collecteur reçoit celui que sa
+classe peut porter ; changer de collecteur change de version.
+
+**Ton propre personnage est un choix valide**, et c'est même le seul moyen de
+porter Atiesh toi-même : les composants sont liés quand ramassés, donc le
+collecteur est forcément le porteur final.
+
+Pour suivre la collecte :
+
+```sql
+SELECT c.name, i.name AS composant, SUM(ii.count) AS quantite
+FROM acore_characters.character_inventory ci
+JOIN acore_characters.item_instance ii ON ii.guid = ci.item
+JOIN acore_world.item_template i ON i.entry = ii.itemEntry
+JOIN acore_characters.characters c ON c.guid = ci.guid
+WHERE i.name IN ('Splinter of Atiesh', 'Base of Atiesh')
+GROUP BY c.name, i.name ORDER BY quantite DESC;
+```
+
 ## Libérer les verrous d'instance des bots
 
 ```

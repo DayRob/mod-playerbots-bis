@@ -67,6 +67,17 @@ public:
     // le reclamer au jet. Voir BisBookSpells.cpp.
     bool TeachBookSpells() const { return _teachBookSpells; }
 
+    // Le seul personnage autorise a reclamer les composants d'Atiesh au jet
+    // de butin. Vide - le defaut - eteint la fonctionnalite et rend le jet a
+    // mod-playerbots. Voir BisAtiesh.cpp : quarante eclats disperses sur
+    // trente-neuf bots ne donnent jamais un baton.
+    std::string const& AtieshCollector() const { return _atieshCollector; }
+
+    // Le nombre d'Eclats d'Atiesh que l'assemblage consomme. 40 est le compte
+    // de la quete d'Anachronos ; le reglage existe pour un serveur qui l'a
+    // modifie, pas pour rendre le baton plus facile.
+    uint32 AtieshSplinters() const { return _atieshSplinters; }
+
     // Les buffs de monde poses par ".playerbotsbis buff" : des identifiants de
     // sorts separes par des espaces. Un buff de monde ne s'obtient pas, il se
     // recoit d'un PNJ apres un evenement - aucun bot n'en aura jamais.
@@ -375,6 +386,8 @@ private:
     bool _fullAfterResurrect = true;
     bool _teachBookSpells = false;
     std::string _worldBuffs;
+    std::string _atieshCollector;
+    uint32 _atieshSplinters = 40;
     bool _announceOnRoll = true;
     uint32 _minBotLevel = 0;
     bool _blockDeathKnights = false;

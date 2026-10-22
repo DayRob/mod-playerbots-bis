@@ -218,6 +218,28 @@ SPES_DE_SORTS = {
 }
 
 
+def jointure_par_classe(classe):
+    """La jointure nom -> entry, restreinte aux objets que la classe peut porter.
+
+    MIN(entry) seul ne sait pas departager des homonymes. Quatre objets
+    s'appellent "Atiesh, Greatstaff of the Guardian" - mage, demoniste, pretre,
+    druide - et sans ce filtre les sept listes qui le citent recevaient toutes
+    le meme baton, celui de plus petit identifiant : six spes se retrouvaient
+    avec une arme que leur classe ne peut pas equiper.
+
+    AllowableClass vaut -1 quand l'objet n'est reserve a personne, sinon un
+    masque de bits ou la classe N occupe le bit N-1. Un nom qui ne resout plus
+    apres ce filtre ressort en VERIFICATION 1 plutot que de resoudre au hasard
+    - une ligne manquante se voit, une mauvaise piece ne se voit pas.
+    """
+    masque = 1 << (classe - 1)
+    return [
+        "LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template`",
+        "           WHERE `AllowableClass` = -1 OR (`AllowableClass` & %d) <> 0" % masque,
+        "           GROUP BY `name`) r",
+    ]
+
+
 def role_de(classe, spec):
     return "sorts" if spec in SPES_DE_SORTS.get(classe, set()) else "physique"
 
@@ -463,7 +485,7 @@ def main():
                    % (args.classe, spec, args.palier))
         out.append("       CONCAT('%s - ', s.`item_name`)" % etiquette.replace("'", "''"))
         out.append("FROM `bis_seed_wowtbc` s")
-        out.append("LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r")
+        out.extend(jointure_par_classe(args.classe))
         out.append("  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci")
         out.append("WHERE COALESCE(s.`entry`, r.entry) IS NOT NULL;")
         out.append("")
@@ -471,7 +493,7 @@ def main():
     out.append("-- VERIFICATION 1 - noms non resolus (aucune ligne = bon).")
     out.append("SELECT s.`slot`, s.`rank`, s.`item_name` AS nom_non_resolu")
     out.append("FROM `bis_seed_wowtbc` s")
-    out.append("LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r")
+    out.extend(jointure_par_classe(args.classe))
     out.append("  ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci")
     out.append("WHERE COALESCE(s.`entry`, r.entry) IS NULL;")
     out.append("")

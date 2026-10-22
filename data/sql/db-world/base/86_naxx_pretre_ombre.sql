@@ -2,6 +2,10 @@
 -- Source : wowtbc.gg. Classe 5, spe 2, palier 70.
 -- Les rangs viennent de l'ordre d'apparition dans la page.
 -- PvP et reputation ecartes a la generation.
+-- La jointure des noms est restreinte a AllowableClass : quatre objets
+-- s'appellent "Atiesh, Greatstaff of the Guardian" et MIN(entry) seul
+-- donnait le meme baton a toutes les listes, dont la plupart ne peuvent
+-- pas l'equiper. Un nom qui ne resout plus ressort en VERIFICATION 1.
 
 DROP TEMPORARY TABLE IF EXISTS `bis_seed_wowtbc`;
 CREATE TEMPORARY TABLE `bis_seed_wowtbc` (
@@ -106,14 +110,18 @@ INSERT IGNORE INTO `playerbots_bis_item`
 SELECT 5, 2, s.`slot`, 0, 70, COALESCE(s.`entry`, r.entry), s.`rank`,
        CONCAT('wowtbc.gg - ', s.`item_name`)
 FROM `bis_seed_wowtbc` s
-LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
+LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template`
+           WHERE `AllowableClass` = -1 OR (`AllowableClass` & 16) <> 0
+           GROUP BY `name`) r
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci
 WHERE COALESCE(s.`entry`, r.entry) IS NOT NULL;
 
 -- VERIFICATION 1 - noms non resolus (aucune ligne = bon).
 SELECT s.`slot`, s.`rank`, s.`item_name` AS nom_non_resolu
 FROM `bis_seed_wowtbc` s
-LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template` GROUP BY `name`) r
+LEFT JOIN (SELECT `name`, MIN(`entry`) AS entry FROM `item_template`
+           WHERE `AllowableClass` = -1 OR (`AllowableClass` & 16) <> 0
+           GROUP BY `name`) r
   ON r.`name` COLLATE utf8mb4_general_ci = s.`item_name` COLLATE utf8mb4_general_ci
 WHERE COALESCE(s.`entry`, r.entry) IS NULL;
 

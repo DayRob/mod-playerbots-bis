@@ -64,6 +64,8 @@ void BisPriorityMgr::LoadConfig()
     _fullAfterResurrect = sConfigMgr->GetOption<bool>("PlayerbotsBis.FullAfterResurrect", true);
     _teachBookSpells = sConfigMgr->GetOption<bool>("PlayerbotsBis.TeachBookSpells", false);
     _worldBuffs = sConfigMgr->GetOption<std::string>("PlayerbotsBis.WorldBuffs", "");
+    _atieshCollector = sConfigMgr->GetOption<std::string>("PlayerbotsBis.AtieshCollector", "");
+    _atieshSplinters = sConfigMgr->GetOption<uint32>("PlayerbotsBis.AtieshSplinters", 40);
     _needOnlyForBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.NeedOnlyForBis", false);
     _forceNeedForBis = sConfigMgr->GetOption<bool>("PlayerbotsBis.ForceNeedForBis", true);
     _claimClassRestricted = sConfigMgr->GetOption<bool>("PlayerbotsBis.ClaimClassRestricted", true);

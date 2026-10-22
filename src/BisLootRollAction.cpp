@@ -5,6 +5,7 @@
  */
 
 #include "BisLootRollAction.h"
+#include "BisAtiesh.h"
 #include "BisBookSpells.h"
 #include "BisPriorityMgr.h"
 #include "ChatHelper.h"
@@ -72,9 +73,10 @@ bool BisLootRollAction::Execute(Event event)
     std::vector<ObjectGuid> downgrade;
     std::vector<ObjectGuid> claim;
     std::vector<ObjectGuid> need;
-    // Deja en main : un refus a part, parce qu'il ne se negocie pas. Les
-    // autres refus suivent LootGreedRollLevel ; celui-la passe toujours.
-    std::vector<ObjectGuid> possede;
+    // Les refus qui ne se negocient pas : la piece est deja en main, ou c'est
+    // un composant d'Atiesh qui revient au seul collecteur. Les autres refus
+    // suivent LootGreedRollLevel ; ceux-la passent toujours.
+    std::vector<ObjectGuid> passeToujours;
 
     // Roll const* et non Roll* : selon la revision du coeur, GetRolls() rend
     // soit std::vector<Roll*>, soit std::vector<Roll const*>. Le pointeur
@@ -193,6 +195,24 @@ bool BisLootRollAction::Execute(Event event)
             continue;
         }
 
+        // ATIESH, et c'est le seul endroit ou un bot se voit INTERDIRE un jet.
+        // Un Eclat d'Atiesh n'est ni arme ni armure : le filtre juste en
+        // dessous rendrait le jet a mod-playerbots, et quarante bots se
+        // disputeraient des fragments dont aucun n'atteindrait jamais quarante.
+        //
+        // Un seul collecteur reclame donc, et TOUS LES AUTRES PASSENT - d'un
+        // PASS explicite et non d'une absence de vote, qui laisserait le jet
+        // ouvert jusqu'a son expiration et ferait attendre le raid.
+        if (forceNeed && BisAtiesh::EstUnComposant(roll->itemid))
+        {
+            if (BisAtiesh::Reclame(bot, roll->itemid))
+                need.push_back(roll->itemGUID);
+            else
+                passeToujours.push_back(roll->itemGUID);
+
+            continue;
+        }
+
         // Only gear is arbitrated. Recipes, armor tokens, trade goods and the
         // rest keep playerbots' own vote.
         if (proto->Class != ITEM_CLASS_WEAPON && proto->Class != ITEM_CLASS_ARMOR)
@@ -259,7 +279,7 @@ bool BisLootRollAction::Execute(Event event)
             // exemplaire - exactement ce qu'on vient d'empecher. PASS est le
             // seul vote qui dise ce qu'il veut dire.
             if (bot->GetItemCount(proto->ItemId, true))
-                possede.push_back(roll->itemGUID);
+                passeToujours.push_back(roll->itemGUID);
             else
                 claim.push_back(roll->itemGUID);
 
@@ -281,7 +301,7 @@ bool BisLootRollAction::Execute(Event event)
     for (ObjectGuid const& guid : downgrade)
         group->CountRollVote(bot->GetGUID(), guid, vote);
 
-    for (ObjectGuid const& guid : possede)
+    for (ObjectGuid const& guid : passeToujours)
         group->CountRollVote(bot->GetGUID(), guid, PASS);
 
     for (ObjectGuid const& guid : claim)
@@ -293,5 +313,6 @@ bool BisLootRollAction::Execute(Event event)
     // Everything we did not touch is still unvoted, and the base pass skips the
     // rolls we just answered.
     bool const voted = LootRollAction::Execute(event);
-    return voted || !downgrade.empty() || !claim.empty() || !need.empty();
+    return voted || !downgrade.empty() || !claim.empty() || !need.empty()
+        || !passeToujours.empty();
 }
