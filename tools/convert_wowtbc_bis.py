@@ -180,6 +180,26 @@ ENTREES_FORCEES = {
     ("Warblade of the Hakkari", 16): 19866,
 }
 
+# DEUX OBJETS, UN SEUL NOM.
+#
+# item_template contient des homonymes parfaits : "Mark of the Champion" existe
+# en version puissance d'attaque et en version puissance des sorts, toutes deux
+# recompenses de la meme quete. Le SQL resout par nom avec MIN(entry), donc sans
+# intervention un druide Equilibre recevrait la version melee - une erreur
+# invisible, puisque l'objet existe et porte le bon nom.
+#
+# La page, elle, sait : elle ecrit "Mark of the Champion (SP)". Le qualificatif
+# capture plus haut sert donc de cle.
+ENTREES_QUALIFIEES = {
+    # ("mark of the champion", "sp"): 23207,
+    # ("mark of the champion", "ap"): 23206,
+}
+
+# Les noms dont on SAIT qu'ils sont partages. Sans entree forcee pour le
+# qualificatif rencontre, l'objet est ECARTE plutot que resolu au hasard : une
+# ligne manquante se voit, une mauvaise piece ne se voit pas.
+NOMS_AMBIGUS = {"mark of the champion"}
+
 # Certaines pages suffixent un objet par la classe a qui il revient :
 # "Royal Seal of Eldre'Thalas (Warlock)". item_template ne connait que le nom
 # nu, donc le suffixe est retire - sinon la ligne finit en "nom non resolu".
@@ -188,7 +208,16 @@ ENTREES_FORCEES = {
 # laquelle l'objet se porte - "(OH)" chez Zul'Gurub.
 QUALIFICATIF = re.compile(
     r"\s*\((?:warlock|mage|priest|druid|hunter|rogue|paladin|shaman|warrior|"
-    r"death knight|alliance|horde|oh|mh|a|h)\)\s*$", re.I)
+    r"death knight|alliance|horde|oh|mh|a|h|"
+    # Les suffixes de STAT. La page les emploie quand DEUX objets portent le
+    # meme nom et ne different que par leurs statistiques - "Mark of the
+    # Champion (SP)" a Naxxramas. Sans eux ici, les deux occurrences du nom
+    # different, l'ancre ne se forme pas, et le bloc disparait en silence.
+    r"sp|ap|dps|heal|healing|tank|caster|melee|ranged|physical|spell)\)\s*$", re.I)
+
+# Le qualificatif, capture AVANT nettoyage : c'est lui qui designe LEQUEL des
+# deux objets homonymes la page veut.
+QUALIF_CAPTURE = re.compile(r"\(([^)]{1,12})\)\s*$")
 
 
 # wowtbc numerote parfois la PREMIERE des deux occurrences d'un nom :
@@ -234,7 +263,9 @@ def lire_blocs(lignes):
                 elif creneau is not None:
                     source.append(lignes[j])
                 j += 1
-            blocs.append((nettoyer(nom), creneau, " ".join(source)))
+            qual = QUALIF_CAPTURE.search(lignes[i])
+            blocs.append((nettoyer(nom), creneau, " ".join(source),
+                          qual.group(1).lower() if qual else ""))
             i = j
         else:
             i += 1
@@ -303,7 +334,7 @@ def main():
     retenus, ecartes, inconnus = [], [], []
     par_creneau = {}
 
-    for nom, creneau, source in blocs:
+    for nom, creneau, source, qualif in blocs:
         if creneau is None:
             inconnus.append(nom)
             continue
@@ -328,6 +359,13 @@ def main():
 
         slot = CRENEAUX[creneau]
 
+        # Homonyme sans identifiant force : on ecarte. Voir NOMS_AMBIGUS.
+        entree_forcee = ENTREES_QUALIFIEES.get((nom.lower(), qualif))
+        if nom.lower() in NOMS_AMBIGUS and not entree_forcee:
+            ecartes.append((nom, "deux objets portent ce nom (%s) - identifiant a forcer"
+                            % (qualif or "sans qualificatif")))
+            continue
+
         # Une arme de main gauche pour un tank ferait lacher le bouclier. Les
         # boucliers, eux, restent : ils arrivent par "off hand" ou "shield".
         if args.sans_arme_main_gauche and slot == 16 and "off hand" in creneau and creneau != "off hand":
@@ -343,7 +381,7 @@ def main():
             par_creneau[slot] -= 1
             continue
 
-        retenus.append((nom, slot, rang))
+        retenus.append((nom, slot, rang, entree_forcee))
 
     etiquette = args.etiquette or "wowtbc.gg"
     out = []
@@ -366,8 +404,8 @@ def main():
     out.append("")
     out.append("INSERT INTO `bis_seed_wowtbc` (`slot`, `rank`, `item_name`, `entry`) VALUES")
     lignes_sql = []
-    for n, slot, r in retenus:
-        entree = ENTREES_FORCEES.get((n, slot))
+    for n, slot, r, forcee in retenus:
+        entree = forcee or ENTREES_FORCEES.get((n, slot))
         lignes_sql.append("(%2d, %d, '%s', %s)"
                           % (slot, r, n.replace("'", "''"),
                              str(entree) if entree else "NULL"))
