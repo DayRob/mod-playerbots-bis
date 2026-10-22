@@ -191,9 +191,35 @@ ENTREES_FORCEES = {
 # La page, elle, sait : elle ecrit "Mark of the Champion (SP)". Le qualificatif
 # capture plus haut sert donc de cle.
 ENTREES_QUALIFIEES = {
-    # ("mark of the champion", "sp"): 23207,
-    # ("mark of the champion", "ap"): 23206,
+    ("mark of the champion", "sp"): 23207,   # puissance des sorts
+    ("mark of the champion", "ap"): 23206,   # puissance d'attaque
 }
+
+# ET QUAND LA PAGE N'ECRIT PAS DE QUALIFICATIF.
+#
+# Elle ne le met que la ou l'ambiguite la gene - sur une liste de voleur, "Mark
+# of the Champion" tout court ne peut vouloir dire que la version melee. Ecarter
+# ces lignes-la ferait perdre un bijou a la moitie des listes.
+#
+# La liste elle-meme porte la reponse : elle est indexee par classe et par spe.
+# On tranche donc comme le ferait un joueur qui regarde de quelle page il vient.
+ENTREES_PAR_ROLE = {
+    "mark of the champion": {"sorts": 23207, "physique": 23206},
+}
+
+# Les spes qui tapent avec des sorts. Tout le reste frappe.
+SPES_DE_SORTS = {
+    2: {0},            # paladin Sacre
+    5: {0, 1, 2},      # pretre, Ombre comprise
+    7: {0, 2},         # chaman Elementaire et Restauration
+    8: {0, 1, 2},      # mage
+    9: {0, 1, 2},      # demoniste
+    11: {0, 2},        # druide Equilibre et Restauration (l'ours est la spe 10)
+}
+
+
+def role_de(classe, spec):
+    return "sorts" if spec in SPES_DE_SORTS.get(classe, set()) else "physique"
 
 # Les noms dont on SAIT qu'ils sont partages. Sans entree forcee pour le
 # qualificatif rencontre, l'objet est ECARTE plutot que resolu au hasard : une
@@ -361,6 +387,12 @@ def main():
 
         # Homonyme sans identifiant force : on ecarte. Voir NOMS_AMBIGUS.
         entree_forcee = ENTREES_QUALIFIEES.get((nom.lower(), qualif))
+        if not entree_forcee and nom.lower() in ENTREES_PAR_ROLE:
+            # La spe de la liste tranche. specs[0] suffit : une page qui couvre
+            # plusieurs arbres - chasseur, mage, demoniste - ne les melange
+            # jamais entre sorts et melee.
+            entree_forcee = ENTREES_PAR_ROLE[nom.lower()][role_de(args.classe, specs[0])]
+
         if nom.lower() in NOMS_AMBIGUS and not entree_forcee:
             ecartes.append((nom, "deux objets portent ce nom (%s) - identifiant a forcer"
                             % (qualif or "sans qualificatif")))
