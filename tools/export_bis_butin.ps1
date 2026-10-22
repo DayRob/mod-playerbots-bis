@@ -371,7 +371,15 @@ function Retenir([int] $objet, [int] $creature, [double] $chance, [int] $jeton) 
     # Une source directe l'emporte toujours sur un jeton : si la piece tombe
     # elle-meme quelque part, c'est la qu'on l'attend.
     if ($jeton -eq 0)                    { $score += 4000 }
-    if ($script:cartes.Contains([int]$carte)) { $score += 1000 }
+
+    # UNE CARTE CONNUE, ET PAS "SANS LIEU CONNU". La table des cartes contient
+    # l'entree -1 pour pouvoir NOMMER ce qu'on ne sait pas situer ; s'en servir
+    # ici donnait le bonus a une creature SANS spawn, a egalite avec un vrai
+    # boss. En 3.3.5, creature_template porte des doublons de difficulte -
+    # "Gluth (1)" sans spawn a cote du "Gluth" pose sur la carte - et le
+    # doublon passait devant des qu'il arrivait le premier. Vingt-six objets
+    # de Naxxramas finissaient ainsi sous "Sans lieu connu".
+    if ($carte -ge 0 -and $script:cartes.Contains([int]$carte)) { $score += 1000 }
     if ($grade -eq 3)                    { $score += 500 }
     elseif ($grade -ge 1)                { $score += 100 }
     $score += [math]::Min([int]$chance, 99)
