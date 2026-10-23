@@ -501,3 +501,47 @@ PlayerbotsBis.AtieshCollector = ""
 #
 
 PlayerbotsBis.AtieshSplinters = 40
+
+#
+#    PlayerbotsBis.AutoMark
+#        Description: Les creatures marquees d'une icone de raid des qu'elles
+#                     entrent dans le champ de vision du chef de groupe.
+#
+#                     POURQUOI. mod-playerbots choisit ses cibles en suivant les
+#                     icones de raid, la tete de mort d'abord. C'est le levier
+#                     prevu pour les cas que l'IA ne tranche pas seule - et
+#                     plusieurs fichiers d'action de la strategie naxx sont des
+#                     coquilles vides : Faerlina, Noth, Gothik et Patchwerk ne
+#                     contiennent qu'un commentaire "Reserved for ...".
+#
+#                     Sur Gothik c'est pire qu'une absence de priorite : il
+#                     reste sur son balcon, donc l'IA generique envoie le tank
+#                     chercher un chemin qui n'existe pas, et il finit coince
+#                     en l'air pendant que le reste du raid attend.
+#
+#                     FORMAT. Des entrees separees par des POINTS-VIRGULES -
+#                     un nom de creature contient presque toujours un espace.
+#                     Chaque entree est un nom ou un identifiant, avec un
+#                     numero d'icone facultatif apres deux-points :
+#
+#                         0 etoile   1 cercle   2 diamant   3 triangle
+#                         4 lune     5 carre    6 croix     7 tete de mort
+#
+#                     Sans suffixe, c'est la tete de mort.
+#
+#                     Un NOM peut repondre pour plusieurs identifiants - les
+#                     versions 10, 25 et 40 d'un meme boss portent le meme nom.
+#                     C'est voulu : toutes sont marquees.
+#
+#                     UNE SEULE FOIS PAR CREATURE. Le script marque puis n'y
+#                     revient plus. Si tu deplaces l'icone a la main, il ne te
+#                     la reprend pas - une marque qu'on ne peut pas enlever
+#                     serait pire que pas de marque du tout.
+#
+#                     N'agit qu'en instance, et seulement pour un joueur reel
+#                     chef de son groupe.
+#        Example:     PlayerbotsBis.AutoMark = "Gothik the Harvester; Grand Widow Faerlina:6"
+#        Default:     ""
+#
+
+PlayerbotsBis.AutoMark = ""

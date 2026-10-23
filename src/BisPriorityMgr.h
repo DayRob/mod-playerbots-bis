@@ -67,6 +67,12 @@ public:
     // le reclamer au jet. Voir BisBookSpells.cpp.
     bool TeachBookSpells() const { return _teachBookSpells; }
 
+    // Les creatures a marquer d'une icone de raid des qu'elles entrent dans
+    // le champ de vision du chef de groupe. mod-playerbots suit ces icones
+    // pour choisir ses cibles, donc c'est le seul levier qui remplace les
+    // fichiers d'action restes vides. Voir BisAutoMark.cpp.
+    std::string const& AutoMark() const { return _autoMark; }
+
     // Le seul personnage autorise a reclamer les composants d'Atiesh au jet
     // de butin. Vide - le defaut - eteint la fonctionnalite et rend le jet a
     // mod-playerbots. Voir BisAtiesh.cpp : quarante eclats disperses sur
@@ -387,6 +393,7 @@ private:
     bool _teachBookSpells = false;
     std::string _worldBuffs;
     std::string _atieshCollector;
+    std::string _autoMark;
     uint32 _atieshSplinters = 40;
     bool _announceOnRoll = true;
     uint32 _minBotLevel = 0;

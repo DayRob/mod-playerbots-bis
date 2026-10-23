@@ -1095,6 +1095,49 @@ WHERE i.class = 9 AND i.subclass = 0 AND i.spellid_1 = 483 AND i.spellid_2 > 0
 ORDER BY perso_qui_lont, i.RequiredLevel;
 ```
 
+## Marquer automatiquement une cible
+
+mod-playerbots choisit ses cibles en suivant les **icônes de raid**, la tête de
+mort d'abord. C'est le levier prévu pour ce que l'IA ne tranche pas seule.
+
+Et il en faut un, parce que plusieurs fichiers d'action de la stratégie `naxx`
+de mod-playerbots sont des coquilles vides — `NaxxActions_Faerlina.cpp`,
+`_Noth.cpp`, `_Gothik.cpp` ne contiennent qu'un `// Reserved for ...-specific
+actions`, et `_Patchwerk.cpp` a sa seule classe entièrement commentée.
+
+Sur Gothik, l'absence de priorité ne fait pas que ralentir le combat : le boss
+reste sur son balcon, l'IA générique envoie le tank chercher un chemin qui
+n'existe pas, et il finit **coincé en l'air** pendant que le raid attend.
+
+```
+PlayerbotsBis.AutoMark = "Gothik the Harvester; Grand Widow Faerlina:6"
+```
+
+Entrées séparées par des **points-virgules** — un nom de créature contient
+presque toujours un espace. Chaque entrée est un nom ou un identifiant, avec un
+numéro d'icône facultatif :
+
+| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|
+| étoile | cercle | diamant | triangle | lune | carré | croix | tête de mort |
+
+Sans suffixe, c'est la tête de mort. Un **nom** peut répondre pour plusieurs
+identifiants — les versions 10, 25 et 40 d'un même boss portent le même nom — et
+toutes sont marquées, ce qui est voulu.
+
+**Une seule fois par créature.** Le script marque puis n'y revient plus : si tu
+déplaces l'icône à la main, il ne te la reprend pas. Une marque qu'on ne peut
+pas enlever serait pire que pas de marque du tout.
+
+N'agit qu'en instance, et seulement pour un joueur réel chef de son groupe.
+
+Pour trouver un identifiant ou vérifier un nom :
+
+```sql
+SELECT entry, name FROM acore_world.creature_template
+WHERE name LIKE '%Gothik%';
+```
+
 ## Atiesh, le bâton du Gardien
 
 Atiesh ne tombe pas : il se **construit**. Quarante Éclats d'Atiesh ramassés sur

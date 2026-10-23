@@ -229,6 +229,7 @@ void AddSC_playerbots_bis_botgate();
 void AddSC_playerbots_bis_botqueue();
 void AddSC_playerbots_bis_bookspells();
 void AddSC_playerbots_bis_atiesh();
+void AddSC_playerbots_bis_automark();
 
 void AddSC_playerbots_bis()
 {
@@ -239,4 +240,5 @@ void AddSC_playerbots_bis()
     AddSC_playerbots_bis_botqueue();
     AddSC_playerbots_bis_bookspells();
     AddSC_playerbots_bis_atiesh();
+    AddSC_playerbots_bis_automark();
 }
