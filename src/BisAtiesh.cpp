@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 // CE QUE LE MODULE FAIT, ET CE QU'IL NE FAIT PAS.
@@ -44,10 +45,12 @@ namespace
     uint8 const DERNIERE_CLASSE = 11;
 
     char const* const NOM_ECLAT = "Splinter of Atiesh";
+    char const* const NOM_TETE  = "Staff Head of Atiesh";
     char const* const NOM_BASE  = "Base of Atiesh";
     char const* const NOM_BATON = "Atiesh, Greatstaff of the Guardian";
 
     uint32 eclatId = 0;
+    uint32 teteId  = 0;
     uint32 baseId  = 0;
     std::unordered_map<uint8, uint32> batons;  // classe -> entry
     bool charge = false;
@@ -56,6 +59,7 @@ namespace
     {
         charge = true;
         eclatId = 0;
+        teteId  = 0;
         baseId  = 0;
         batons.clear();
 
@@ -65,13 +69,20 @@ namespace
         // dit et la fonctionnalite reste inerte - elle ne devine pas.
         QueryResult res = WorldDatabase.Query(
             "SELECT `entry`, `name`, `AllowableClass` FROM `item_template` "
-            "WHERE `name` IN ('{}', '{}', '{}')",
-            NOM_ECLAT, NOM_BASE, NOM_BATON);
+            "WHERE `name` IN ('{}', '{}', '{}', '{}')",
+            NOM_ECLAT, NOM_TETE, NOM_BASE, NOM_BATON);
         if (!res)
         {
             LOG_INFO("server.loading", "[mod-playerbots-bis] Atiesh : aucun composant trouve dans item_template");
             return;
         }
+
+        struct Candidat
+        {
+            uint32 entry;
+            int32 classes;
+        };
+        std::vector<Candidat> candidats;
 
         do
         {
@@ -87,33 +98,60 @@ namespace
                 continue;
             }
 
+            if (nom == NOM_TETE)
+            {
+                teteId = entry;
+                continue;
+            }
+
             if (nom == NOM_BASE)
             {
                 baseId = entry;
                 continue;
             }
 
-            // Le baton. AllowableClass vaut -1 quand l'objet n'est reserve a
-            // personne, sinon un masque ou la classe N occupe le bit N-1. On
-            // range l'objet sous chaque classe qui peut le porter : une seule
-            // pour les quatre versions d'Atiesh.
-            for (uint8 classe = 1; classe <= DERNIERE_CLASSE; ++classe)
-            {
-                uint32 const bit = 1u << (classe - 1);
-                if (classes != -1 && !(static_cast<uint32>(classes) & bit))
-                    continue;
-
-                // Premier arrive, premier servi : si deux objets du meme nom
-                // visaient la meme classe, prendre le plus petit identifiant
-                // est arbitraire mais stable d'un demarrage a l'autre.
-                if (!batons.count(classe))
-                    batons[classe] = entry;
-            }
+            // Le baton. Mis de cote pour un rangement en DEUX PASSES, plus
+            // bas : l'ordre des lignes ne doit pas decider du resultat.
+            candidats.push_back({entry, classes});
         } while (res->NextRow());
 
+        // DEUX PASSES, et c'est tout l'interet. CINQ objets portent le nom
+        // "Atiesh, Greatstaff of the Guardian" : les quatre versions de classe
+        // - mage, demoniste, pretre, druide - et le baton NON IMPREGNE, etape
+        // intermediaire de la chaine, que rien ne reserve a une classe.
+        //
+        // Une passe unique rangeait le premier venu : si la base renvoyait le
+        // baton non impregne en tete, il raflait la place de TOUTES les classes
+        // et le collecteur recevait l'etape intermediaire au lieu de son arme.
+        // La requete n'ayant pas d'ORDER BY, le resultat dependait de l'humeur
+        // du moteur.
+        //
+        // Donc : d'abord ce qui est reserve a une classe, et seulement ensuite
+        // ce qui ne l'est pas, pour combler les classes restees vides.
+        for (auto const& c : candidats)
+        {
+            if (c.classes == -1)
+                continue;
+
+            for (uint8 classe = 1; classe <= DERNIERE_CLASSE; ++classe)
+                if (static_cast<uint32>(c.classes) & (1u << (classe - 1)))
+                    if (!batons.count(classe))
+                        batons[classe] = c.entry;
+        }
+
+        for (auto const& c : candidats)
+        {
+            if (c.classes != -1)
+                continue;
+
+            for (uint8 classe = 1; classe <= DERNIERE_CLASSE; ++classe)
+                if (!batons.count(classe))
+                    batons[classe] = c.entry;
+        }
+
         LOG_INFO("server.loading",
-                 "[mod-playerbots-bis] Atiesh : eclat {}, base {}, {} version(s) du baton",
-                 eclatId, baseId, static_cast<uint32>(batons.size()));
+                 "[mod-playerbots-bis] Atiesh : eclat {}, tete {}, base {}, {} version(s) du baton",
+                 eclatId, teteId, baseId, static_cast<uint32>(batons.size()));
     }
 
     void ChargerSiBesoin()
@@ -167,7 +205,7 @@ namespace
     // L'assemblage. Quarante eclats plus la base deviennent le baton.
     bool Assembler(Player* player)
     {
-        if (!EstLeCollecteur(player) || !eclatId || !baseId)
+        if (!EstLeCollecteur(player) || !eclatId || !teteId || !baseId)
             return false;
 
         uint32 const batonId = BatonDe(player);
@@ -178,7 +216,9 @@ namespace
         if (player->GetItemCount(eclatId, true) < requis)
             return false;
 
-        if (!player->GetItemCount(baseId, true))
+        // La Tete et la Base tombent sur des boss differents de la fin du
+        // raid : les quarante eclats peuvent etre reunis bien avant elles.
+        if (!player->GetItemCount(teteId, true) || !player->GetItemCount(baseId, true))
             return false;
 
         // LA PLACE D'ABORD. Detruire quarante eclats pour decouvrir ensuite que
@@ -195,6 +235,7 @@ namespace
         }
 
         player->DestroyItemCount(eclatId, requis, true);
+        player->DestroyItemCount(teteId, 1, true);
         player->DestroyItemCount(baseId, 1, true);
 
         Item* const baton = player->StoreNewItem(place, batonId, true);
@@ -206,7 +247,8 @@ namespace
             return false;
         }
 
-        LOG_INFO("server.loading", "[mod-playerbots-bis] Atiesh : {} assemble le baton {} ({} eclats + la base)",
+        LOG_INFO("server.loading",
+                 "[mod-playerbots-bis] Atiesh : {} assemble le baton {} ({} eclats + la tete + la base)",
                  player->GetName(), batonId, requis);
 
         // Dit a voix haute, parce que c'est l'evenement d'un serveur entier et
@@ -224,7 +266,7 @@ namespace BisAtiesh
     bool EstUnComposant(uint32 itemId)
     {
         ChargerSiBesoin();
-        return itemId && (itemId == eclatId || itemId == baseId);
+        return itemId && (itemId == eclatId || itemId == teteId || itemId == baseId);
     }
 
     bool Reclame(Player* bot, uint32 itemId)
@@ -243,8 +285,10 @@ namespace BisAtiesh
         if (DejaServi(bot))
             return false;
 
-        // La base est unique : une seconde ne sert a rien et prive le raid.
-        if (itemId == baseId && bot->GetItemCount(baseId, true) > 0)
+        // La Tete et la Base sont uniques - maxcount 1 dans item_template.
+        // Un second exemplaire ne sert a rien et prive le raid ; le coeur
+        // refuserait d'ailleurs de le ranger.
+        if ((itemId == teteId || itemId == baseId) && bot->GetItemCount(itemId, true) > 0)
             return false;
 
         // Et les eclats s'arretent au compte voulu, pour la meme raison.

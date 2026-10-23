@@ -457,18 +457,25 @@ PlayerbotsBis.WorldBuffs = ""
 #                     reclame, tous les autres bots PASSENT explicitement.
 #
 #                     CE QUE LE MODULE FAIT ENSUITE. Des que le collecteur tient
-#                     les quarante eclats et la base, il les echange contre le
-#                     baton, et le dit. C'est exactement ce que rend la chaine
+#                     les trois composants, il les echange contre le baton, et
+#                     le dit :
+#                       22726  Splinter of Atiesh    x40
+#                       22733  Staff Head of Atiesh  x1
+#                       22734  Base of Atiesh        x1 C'est exactement ce que rend la chaine
 #                     de quetes d'Anachronos ; seul le trajet est raccourci,
 #                     parce qu'un bot ne sait pas rendre une quete a Tanaris.
 #                     Rien n'est donne : il faut que les quarante eclats soient
 #                     tombes.
 #
-#                     LA VERSION DU BATON NE SE CONFIGURE PAS. Quatre objets
-#                     portent le nom "Atiesh, Greatstaff of the Guardian" -
-#                     mage, demoniste, pretre, druide - et AllowableClass les
-#                     departage. Le collecteur recoit celui que sa classe peut
-#                     porter ; changer de collecteur change de version.
+#                     LA VERSION DU BATON NE SE CONFIGURE PAS. CINQ objets
+#                     portent le nom "Atiesh, Greatstaff of the Guardian" : les
+#                     quatre versions de classe - mage, demoniste, pretre,
+#                     druide - et le baton NON IMPREGNE, etape intermediaire que
+#                     rien ne reserve a une classe. Le module range d'abord ce
+#                     qui est reserve a une classe, et seulement ensuite ce qui
+#                     ne l'est pas, pour que le collecteur recoive son arme et
+#                     non l'etape intermediaire. Changer de collecteur change
+#                     donc de version, sans toucher a la configuration.
 #
 #                     TON PROPRE PERSONNAGE EST UN CHOIX VALIDE, et meme le
 #                     seul moyen de porter Atiesh toi-meme : les composants

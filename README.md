@@ -1113,20 +1113,30 @@ PlayerbotsBis.AtieshCollector = "Eranko"
 PlayerbotsBis.AtieshSplinters = 40
 ```
 
-Nommer un collecteur ferme ce robinet : **lui seul** jette Besoin sur les
-éclats et sur la base, et **tous les autres bots passent explicitement** — un
-PASS, pas une absence de vote, pour ne pas laisser le jet ouvert jusqu'à son
-expiration.
+Nommer un collecteur ferme ce robinet : **lui seul** jette Besoin sur les trois
+composants, et **tous les autres bots passent explicitement** — un PASS, pas une
+absence de vote, pour ne pas laisser le jet ouvert jusqu'à son expiration.
 
-Dès qu'il tient les quarante éclats et la base, il les échange contre le bâton,
-et l'annonce. C'est le résultat de la chaîne de quêtes ; seul le trajet est
+```
+22726  Splinter of Atiesh     ×40
+22733  Staff Head of Atiesh   ×1
+22734  Base of Atiesh         ×1
+```
+
+Les trois sont liés quand ramassés (`bonding` 1 et 4), d'où le collecteur
+unique : un éclat pris par quelqu'un d'autre est perdu pour de bon.
+
+Dès qu'il tient les trois, il les échange contre le bâton, et l'annonce. C'est le résultat de la chaîne de quêtes ; seul le trajet est
 raccourci, parce qu'un bot ne sait pas rendre une quête à Tanaris. Rien n'est
 donné : il faut que les quarante éclats soient tombés.
 
-**La version du bâton se déduit, elle ne se configure pas.** Quatre objets
-portent le nom `Atiesh, Greatstaff of the Guardian` — mage, démoniste, prêtre,
-druide — et `AllowableClass` les départage. Le collecteur reçoit celui que sa
-classe peut porter ; changer de collecteur change de version.
+**La version du bâton se déduit, elle ne se configure pas.** *Cinq* objets
+portent le nom `Atiesh, Greatstaff of the Guardian` : les quatre versions de
+classe — mage, démoniste, prêtre, druide — et le bâton **non imprégné**
+(`22737`), étape intermédiaire que rien ne réserve à une classe. Le module range
+d'abord ce qui est réservé à une classe, et seulement ensuite ce qui ne l'est
+pas : le collecteur reçoit donc son arme et non l'étape intermédiaire. Changer
+de collecteur change de version, sans toucher à la configuration.
 
 **Ton propre personnage est un choix valide**, et c'est même le seul moyen de
 porter Atiesh toi-même : les composants sont liés quand ramassés, donc le
