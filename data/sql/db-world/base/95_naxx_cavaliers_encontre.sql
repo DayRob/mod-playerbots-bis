@@ -23,42 +23,45 @@
 -- Ce n'est pas propre a la version 40 : les entrees Wrath des Cavaliers -
 -- 16062, 16063, 16064, 16065 - n'ont elles non plus aucun credit de creature.
 --
--- CE QU'ON AJOUTE. Un SECOND credit sur la meme encontre, de type creature
--- cette fois, sur Thane Korth'azz (351039). C'est celui que la strategie
--- "naxx" de mod-playerbots cible en premier pour tout le monde sauf les tanks
--- secondaires : le module conduira donc le groupe exactement la ou les bots
--- vont se placer. Le credit par sort reste en place, il n'est pas remplace.
+-- POURQUOI UN REMPLACEMENT ET NON UN AJOUT. `entry` est la CLE PRIMAIRE de
+-- instance_encounters : une encontre ne porte qu'un seul credit. Ajouter une
+-- seconde ligne pour 1009 rend "Duplicate entry '1009' for key PRIMARY". Le
+-- credit par sort doit donc ceder la place a un credit par creature.
 --
--- CE QUE CA CHANGE AILLEURS, et c'est le prix a payer. Le coeur marquera
--- l'encontre terminee des la mort de Korth'azz, et non plus a celle du
--- quatrieme Cavalier. Cela ne touche QUE le masque d'encontres du verrou
--- d'instance - affichage du verrou, hauts faits, recherche de groupe.
+-- On choisit Thane Korth'azz (351039) : c'est celui que la strategie "naxx"
+-- de mod-playerbots cible en premier pour tout le monde sauf les tanks
+-- secondaires. Le module conduira donc le groupe exactement la ou les bots
+-- vont se placer.
 --
--- La porte de Saphiron, elle, n'est PAS concernee : elle depend de
--- SetBossState dans instance_naxxramas.cpp, qui suit ses propres etats de
--- boss et ignore instance_encounters.
+-- CE QUE CA CHANGE AILLEURS, et c'est le prix a payer. Le coeur marquait
+-- l'encontre terminee quand le script lancait 59450, c'est-a-dire a la mort
+-- du QUATRIEME Cavalier ; il la marquera desormais a la mort de Korth'azz.
+-- Cela ne touche QUE le masque d'encontres du verrou d'instance - affichage
+-- du verrou, hauts faits, recherche de groupe. Le script continue de lancer
+-- 59450, simplement plus personne ne l'ecoute.
 --
--- Pour revenir en arriere :
---     DELETE FROM `instance_encounters`
---     WHERE `entry` = 1009 AND `creditType` = 0 AND `creditEntry` = 351039;
+-- La porte de Saphiron n'est PAS concernee : elle depend de SetBossState dans
+-- instance_naxxramas.cpp, qui tient ses propres etats de boss et ne lit pas
+-- instance_encounters. Aucun risque d'ouvrir le quartier trop tot.
+--
+-- POUR REVENIR EN ARRIERE :
+--     UPDATE `instance_encounters`
+--     SET `creditType` = 1, `creditEntry` = 59450, `comment` = 'The Four Horsemen'
+--     WHERE `entry` = 1009;
 
--- Relancable sans danger : la ligne part d'abord si elle existe deja.
-DELETE FROM `instance_encounters`
-WHERE `entry` = 1009 AND `creditType` = 0 AND `creditEntry` = 351039;
+-- Un UPDATE est naturellement relancable. Le EXISTS protege un serveur qui
+-- n'aurait pas la version 40 de Naxxramas : sans la creature, la ligne reste
+-- telle quelle plutot que de pointer dans le vide.
+UPDATE `instance_encounters`
+SET `creditType`  = 0,
+    `creditEntry` = 351039,
+    `comment`     = 'The Four Horsemen (credit creature - mod-playerbots-bis)'
+WHERE `entry` = 1009
+  AND EXISTS (SELECT 1 FROM `creature_template` WHERE `entry` = 351039);
 
--- Les deux EXISTS protegent un serveur qui n'aurait pas la version 40 de
--- Naxxramas : sans la creature ou sans l'encontre, la ligne n'est pas posee
--- plutot que de creer une encontre orpheline.
-INSERT INTO `instance_encounters` (`entry`, `creditType`, `creditEntry`, `lastEncounterDungeon`, `comment`)
-SELECT 1009, 0, 351039, 0, 'The Four Horsemen (credit creature - mod-playerbots-bis)'
-FROM DUAL
-WHERE EXISTS (SELECT 1 FROM `creature_template` WHERE `entry` = 351039)
-  AND EXISTS (SELECT 1 FROM `instance_encounters` WHERE `entry` = 1009);
-
--- VERIFICATION 1 - l'encontre 1009 doit maintenant avoir DEUX lignes : le
--- credit par sort d'origine, et le credit par creature qu'on vient d'ajouter.
+-- VERIFICATION 1 - l'encontre 1009 doit afficher creditType 0 et le Cavalier.
 SELECT `entry`, `creditType`, `creditEntry`, `comment`
-FROM `instance_encounters` WHERE `entry` = 1009 ORDER BY `creditType`;
+FROM `instance_encounters` WHERE `entry` = 1009;
 
 -- VERIFICATION 2 - la creature doit exister. Une ligne attendue.
 --
