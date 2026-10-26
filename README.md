@@ -1169,6 +1169,18 @@ absence de vote, pour ne pas laisser le jet ouvert jusqu'à son expiration.
 Les trois sont liés quand ramassés (`bonding` 1 et 4), d'où le collecteur
 unique : un éclat pris par quelqu'un d'autre est perdu pour de bon.
 
+**Il compte à voix haute.** À chaque composant gagné, le collecteur annonce son
+avancement :
+
+```
+Eclat d'Atiesh : 7/40
+Eclat d'Atiesh : 40/40 - il manque la Tete et la Base
+```
+
+Un éclat de plus ne se voit pas dans le flot de butin d'un raid de quarante, et
+sans ce compteur il faudrait fouiller les sacs du bot pour savoir où on en est.
+Il le redit à chaque connexion, ce qui rappelle l'état après un redémarrage.
+
 Dès qu'il tient les trois, il les échange contre le bâton, et l'annonce. C'est le résultat de la chaîne de quêtes ; seul le trajet est
 raccourci, parce qu'un bot ne sait pas rendre une quête à Tanaris. Rien n'est
 donné : il faut que les quarante éclats soient tombés.

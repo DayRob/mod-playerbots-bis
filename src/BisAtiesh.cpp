@@ -17,6 +17,7 @@
 #include "ScriptMgr.h"
 #include <algorithm>
 #include <cctype>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -202,6 +203,84 @@ namespace
         return batonId && player->GetItemCount(batonId, true) > 0;
     }
 
+    // CE QUE LE COLLECTEUR TIENT, a la derniere observation. Sert a ne parler
+    // que lorsque le compte BOUGE : repeter "7/40" toutes les quinze secondes
+    // noierait le canal et rendrait l'annonce inutile.
+    struct Avancement
+    {
+        uint32 eclats = 0;
+        bool tete = false;
+        bool base = false;
+        bool connu = false;
+    };
+
+    std::unordered_map<ObjectGuid, Avancement> suivi;
+
+    // L'annonce de progression. Un eclat qui tombe ne dit rien de lui-meme -
+    // le message de butin se perd dans le flot d'un raid de quarante - et sans
+    // compteur on ne sait jamais ou on en est sans fouiller les sacs du bot.
+    void AnnoncerLaCollecte(Player* player)
+    {
+        if (!eclatId)
+            return;
+
+        uint32 const requis = sBisPriorityMgr->AtieshSplinters();
+
+        Avancement maintenant;
+        maintenant.eclats = player->GetItemCount(eclatId, true);
+        maintenant.tete = teteId && player->GetItemCount(teteId, true) > 0;
+        maintenant.base = baseId && player->GetItemCount(baseId, true) > 0;
+        maintenant.connu = true;
+
+        Avancement const avant = suivi[player->GetGUID()];
+        suivi[player->GetGUID()] = maintenant;
+
+        // Rien en main : rien a dire. Evite aussi d'annoncer "0/40" au premier
+        // demarrage, quand la collecte n'a pas commence.
+        if (!maintenant.eclats && !maintenant.tete && !maintenant.base)
+            return;
+
+        // Au tout premier passage l'etat n'est pas "connu" : on annonce, ce qui
+        // rappelle ou en est la collecte apres chaque redemarrage. Ensuite, on
+        // ne parle que si quelque chose a ete GAGNE - un compte qui descend est
+        // un assemblage ou une suppression, pas une progression.
+        bool const progresse = !avant.connu
+                               || maintenant.eclats > avant.eclats
+                               || (maintenant.tete && !avant.tete)
+                               || (maintenant.base && !avant.base);
+        if (!progresse)
+            return;
+
+        PlayerbotAI* botAI = GET_PLAYERBOT_AI(player);
+        if (!botAI)
+            return;
+
+        std::ostringstream out;
+        out << "Eclat d'Atiesh : " << maintenant.eclats << "/" << requis;
+
+        // Ce qui manque n'est dit qu'une fois les eclats reunis. Avant ca,
+        // c'est du bruit : la Tete et la Base tombent en fin de raid, il est
+        // normal de ne pas les avoir.
+        if (maintenant.eclats >= requis)
+        {
+            if (!maintenant.tete && !maintenant.base)
+                out << " - il manque la Tete et la Base";
+            else if (!maintenant.tete)
+                out << " - il manque la Tete";
+            else if (!maintenant.base)
+                out << " - il manque la Base";
+        }
+        else
+        {
+            if (maintenant.tete)
+                out << " - Tete en main";
+            if (maintenant.base)
+                out << " - Base en main";
+        }
+
+        botAI->TellMaster(out.str());
+    }
+
     // L'assemblage. Quarante eclats plus la base deviennent le baton.
     bool Assembler(Player* player)
     {
@@ -307,6 +386,11 @@ public:
     void OnPlayerLogin(Player* player) override
     {
         ChargerSiBesoin();
+
+        if (!EstLeCollecteur(player))
+            return;
+
+        AnnoncerLaCollecte(player);
         Assembler(player);
     }
 };
@@ -331,18 +415,31 @@ public:
         _depuis = 0;
 
         ChargerSiBesoin();
-        if (!eclatId || !baseId || batons.empty())
+
+        // L'eclat suffit a tenir le compteur. La Tete, la Base et les versions
+        // du baton ne servent qu'a l'assemblage, qui verifie lui-meme ce qui
+        // lui manque : sans ca, une base absente de item_template ferait taire
+        // aussi le suivi de collecte.
+        if (!eclatId)
             return;
 
         for (auto const& paire : ObjectAccessor::GetPlayers())
-            Assembler(paire.second);
+        {
+            Player* player = paire.second;
+            if (!player || !EstLeCollecteur(player))
+                continue;
+
+            AnnoncerLaCollecte(player);
+            Assembler(player);
+        }
     }
 
 private:
-    // Une minute, comme les livres de sort : assez court pour que le baton
-    // arrive avant le boss suivant, assez long pour que le balayage ne pese
-    // rien - il ne lit les sacs que du seul collecteur.
-    static constexpr uint32 INTERVALLE_MS = 60 * 1000;
+    // Quinze secondes. Plus court que les livres de sort, parce que le compteur
+    // "x/40" doit arriver pendant que tu regardes encore le butin, pas une
+    // minute plus tard. Le cout reste nul : tout sauf le collecteur est ecarte
+    // par une comparaison de nom, et lui seul fait lire des sacs.
+    static constexpr uint32 INTERVALLE_MS = 15 * 1000;
 
     uint32 _depuis = 0;
 };

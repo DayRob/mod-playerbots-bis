@@ -456,6 +456,14 @@ PlayerbotsBis.WorldBuffs = ""
 #                     quarante. Nommer un collecteur ferme ce robinet - lui
 #                     reclame, tous les autres bots PASSENT explicitement.
 #
+#                     IL COMPTE A VOIX HAUTE. A chaque composant gagne, le
+#                     collecteur annonce son avancement - "Eclat d'Atiesh :
+#                     7/40". Un eclat de plus ne se voit pas dans le flot de
+#                     butin d'un raid, et sans ce compteur il faudrait fouiller
+#                     ses sacs pour savoir ou on en est. Il le redit aussi a
+#                     chaque connexion, pour rappeler l'etat apres un
+#                     redemarrage.
+#
 #                     CE QUE LE MODULE FAIT ENSUITE. Des que le collecteur tient
 #                     les trois composants, il les echange contre le baton, et
 #                     le dit :
