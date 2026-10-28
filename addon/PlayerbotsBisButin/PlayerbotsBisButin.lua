@@ -106,15 +106,33 @@ scanner:SetOwner(UIParent, "ANCHOR_NONE")
 
 local attente = 0
 
+-- L'icone est le dixieme retour de GetItemInfo. Quand l'objet n'est pas encore
+-- en cache, GetItemIcon sait souvent repondre quand meme - elle ne lit que la
+-- base du client, pas la fiche complete. Et si les deux se taisent, le point
+-- d'interrogation vaut mieux qu'un trou : une colonne d'icones qui clignote au
+-- premier releve se lit plus mal qu'une colonne pleine.
+local ICONE_INCONNUE = "Interface\\Icons\\INV_Misc_QuestionMark"
+
+local function IconeObjet(id, texture)
+    if texture then return texture end
+
+    if GetItemIcon then
+        local ok, ico = pcall(GetItemIcon, id)
+        if ok and ico then return ico end
+    end
+
+    return ICONE_INCONNUE
+end
+
 local function NomObjet(id)
-    local nom, lien, qualite = GetItemInfo(id)
-    if nom then return nom, lien, qualite end
+    local nom, lien, qualite, _, _, _, _, _, _, texture = GetItemInfo(id)
+    if nom then return nom, lien, qualite, texture end
 
     attente = attente + 1
     pcall(scanner.SetHyperlink, scanner, "item:" .. id)
 
     local secours = PlayerbotsBisButinNoms and PlayerbotsBisButinNoms[id]
-    return secours or ("objet " .. id), nil, nil
+    return secours or ("objet " .. id), nil, nil, nil
 end
 
 --------------------------------------------------------------------------------
@@ -503,6 +521,19 @@ local function Batir()
         plus:SetPoint("LEFT", r, "LEFT", 2, 0)
         r.plus = plus
 
+        -- L'icone de l'objet, posee entre le creux du "+" et le nom. Elle ne
+        -- sert que les lignes d'objet : un raid et un boss gardent leur "+".
+        local ico = r:CreateTexture(nil, "ARTWORK")
+        ico:SetWidth(16)
+        ico:SetHeight(16)
+        ico:SetPoint("LEFT", r, "LEFT", 32, 0)
+        -- Les icones du jeu portent une bordure d'un pixel sur leur pourtour.
+        -- Ce recadrage la mange, sinon chaque ligne gagne un lisere gris et la
+        -- colonne devient sale.
+        ico:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        ico:Hide()
+        r.icone = ico
+
         local nom = r:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
         nom:SetPoint("LEFT", r, "LEFT", 20, 0)
         nom:SetJustifyH("LEFT")
@@ -654,6 +685,7 @@ Refresh = function(reconstruire)
                 r.plus:SetTexture(deplie[ligne.cle] and "Interface\\Buttons\\UI-MinusButton-Up"
                                                      or "Interface\\Buttons\\UI-PlusButton-Up")
                 r.plus:SetPoint("LEFT", r, "LEFT", 2, 0)
+                r.icone:Hide()
                 r.nom:SetPoint("LEFT", r, "LEFT", 20, 0)
                 r.nom:SetText(d.nom)
                 r.nom:SetTextColor(1, 0.82, 0)
@@ -668,6 +700,7 @@ Refresh = function(reconstruire)
                 r.plus:SetTexture(deplie[ligne.cle] and "Interface\\Buttons\\UI-MinusButton-Up"
                                                      or "Interface\\Buttons\\UI-PlusButton-Up")
                 r.plus:SetPoint("LEFT", r, "LEFT", 18, 0)
+                r.icone:Hide()
                 r.nom:SetPoint("LEFT", r, "LEFT", 36, 0)
                 r.nom:SetText(d.nom)
                 r.nom:SetTextColor(0.9, 0.72, 0.4)
@@ -678,8 +711,10 @@ Refresh = function(reconstruire)
 
             else
                 local d = ligne.data
-                local nom, _, qualite = NomObjet(d.id)
+                local nom, _, qualite, texture = NomObjet(d.id)
                 r.plus:Hide()
+                r.icone:SetTexture(IconeObjet(d.id, texture))
+                r.icone:Show()
                 r.nom:SetPoint("LEFT", r, "LEFT", 52, 0)
                 r.nom:SetText(nom)
                 local c = QUALITE[qualite or 4] or QUALITE[4]

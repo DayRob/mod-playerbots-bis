@@ -116,3 +116,17 @@ Sans `ButinData.lua`, l'addon se charge quand meme : il range tout sous
   nouvelles listes BiS, relance `export_bis_butin.ps1`.
 - Une piece de quete, de reputation ou d'artisanat n'a pas de boss : elle tombe
   sous « source inconnue », et c'est normal.
+
+## Les icônes des objets
+
+Chaque ligne d'objet porte l'icône exacte de la pièce, entre le creux du `+` et
+son nom. Elle vient du dixième retour de `GetItemInfo`.
+
+Quand l'objet n'est pas encore dans le cache du client, `GetItemIcon` sait
+souvent répondre quand même — elle ne lit que la base locale, pas la fiche
+complète. Et si les deux se taisent, c'est le point d'interrogation qui
+s'affiche : une colonne d'icônes pleine se lit mieux qu'une colonne trouée qui
+se remplit au fil des réponses du serveur.
+
+Le `SetTexCoord(0.07, 0.93, 0.07, 0.93)` mange la bordure d'un pixel que
+portent toutes les icônes du jeu. Sans lui, chaque ligne gagne un liséré gris.
