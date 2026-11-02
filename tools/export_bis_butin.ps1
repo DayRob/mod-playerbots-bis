@@ -456,7 +456,53 @@ foreach ($l in $lignesRef) {
     }
 }
 
-Write-Host "$($meilleur.Count) objet(s) rang 1 avec une source."
+# ---------------------------------------------------------------------------
+# QUATRIEME CHEMIN : LES RECOMPENSES DE QUETE.
+#
+# Une piece de quete ne tombe d'aucune creature et ne s'echange contre aucun
+# jeton : les trois chemins precedents la manquent tous, et la fenetre la
+# rangeait sous "Source inconnue" alors que sa provenance est parfaitement
+# connue - Le Sauveur de Kalimdor, La chute de Kel'Thuzad, les Armements
+# imperiaux qiraji, l'Anneau du Maitre-tueur de dragon.
+#
+# Les deux familles de colonnes comptent : RewardItem est ce que la quete donne
+# d'office, RewardChoiceItemID ce qu'elle propose au choix. Une piece BiS est
+# presque toujours dans la seconde.
+#
+# CARTE -1 VOLONTAIREMENT. Une quete n'est pas un raid a planifier, et lui
+# attribuer la carte de son PNJ ferait croire a un lieu de butin. Ce qui compte
+# est de ne plus envoyer chercher dans un donjon une piece qui se rend chez un
+# PNJ - le nom de la quete suffit a le dire.
+#
+# Score 1 : n'importe quelle source reelle l'emporterait. Cette passe ne touche
+# de toute facon que ce qui n'a RIEN trouve avant elle.
+Write-Host "Recompenses de quete..."
+$aResoudre = @($objetsListes | Where-Object { -not $meilleur.ContainsKey($_) })
+if ($aResoudre.Count -gt 0) {
+    $colonnes = @('RewardItem1', 'RewardItem2', 'RewardItem3', 'RewardItem4',
+                  'RewardChoiceItemID1', 'RewardChoiceItemID2', 'RewardChoiceItemID3',
+                  'RewardChoiceItemID4', 'RewardChoiceItemID5', 'RewardChoiceItemID6')
+    $trouves = 0
+    foreach ($col in $colonnes) {
+        foreach ($l in (Invoke-SqlEnPaquets "SELECT $col, LogTitle FROM quest_template WHERE $col IN" $aResoudre ";")) {
+            $f = ([string]$l) -split "`t"
+            if ($f.Count -lt 2) { continue }
+
+            $id = [int]$f[0]
+            # La colonne vaut 0 sur les quetes qui ne donnent rien a ce rang, et
+            # le paquet rend la ligne quand meme : sans ce test, l'objet 0 entre
+            # dans la table et l'addon cherche un nom pour lui.
+            if ($id -le 0) { continue }
+            if ($meilleur.ContainsKey($id)) { continue }
+
+            $meilleur[$id] = @{ score = 1; boss = "Quete : $($f[1])"; carte = -1; jeton = 0 }
+            $trouves++
+        }
+    }
+    Write-Host "  $($aResoudre.Count) sans source avant, $trouves rattachee(s) a une quete"
+}
+
+Write-Host "$($meilleur.Count) objet(s) avec une source."
 Write-Host ""
 
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
