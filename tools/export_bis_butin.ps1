@@ -1,4 +1,4 @@
-<#
+﻿<#
     Exporte les SOURCES des pieces rang 1 vers le ButinData.lua de l'addon
     PlayerbotsBisButin.
 
@@ -223,17 +223,29 @@ function Colonne-Entiere([object[]] $lignes, [int] $index) {
     return @($vus.Keys)
 }
 
-Write-Host "Objets rang 1..."
-$rang1 = @(Colonne-Entiere (Invoke-Sql "SELECT DISTINCT i.item_id FROM playerbots_bis_item i WHERE i.rank = 1;") 0)
-Write-Host "  $($rang1.Count) objets"
+# TOUTES LES LIGNES, ET NON LES SEULS RANGS 1.
+#
+# L'addon n'affiche pas les rangs 1, il affiche les CIBLES - ce que le serveur
+# marque comme attendu par un bot. Or une cible n'est pas toujours de rang 1 :
+# les anneaux et les bijoux ont deux emplacements, leurs candidats sont mis en
+# commun et les DEUX meilleurs sont pris. Le second anneau d'un palier est donc
+# une cible de rang 2.
+#
+# Filtrer sur le rang 1 ici ne cherchait jamais sa provenance, et la fenetre
+# l'affichait sous "Sans lieu connu" - l'Anneau de la faucheuse d'os, rang 2 et
+# jeton de tier 3, en etait l'exemple.
+Write-Host "Objets des listes..."
+$objetsListes = @(Colonne-Entiere (Invoke-Sql "SELECT DISTINCT i.item_id FROM playerbots_bis_item i;") 0)
+Write-Host "  $($objetsListes.Count) objets"
 
 # Les jetons : la piece achetee ne tombe nulle part, c'est le jeton qui tombe.
-# Sans ce chemin, les sept jetons du tier 2.5 d'Ahn'Qiraj et les jetons hakkari
-# laisseraient leurs pieces sans source, donc invisibles au choix d'un raid.
+# Sans ce chemin, les jetons du tier 2.5 d'Ahn'Qiraj, les jetons hakkari et les
+# jetons de tier 3 de Naxxramas laisseraient leurs pieces sans source, donc
+# invisibles au choix d'un raid.
 $pieceDuJeton = @{}   # token_id -> liste de pieces rang 1
 if (Table-Existe 'playerbots_bis_quest_token') {
     $voulu = @{}
-    foreach ($id in $rang1) { $voulu[$id] = $true }
+    foreach ($id in $objetsListes) { $voulu[$id] = $true }
 
     foreach ($l in (Invoke-Sql "SELECT DISTINCT token_id, piece_id FROM playerbots_bis_quest_token;")) {
         $f = ([string]$l) -split "`t"
@@ -243,10 +255,10 @@ if (Table-Existe 'playerbots_bis_quest_token') {
         if (-not $pieceDuJeton.ContainsKey($tok)) { $pieceDuJeton[$tok] = New-Object System.Collections.Generic.List[int] }
         [void]$pieceDuJeton[$tok].Add($piece)
     }
-    Write-Host "  $($pieceDuJeton.Count) jeton(s) donnant une piece rang 1"
+    Write-Host "  $($pieceDuJeton.Count) jeton(s) donnant une piece des listes"
 }
 
-$aChercher = @($rang1 + @($pieceDuJeton.Keys)) | Select-Object -Unique
+$aChercher = @($objetsListes + @($pieceDuJeton.Keys)) | Select-Object -Unique
 
 Write-Host "Butin direct des creatures..."
 $lignesDirect = Invoke-SqlEnPaquets "SELECT Entry, Item, Chance FROM creature_loot_template WHERE Item IN" $aChercher ";"
@@ -335,14 +347,14 @@ if ($secourus -gt 0) {
 
 Write-Host "Noms des objets..."
 $noms = @{}
-foreach ($l in (Invoke-SqlEnPaquets "SELECT entry, name FROM item_template WHERE entry IN" $rang1 ";")) {
+foreach ($l in (Invoke-SqlEnPaquets "SELECT entry, name FROM item_template WHERE entry IN" $objetsListes ";")) {
     $f = ([string]$l) -split "`t"
     if ($f.Count -lt 2) { continue }
     $noms[[int]$f[0]] = $f[1]
 }
 if ($locItem.table) {
     $sep = if ($locItem.filtre) { " AND" } else { " WHERE" }
-    foreach ($l in (Invoke-SqlEnPaquets "SELECT $($locItem.cle), $($locItem.nom) FROM $($locItem.table)$($locItem.filtre)$sep $($locItem.cle) IN" $rang1 ";")) {
+    foreach ($l in (Invoke-SqlEnPaquets "SELECT $($locItem.cle), $($locItem.nom) FROM $($locItem.table)$($locItem.filtre)$sep $($locItem.cle) IN" $objetsListes ";")) {
         $f = ([string]$l) -split "`t"
         if ($f.Count -lt 2) { continue }
         if ($f[1] -and $f[1] -ne 'NULL' -and $f[1].Trim() -ne '') { $noms[[int]$f[0]] = $f[1] }
@@ -400,7 +412,7 @@ function Ajouter-Candidats([object[]] $lignes, [int] $colEntry, [int] $colItem, 
         $objet    = [int]$f[$colItem]
         $chance   = [double]$f[$colChance]
 
-        # Une piece rang 1 qui tombe directement.
+        # Une piece des listes qui tombe directement.
         if ($script:voulus[$objet]) { Retenir $objet $creature $chance 0 }
 
         # Un jeton : la source compte pour chaque piece qu'il donne.
@@ -413,7 +425,7 @@ function Ajouter-Candidats([object[]] $lignes, [int] $colEntry, [int] $colItem, 
 }
 
 $voulus = @{}
-foreach ($id in $rang1) { $voulus[$id] = $true }
+foreach ($id in $objetsListes) { $voulus[$id] = $true }
 
 Ajouter-Candidats $lignesDirect 0 1 2
 
