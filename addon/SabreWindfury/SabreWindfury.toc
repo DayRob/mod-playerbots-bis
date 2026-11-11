@@ -1,0 +1,8 @@
+## Interface: 30300
+## Title: Sabre |cff00ff00Windfury|r
+## Notes: Un bruit de sabre laser a chaque proc de Furie-des-vents (/sabre).
+## Author: mod-playerbots-bis
+## Version: 1.0
+## SavedVariables: SabreWindfuryDB
+
+SabreWindfury.lua

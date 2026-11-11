@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Copie un addon du depot dans le dossier AddOns du client.
 
@@ -35,7 +35,7 @@ param(
 
     # Le dossier d'addon a copier. Le depot en contient plusieurs - l'etat BiS
     # et le butin restant - et chacun est un dossier independant pour le client.
-    [ValidateSet('PlayerbotsBisTooltip', 'PlayerbotsBisButin', 'PlayerbotsCensus')]
+    [ValidateSet('PlayerbotsBisTooltip', 'PlayerbotsBisButin', 'PlayerbotsCensus', 'SabreWindfury')]
     [string]$Addon = 'PlayerbotsBisTooltip'
 )
 
@@ -63,7 +63,12 @@ $target = Join-Path $addons $Addon
 # ce qui est exactement l'accident que cette regle doit empecher.
 # Chaque addon a SON fichier genere. Le butin a ses sources de drop, la
 # version BiS ses listes : la regle "le plus recent gagne" vaut pour les deux.
-$generated = if ($Addon -eq 'PlayerbotsBisButin') { 'ButinData.lua' } else { 'BisData.lua' }
+# SabreWindfury n'en a aucun - rien a proteger, tous ses fichiers se copient.
+$generated = switch ($Addon) {
+    'PlayerbotsBisButin' { 'ButinData.lua' }
+    'SabreWindfury'      { $null }
+    default              { 'BisData.lua' }
+}
 
 # Lit l'horodatage inscrit en tete d'un BisData.lua genere. Renvoie $null pour
 # le substitut du depot, qui n'en porte pas.
